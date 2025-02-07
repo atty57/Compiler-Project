@@ -10,6 +10,8 @@ stages:
 
 pytest:
   stage: test
+  only:
+        - main
   image: ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
   cache:
     - key:
