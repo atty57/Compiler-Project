@@ -23,7 +23,7 @@
 
 2. Install pre-commit hooks
     ```console
-    uv run pre-commit install
+    471c$ uv run pre-commit install
     ```
 
 3. Install dependencies:
