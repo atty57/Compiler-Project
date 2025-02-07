@@ -20,6 +20,7 @@ addopts = [
     "--cov-report=html",
     "--cov-report=xml",
     "--cov=src",
+    "--junitxml=report.xml",
 ]
 
 [dependency-groups]
