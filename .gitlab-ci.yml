@@ -27,6 +27,3 @@ pytest:
       coverage_report:
         coverage_format: cobertura
         path: reports/coverage/coverage.xml
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == "main"
