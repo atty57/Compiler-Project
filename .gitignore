@@ -62,7 +62,6 @@ coverage.xml
 .pydevproject
 .project
 .settings
-.vscode
 __pycache__/
 .python-version
 
