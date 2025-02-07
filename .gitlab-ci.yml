@@ -1,6 +1,6 @@
 variables:
   UV_VERSION: 0.5
-  PYTHON_VERSION: 3.12
+  PYTHON_VERSION: 3.13
   BASE_LAYER: bookworm-slim
   UV_CACHE_DIR: .uv-cache
   UV_SYSTEM_PYTHON: 1
@@ -11,7 +11,7 @@ stages:
 
 pre-commit:
   stage: build
-  image: python:3.11
+  image: python:3.13
   script:
     - pip install pre-commit
     - pre-commit run --all-files
