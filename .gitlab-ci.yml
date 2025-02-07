@@ -11,7 +11,7 @@ stages:
 
 pre-commit:
   stage: build
-  image: python:3.13
+  image: ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
   script:
     - uv sync --all-extras
     - uv run pre-commit run --all-files
