@@ -1,6 +1,6 @@
 # 471c
 
-![coverage](https://gitlab.example.com/clause/471c/badges/main/coverage.svg?job=coverage)
+![coverage](https://gitlab.eecis.udel.edu/clause/471c/badges/main/coverage.svg?job=coverage)
 
 
 # Getting Started
