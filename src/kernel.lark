@@ -1,0 +1,19 @@
+expr: nat                                                           -> int_expr
+    | "(" "+" expr expr ")"                                         -> add_expr
+    | "(" "-" expr expr ")"                                         -> subtract_expr
+    | "(" "*" expr expr ")"                                         -> multiply_expr    
+    | "(" "let" "(" "[" identifier expr "]" ")" expr ")"            -> let_expr
+    | identifier                                                    -> var_expr
+
+nat: NAT
+identifier: IDENTIFIER
+
+NAT:    "1".."9"        ("_"?  "0".."9")*
+    |   "0"             ("_"?  "0"     )* /(?![1-9])/   
+
+IDENTIFIER: /[^\W\d]\w*/
+
+%import common.WS
+
+%ignore WS
+
