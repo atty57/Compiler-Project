@@ -1,5 +1,5 @@
 import pytest
-from kernel import Identifier, Expression, Int, Add, Subtract, Multiply, Let, Var
+from kernel import Expression, Int, Add, Subtract, Multiply, Let, Var
 from eval import Value, Environment, eval_expr
 
 
