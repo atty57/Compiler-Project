@@ -14,13 +14,16 @@ line-length = 120
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = [
-    "--html=report.html",
+    "--html=reports/tests/report.html",
     "--self-contained-html",
-    "--cov-branch",
-    "--cov-report=html",
-    "--cov-report=xml",
+    "--junitxml=reports/tests/report.xml",
     "--cov=src",
-    "--junitxml=report.xml",
+    "--cov-branch",
+    "--cov-report=term",
+    "--cov-report=html:reports/coverage/htmlcov",
+    "--cov-report=xml:reports/coverage/coverage.xml",
+
+
 ]
 
 [dependency-groups]
