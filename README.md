@@ -21,6 +21,11 @@
 
 1. Clone the repository
 
+2. Install pre-commit hooks
+    ```console
+    uv run pre-commit install
+    ```
+
 3. Install dependencies:
     ```console
     471c$ uv sync
