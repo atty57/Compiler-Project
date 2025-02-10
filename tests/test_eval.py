@@ -46,7 +46,7 @@ from eval import Value, Environment, eval_expr
         ]
     ),
 )
-def test_eval(
+def test_eval_expr(
     expr: Expression,
     env: Environment,
     expected: int,
