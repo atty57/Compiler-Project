@@ -3,6 +3,15 @@ import sugar
 import kernel
 
 
+def desugar(
+    program: sugar.Program,
+) -> kernel.Program:
+    return kernel.Program(
+        parameters=program.parameters,
+        body=desugar_expr(program.body),
+    )
+
+
 def desugar_expr(
     expr: sugar.Expression,
 ) -> kernel.Expression:
@@ -21,10 +30,10 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Subtract(operands):
+        case sugar.Subtract(es):
             raise NotImplementedError()
 
-        case sugar.Multiply(operands):
+        case sugar.Multiply(es):
             raise NotImplementedError()
 
         case sugar.Let(x, e1, e2):

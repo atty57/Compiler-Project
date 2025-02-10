@@ -1,5 +1,14 @@
 from functools import partial
-from kernel import Expression, Int, Add, Subtract, Multiply, Let, Var
+from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var
+
+
+def opt(
+    program: Program,
+) -> Program:
+    return Program(
+        parameters=program.parameters,
+        body=opt_expr(program.body),
+    )
 
 
 def opt_expr(
