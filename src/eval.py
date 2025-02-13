@@ -29,21 +29,21 @@ def eval_expr(
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
                     return Int(i1 + i2)
-                case _:
+                case _:  # pragma: no cover
                     raise ValueError()
 
         case Subtract(e1, e2):
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
                     return Int(i1 - i2)
-                case _:
+                case _:  # pragma: no cover
                     raise ValueError()
 
         case Multiply(e1, e2):
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
                     return Int(i1 * i2)
-                case _:
+                case _:  # pragma: no cover
                     raise ValueError()
 
         case Let(x, e1, e2):
@@ -61,7 +61,7 @@ def eval_expr(
                     return recur(e2)
                 case Bool(False):
                     return recur(e3)
-                case _:
+                case _:  # pragma: no cover
                     raise ValueError()
 
         case Compare(operator, e1, e2):  # pragma: no branch
@@ -74,5 +74,5 @@ def eval_expr(
                             return Bool(i1 == i2)
                         case ">=":  # pragma: no branch
                             return Bool(i1 >= i2)
-                case _:
+                case _:  # pragma: no cover
                     raise ValueError()
