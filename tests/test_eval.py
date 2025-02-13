@@ -32,39 +32,108 @@ def test_eval(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Expression, Environment, Value]](
+    list[tuple[Int, Environment, Value]](
         [
-            # Int
             (
                 Int(0),
                 {},
                 0,
             ),
-            # Add
+        ]
+    ),
+)
+def test_eval_expr_int(
+    expr: Int,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Add, Environment, Value]](
+        [
             (
                 Add(Int(1), Int(1)),
                 {},
                 2,
             ),
-            # Subtract
+        ]
+    ),
+)
+def test_eval_expr_add(
+    expr: Add,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Subtract, Environment, Value]](
+        [
             (
                 Subtract(Int(1), Int(1)),
                 {},
                 0,
             ),
-            # Multiply
+        ]
+    ),
+)
+def test_eval_expr_subtract(
+    expr: Subtract,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Multiply, Environment, Value]](
+        [
             (
                 Multiply(Int(1), Int(2)),
                 {},
                 2,
             ),
-            # Let
+        ]
+    ),
+)
+def test_eval_multiply(
+    expr: Multiply,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Expression, Environment, Value]](
+        [
             (
                 Let("x", Int(1), Var("x")),
                 {},
                 1,
             ),
-            # Var
+        ]
+    ),
+)
+def test_eval_expr_let(
+    expr: Let,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Var, Environment, Value]](
+        [
             (
                 Var("x"),
                 {"x": 0},
@@ -73,8 +142,8 @@ def test_eval(
         ]
     ),
 )
-def test_eval_expr(
-    expr: Expression,
+def test_eval_expr_var(
+    expr: Var,
     env: Environment,
     expected: Value,
 ) -> None:
