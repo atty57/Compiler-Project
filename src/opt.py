@@ -1,5 +1,5 @@
 from functools import partial
-from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 
 
 def opt(
@@ -103,7 +103,7 @@ def opt_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):  # pragma: no branch
+        case If(e1, e2, e3):
             match recur(e1):
                 case Bool(True):
                     return recur(e2)
@@ -111,3 +111,13 @@ def opt_expr(
                     return recur(e3)
                 case e1:  # pragma: no branch
                     return If(e1, recur(e2), recur(e3))
+
+        case Unit():
+            return expr
+
+        case While(e1, e2):  # pragma no branch
+            match recur(e1):
+                case Bool(False):
+                    return Unit()
+                case e1:
+                    return While(e1, recur(e2))

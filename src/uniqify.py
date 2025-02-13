@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from functools import partial
-from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 
 
 type Environment = Mapping[str, str]
@@ -41,5 +41,11 @@ def uniqify_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):  # pragma: no branch
+        case If(e1, e2, e3):
             return If(recur(e1), recur(e2), recur(e3))
+
+        case Unit():
+            return expr
+
+        case While(e1, e2):  # pragma: no branch
+            return While(recur(e1), recur(e2))

@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 import pytest
-from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 from eval import Value, Environment, eval, eval_expr
 
 
@@ -259,6 +259,46 @@ def test_eval_expr_equal_to(
 )
 def test_eval_expr_greater_than_or_equal_to(
     expr: Binary,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Unit, Environment, Value]](
+        [
+            (
+                Unit(),
+                {},
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_unit(
+    expr: Unit,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[While, Environment, Value]](
+        [
+            (
+                While(Bool(False), Int(0)),
+                {},
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_while(
+    expr: While,
     env: Environment,
     expected: Value,
 ) -> None:

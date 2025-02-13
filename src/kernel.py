@@ -10,6 +10,8 @@ type Expression = Union[
     Var,
     Bool,
     If,
+    Unit,
+    While,
 ]
 
 
@@ -47,6 +49,33 @@ class If:
     condition: Expression
     consequent: Expression
     alternative: Expression
+
+
+@dataclass(frozen=True)
+class Unit:
+    pass
+
+
+@dataclass(frozen=True)
+class Cell:
+    value: Expression
+
+
+@dataclass(frozen=True)
+class CellGet:
+    cell: Expression
+
+
+@dataclass(frozen=True)
+class CellSet:
+    cell: Expression
+    value: Expression
+
+
+@dataclass(frozen=True)
+class While:
+    condition: Expression
+    body: Expression
 
 
 @dataclass(frozen=True)

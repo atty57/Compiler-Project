@@ -1,5 +1,5 @@
 import pytest
-from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 from uniqify import Environment, uniqify, uniqify_expr
 from util import SequentialNameGenerator
 
@@ -151,6 +151,48 @@ def test_uniqify_expr_bool(
 )
 def test_uniqify_expr_if(
     expr: If,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Unit, Environment, Expression]](
+        [
+            (
+                Unit(),
+                {},
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_unit(
+    expr: Unit,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[While, Environment, Expression]](
+        [
+            (
+                While(Bool(True), Int(1)),
+                {},
+                While(Bool(True), Int(1)),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_while(
+    expr: While,
     env: Environment,
     expected: Expression,
 ) -> None:

@@ -1,5 +1,5 @@
 import pytest
-from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 from opt import opt, opt_expr
 
 
@@ -330,6 +330,46 @@ def test_opt_expr_equal_to(
 )
 def test_opt_expr_greeater_than_or_equal_to(
     expr: Binary,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Unit, Expression]](
+        [
+            (
+                Unit(),
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_unit(
+    expr: Unit,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[While, Expression]](
+        [
+            (
+                While(Bool(False), Int(0)),
+                Unit(),
+            ),
+            (
+                While(Var("x"), Int(0)),
+                While(Var("x"), Int(0)),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_while(
+    expr: While,
     expected: Expression,
 ) -> None:
     assert opt_expr(expr) == expected
