@@ -27,17 +27,32 @@ def desugar_expr(
                     return kernel.Int(0)
                 case [first, *rest]:
                     return kernel.Add(recur(first), recur(sugar.Add(rest)))
-                case _:  # pragma: no cover
-                    raise NotImplementedError()
+                case _:
+                    pass
 
         case sugar.Subtract(es):
-            raise NotImplementedError()
+            match es:
+                case []:
+                    return kernel.Int(0)
+                case [first, *rest]:
+                    if not rest:
+                        return kernel.Subtract(kernel.Int(0), recur(first))
+                    else:
+                        return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
+                case _:
+                    pass
 
         case sugar.Multiply(es):
-            raise NotImplementedError()
+            match es:
+                case []:
+                    return kernel.Int(1)
+                case [first, *rest]:
+                    return kernel.Multiply(recur(first), recur(sugar.Multiply(rest)))
+                case _:
+                    pass
 
         case sugar.Let(x, e1, e2):
-            raise NotImplementedError()
+            return kernel.Let(x, recur(e1), recur(e2))
 
         case sugar.Var(x):  # pragma: no branch
             return kernel.Var(x)

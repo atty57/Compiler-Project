@@ -33,7 +33,7 @@ def eval_expr(
             return recur(e1) * recur(e2)
 
         case Let(x, e1, e2):
-            raise NotImplementedError()
+            return recur(e2, env={**env, x: recur(e1)})
 
         case Var(x):  # pragma: no branch
-            raise NotImplementedError()
+            return env[x]
