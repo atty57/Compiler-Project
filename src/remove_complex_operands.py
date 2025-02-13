@@ -28,20 +28,10 @@ def rco_expr(
         case kernel.Int(i):
             return monadic.Int(i)
 
-        case kernel.Add(e1, e2):
+        case kernel.Binary(operator, e1, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
-            return wrap({**b1, **b2}, monadic.Add(a1, a2))
-
-        case kernel.Subtract(e1, e2):
-            a1, b1 = to_atom(e1)
-            a2, b2 = to_atom(e2)
-            return wrap({**b1, **b2}, monadic.Subtract(a1, a2))
-
-        case kernel.Multiply(e1, e2):
-            a1, b1 = to_atom(e1)
-            a2, b2 = to_atom(e2)
-            return wrap({**b1, **b2}, monadic.Multiply(a1, a2))
+            return wrap({**b1, **b2}, monadic.Binary(operator, a1, a2))
 
         case kernel.Let(x, e1, e2):
             return monadic.Let(x, to_expr(e1), to_expr(e2))
@@ -52,16 +42,11 @@ def rco_expr(
         case kernel.Bool(b):
             return monadic.Bool(b)
 
-        case kernel.If(e1, e2, e3):
+        case kernel.If(e1, e2, e3):  # pragma: no branch
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             e3 = to_expr(e3)
             return monadic.If(e1, e2, e3)
-
-        case kernel.Compare(operator, e1, e2):
-            a1, b1 = to_atom(e1)
-            a2, b2 = to_atom(e2)
-            return wrap({**b1, **b2}, monadic.Compare(operator, a1, a2))
 
 
 def rco_atom(
@@ -76,23 +61,11 @@ def rco_atom(
             tmp = fresh("t")
             return tmp, {tmp: monadic.Int(i)}
 
-        case kernel.Add(e1, e2):
+        case kernel.Binary(operator, e1, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
             tmp = fresh("t")
-            return tmp, {**b1, **b2, tmp: monadic.Add(a1, a2)}
-
-        case kernel.Subtract(e1, e2):
-            a1, b1 = to_atom(e1)
-            a2, b2 = to_atom(e2)
-            tmp = fresh("t")
-            return tmp, {**b1, **b2, tmp: monadic.Subtract(a1, a2)}
-
-        case kernel.Multiply(e1, e2):
-            a1, b1 = to_atom(e1)
-            a2, b2 = to_atom(e2)
-            tmp = fresh("t")
-            return tmp, {**b1, **b2, tmp: monadic.Multiply(a1, a2)}
+            return tmp, {**b1, **b2, tmp: monadic.Binary(operator, a1, a2)}
 
         case kernel.Var(x):
             return x, {}
@@ -105,18 +78,12 @@ def rco_atom(
             tmp = fresh("t")
             return tmp, {tmp: monadic.Bool(b)}
 
-        case kernel.If(e1, e2, e3):
+        case kernel.If(e1, e2, e3):  # pragma: no branch
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             e3 = to_expr(e3)
             tmp = fresh("t")
             return tmp, {tmp: monadic.If(e1, e2, e3)}
-
-        case kernel.Compare(operator, e1, e2):
-            a1, b1 = to_atom(e1)
-            a2, b2 = to_atom(e2)
-            tmp = fresh("t")
-            return tmp, {**b1, **b2, tmp: monadic.Compare(operator, a1, a2)}
 
 
 def wrap(

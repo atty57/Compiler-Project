@@ -20,14 +20,7 @@ class Int:
 
 @dataclass(frozen=True)
 class Binary:
-    operator: Literal[
-        "+",
-        "-",
-        "*",
-        "<",
-        "==",
-        ">=",
-    ]
+    operator: Literal["+", "-", "*", "<", "==", ">="]
     x: Expression
     y: Expression
 

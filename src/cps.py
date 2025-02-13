@@ -5,12 +5,9 @@ from typing import Literal, Union
 
 type Expression = Union[
     Int,
-    Add,
-    Subtract,
-    Multiply,
     Var,
+    Binary,
     Bool,
-    Compare,
     Block,
 ]
 
@@ -28,19 +25,15 @@ class Int:
 
 
 @dataclass(frozen=True)
-class Add:
-    x: str
-    y: str
-
-
-@dataclass(frozen=True)
-class Subtract:
-    x: str
-    y: str
-
-
-@dataclass(frozen=True)
-class Multiply:
+class Binary:
+    operator: Literal[
+        "+",
+        "-",
+        "*",
+        "<",
+        "==",
+        ">=",
+    ]
     x: str
     y: str
 
@@ -60,17 +53,6 @@ class Var:
 @dataclass(frozen=True)
 class Bool:
     value: bool
-
-
-@dataclass(frozen=True)
-class Compare:
-    operator: Literal[
-        "<",
-        "==",
-        ">=",
-    ]
-    x: str
-    y: str
 
 
 @dataclass(frozen=True)

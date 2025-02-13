@@ -26,14 +26,8 @@ def ec_tail(
         case monadic.Int(i):
             return cps.Return(cps.Int(i))
 
-        case monadic.Add(a1, a2):
-            return cps.Return(cps.Add(a1, a2))
-
-        case monadic.Subtract(a1, a2):
-            return cps.Return(cps.Subtract(a1, a2))
-
-        case monadic.Multiply(a1, a2):
-            return cps.Return(cps.Multiply(a1, a2))
+        case monadic.Binary(operator, a1, a2):
+            return cps.Return(cps.Binary(operator, a1, a2))
 
         case monadic.Let(x, e1, e2):
             return assign(x, e1, next=tail(e2))
@@ -44,15 +38,8 @@ def ec_tail(
         case monadic.Bool(b):
             return cps.Return(cps.Bool(b))
 
-        case monadic.If(condition, consequent, alternative):
-            return predicate(
-                condition,
-                then=tail(consequent),
-                otherwise=tail(alternative),
-            )
-
-        case monadic.Compare(operator, a1, a2):
-            return cps.Return(cps.Compare(operator, a1, a2))
+        case monadic.If(e1, e2, e3):  # pragma: no branch
+            return predicate(e1, then=tail(e2), otherwise=tail(e3))
 
 
 def ec_assign(
@@ -68,14 +55,8 @@ def ec_assign(
         case monadic.Int(i):
             return cps.Let(dest, cps.Int(i), next)
 
-        case monadic.Add(a1, a2):
-            return cps.Let(dest, cps.Add(a1, a2), next)
-
-        case monadic.Subtract(a1, a2):
-            return cps.Let(dest, cps.Subtract(a1, a2), next)
-
-        case monadic.Multiply(a1, a2):
-            return cps.Let(dest, cps.Multiply(a1, a2), next)
+        case monadic.Binary(operator, a1, a2):
+            return cps.Let(dest, cps.Binary(operator, a1, a2), next)
 
         case monadic.Var(x):
             return cps.Let(dest, cps.Var(x), next)
@@ -86,11 +67,8 @@ def ec_assign(
         case monadic.Let(x, e1, e2):
             return assign(x, e1, assign(dest, e2, next))
 
-        case monadic.If(e1, e2, e3):
+        case monadic.If(e1, e2, e3):  # pragma: no branch
             return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
-
-        case monadic.Compare(operator, a1, a2):
-            return cps.Let(dest, cps.Compare(operator, a1, a2), next)
 
 
 def ec_predicate(
@@ -104,8 +82,16 @@ def ec_predicate(
     predicate = partial(ec_predicate, fresh=fresh)
 
     match expr:
-        case monadic.Int() | monadic.Add() | monadic.Subtract() | monadic.Multiply():
-            raise NotImplementedError()
+        case monadic.Int():
+            raise ValueError()
+
+        case monadic.Binary(operator, _, _):
+            match operator:
+                case "+" | "-" | "*":
+                    raise ValueError()
+                case _:
+                    tmp = fresh("t")
+                    return assign(tmp, expr, predicate(monadic.Var(tmp), then, otherwise))
 
         case monadic.Let(x, e1, e2):
             return assign(x, e1, next=predicate(e2, then, otherwise))
@@ -130,9 +116,5 @@ def ec_predicate(
                 case False:
                     return otherwise
 
-        case monadic.If(e1, e2, e3):
+        case monadic.If(e1, e2, e3):  # pragma: no branch
             return predicate(e1, predicate(e2, then, otherwise), predicate(e3, then, otherwise))
-
-        case monadic.Compare():
-            tmp = fresh("t")
-            return assign(tmp, expr, predicate(monadic.Var(tmp), then, otherwise))
