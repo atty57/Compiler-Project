@@ -11,9 +11,7 @@ type Expression = Union[
     Bool,
     If,
     Unit,
-    Cell,
-    CellGet,
-    CellSet,
+    While,
 ]
 
 
@@ -79,6 +77,12 @@ class CellGet:
 class CellSet:
     cell: Expression
     value: Expression
+
+
+@dataclass(frozen=True)
+class While:
+    condition: Expression
+    body: Expression
 
 
 @dataclass(frozen=True)

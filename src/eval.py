@@ -1,7 +1,7 @@
 from collections.abc import Sequence, Mapping
 from functools import partial
 from typing import Union
-from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 
 
 type Value = Union[
@@ -85,7 +85,7 @@ def eval_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):  # pragma: no branch
+        case If(e1, e2, e3):
             match recur(e1):
                 case Bool(True):
                     return recur(e2)
@@ -93,3 +93,18 @@ def eval_expr(
                     return recur(e3)
                 case _:  # pragma: no cover
                     raise ValueError()
+
+        case Unit():
+            return expr
+
+        case While(e1, e2):  # pragma: no branch
+            while True:
+                match recur(e1):
+                    case Bool(False):
+                        break
+                    case Bool(True):
+                        recur(e2)
+                    case _:  # pragma: no cover
+                        raise ValueError()
+
+            return Unit()

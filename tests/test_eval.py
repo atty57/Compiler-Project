@@ -1,19 +1,6 @@
 from collections.abc import Sequence
 import pytest
-from kernel import (
-    Program,
-    Expression,
-    Int,
-    Binary,
-    Let,
-    Var,
-    Bool,
-    If,
-    Unit,
-    Cell,
-    CellGet,
-    CellSet,
-)
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit, While
 from eval import Value, Environment, eval, eval_expr
 
 
@@ -300,18 +287,18 @@ def test_eval_expr_unit(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Cell, Environment, Value]](
+    list[tuple[While, Environment, Value]](
         [
             (
-                Cell(Int(0)),
+                While(Bool(False), Int(0)),
                 {},
-                True,
+                Unit(),
             ),
         ]
     ),
 )
-def test_eval_expr_cell(
-    expr: Cell,
+def test_eval_expr_while(
+    expr: While,
     env: Environment,
     expected: Value,
 ) -> None:
