@@ -10,7 +10,7 @@ def eval(
     program: Program,
     arguments: Sequence[Value],
 ) -> Value:
-    env: Environment = {}
+    env: Environment = {p: a for p, a in zip(program.parameters, arguments, strict=True)}
     return eval_expr(program.body, env)
 
 
@@ -25,21 +25,21 @@ def eval_expr(
 
         case Add(e1, e2):
             match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
+                case [Int(i1), Int(i2)]:  # pragma: no branch
                     return Int(i1 + i2)
 
         case Subtract(e1, e2):
             match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Int(i1 * i2)
+                case [Int(i1), Int(i2)]:  # pragma: no branch
+                    return Int(i1 - i2)
 
         case Multiply(e1, e2):
             match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
+                case [Int(i1), Int(i2)]:  # pragma: no branch
                     return Int(i1 * i2)
 
         case Let(x, e1, e2):
-            raise NotImplementedError()
+            return recur(e2, env={**env, x: recur(e1)})
 
         case Var(x):  # pragma: no branch
-            raise NotImplementedError()
+            return env[x]

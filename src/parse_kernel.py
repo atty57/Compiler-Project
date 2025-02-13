@@ -83,11 +83,3 @@ def parse_expr(
         parser = Lark(f, start="expr")
         tree: ParseTree = parser.parse(source)
         return AstTransformer().transform(tree)  # type: ignore
-
-
-if __name__ == "__main__":
-    source = """
-    (let ([x 1]) x)
-    """
-    expr = parse_expr(source)
-    print(expr)

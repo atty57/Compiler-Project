@@ -44,6 +44,14 @@ def test_opt_expr_int(
     list[tuple[Add, Expression]](
         [
             (
+                Add(Int(0), Var("x")),
+                Var("x"),
+            ),
+            (
+                Add(Var("x"), Int(0)),
+                Var("x"),
+            ),
+            (
                 Add(Int(1), Int(1)),
                 Int(2),
             ),
@@ -112,6 +120,22 @@ def test_opt_expr_subtract(
     list[tuple[Multiply, Expression]](
         [
             (
+                Multiply(Int(0), Var("x")),
+                Int(0),
+            ),
+            (
+                Multiply(Var("x"), Int(0)),
+                Int(0),
+            ),
+            (
+                Multiply(Int(1), Var("x")),
+                Var("x"),
+            ),
+            (
+                Multiply(Var("x"), Int(1)),
+                Var("x"),
+            ),
+            (
                 Multiply(Int(1), Int(2)),
                 Int(2),
             ),
@@ -132,12 +156,12 @@ def test_opt_expr_subtract(
                 Multiply(Int(6), Var("x")),
             ),
             (
-                Multiply(Int(1), Var("x")),
-                Multiply(Int(1), Var("x")),
+                Multiply(Int(2), Var("x")),
+                Multiply(Int(2), Var("x")),
             ),
             (
-                Multiply(Var("x"), Int(1)),
-                Multiply(Int(1), Var("x")),
+                Multiply(Var("x"), Int(2)),
+                Multiply(Int(2), Var("x")),
             ),
             (
                 Multiply(Var("x"), Var("y")),
