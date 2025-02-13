@@ -10,6 +10,16 @@ type Expression = Union[
     Multiply,
     Let,
     Var,
+    Bool,
+    Not,
+    And,
+    Or,
+    If,
+    LessThan,
+    LessThanOrEqualTo,
+    EqualTo,
+    GreaterThan,
+    GreaterThanOrEqualTo,
 ]
 
 
@@ -43,6 +53,58 @@ class Let:
 @dataclass(frozen=True)
 class Var:
     name: str
+
+
+@dataclass(frozen=True)
+class Bool:
+    value: bool
+
+
+@dataclass(frozen=True)
+class Not:
+    operand: Expression
+
+
+@dataclass(frozen=True)
+class And:
+    operands: Sequence[Expression]
+
+
+@dataclass(frozen=True)
+class Or:
+    operands: Sequence[Expression]
+
+
+@dataclass(frozen=True)
+class If:
+    condition: Expression
+    consequent: Expression
+    alternative: Expression
+
+
+@dataclass(frozen=True)
+class LessThan:
+    operands: Sequence[Expression]
+
+
+@dataclass(frozen=True)
+class LessThanOrEqualTo:
+    operands: Sequence[Expression]
+
+
+@dataclass(frozen=True)
+class EqualTo:
+    operands: Sequence[Expression]
+
+
+@dataclass(frozen=True)
+class GreaterThan:
+    operands: Sequence[Expression]
+
+
+@dataclass(frozen=True)
+class GreaterThanOrEqualTo:
+    operands: Sequence[Expression]
 
 
 @dataclass(frozen=True)

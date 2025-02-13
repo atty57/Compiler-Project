@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 import pytest
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
 from eval import Value, Environment, eval, eval_expr
 
 
@@ -52,18 +52,18 @@ def test_eval_expr_int(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Add, Environment, Value]](
+    list[tuple[Binary, Environment, Value]](
         [
             (
-                Add(Int(1), Int(1)),
+                Binary("+", Int(1), Int(1)),
                 {},
                 Int(2),
             ),
         ]
     ),
 )
-def test_eval_expr_add(
-    expr: Add,
+def test_eval_expr_int_add(
+    expr: Binary,
     env: Environment,
     expected: Value,
 ) -> None:
@@ -72,18 +72,18 @@ def test_eval_expr_add(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Subtract, Environment, Value]](
+    list[tuple[Binary, Environment, Value]](
         [
             (
-                Subtract(Int(1), Int(1)),
+                Binary("-", Int(1), Int(1)),
                 {},
                 Int(0),
             ),
         ]
     ),
 )
-def test_eval_expr_subtract(
-    expr: Subtract,
+def test_eval_expr_int_subtract(
+    expr: Binary,
     env: Environment,
     expected: Value,
 ) -> None:
@@ -92,18 +92,18 @@ def test_eval_expr_subtract(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Multiply, Environment, Value]](
+    list[tuple[Binary, Environment, Value]](
         [
             (
-                Multiply(Int(1), Int(2)),
+                Binary("*", Int(1), Int(2)),
                 {},
                 Int(2),
             ),
         ]
     ),
 )
-def test_eval_multiply(
-    expr: Multiply,
+def test_eval_int_multiply(
+    expr: Binary,
     env: Environment,
     expected: Value,
 ) -> None:
@@ -202,28 +202,63 @@ def test_eval_expr_if(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Compare, Environment, Value]](
+    list[tuple[Binary, Environment, Value]](
         [
             (
-                Compare("<", Int(1), Int(2)),
+                Binary("<", Int(1), Int(2)),
                 {},
                 Bool(True),
-            ),
-            (
-                Compare("==", Int(1), Int(1)),
-                {},
-                Bool(True),
-            ),
-            (
-                Compare(">=", Int(1), Int(2)),
-                {},
-                Bool(False),
             ),
         ]
     ),
 )
-def test_eval_expr_compare(
-    expr: Expression,
+def test_eval_expr_less_than(
+    expr: Binary,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Binary, Environment, Value]](
+        [
+            (
+                Binary("==", Int(1), Int(2)),
+                {},
+                Bool(False),
+            ),
+            (
+                Binary("==", Bool(True), Bool(True)),
+                {},
+                Bool(True),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_equal_to(
+    expr: Binary,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Binary, Environment, Value]](
+        [
+            (
+                Binary(">=", Int(2), Int(1)),
+                {},
+                Bool(True),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_greater_than_or_equal_to(
+    expr: Binary,
     env: Environment,
     expected: Value,
 ) -> None:
