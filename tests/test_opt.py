@@ -1,5 +1,5 @@
 import pytest
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
 from opt import opt, opt_expr
 
 
@@ -41,53 +41,53 @@ def test_opt_expr_int(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[Add, Expression]](
+    list[tuple[Binary, Expression]](
         [
             (
-                Add(Int(0), Var("x")),
+                Binary("+", Int(0), Var("x")),
                 Var("x"),
             ),
             (
-                Add(Var("x"), Int(0)),
+                Binary("+", Var("x"), Int(0)),
                 Var("x"),
             ),
             (
-                Add(Int(1), Int(1)),
+                Binary("+", Int(1), Int(1)),
                 Int(2),
             ),
             (
-                Add(Int(1), Add(Int(1), Int(1))),
+                Binary("+", Int(1), Binary("+", Int(1), Int(1))),
                 Int(3),
             ),
             (
-                Add(Int(1), Add(Var("x"), Int(1))),
-                Add(Int(2), Var("x")),
+                Binary("+", Int(1), Binary("+", Var("x"), Int(1))),
+                Binary("+", Int(2), Var("x")),
             ),
             (
-                Add(Add(Int(1), Var("x")), Add(Int(1), Var("y"))),
-                Add(Int(2), Add(Var("x"), Var("y"))),
+                Binary("+", Binary("+", Int(1), Var("x")), Binary("+", Int(1), Var("y"))),
+                Binary("+", Int(2), Binary("+", Var("x"), Var("y"))),
             ),
             (
-                Add(Int(1), Add(Int(1), Var("x"))),
-                Add(Int(2), Var("x")),
+                Binary("+", Int(1), Binary("+", Int(1), Var("x"))),
+                Binary("+", Int(2), Var("x")),
             ),
             (
-                Add(Int(1), Var("x")),
-                Add(Int(1), Var("x")),
+                Binary("+", Int(1), Var("x")),
+                Binary("+", Int(1), Var("x")),
             ),
             (
-                Add(Var("x"), Int(1)),
-                Add(Int(1), Var("x")),
+                Binary("+", Var("x"), Int(1)),
+                Binary("+", Int(1), Var("x")),
             ),
             (
-                Add(Var("x"), Var("y")),
-                Add(Var("x"), Var("y")),
+                Binary("+", Var("x"), Var("y")),
+                Binary("+", Var("x"), Var("y")),
             ),
         ]
     ),
 )
 def test_opt_expr_add(
-    expr: Add,
+    expr: Binary,
     expected: Expression,
 ) -> None:
     assert opt_expr(expr) == expected
@@ -95,21 +95,21 @@ def test_opt_expr_add(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[Subtract, Expression]](
+    list[tuple[Binary, Expression]](
         [
             (
-                Subtract(Int(2), Int(1)),
+                Binary("-", Int(2), Int(1)),
                 Int(1),
             ),
             (
-                Subtract(Var("x"), Var("y")),
-                Subtract(Var("x"), Var("y")),
+                Binary("-", Var("x"), Var("y")),
+                Binary("-", Var("x"), Var("y")),
             ),
         ]
     ),
 )
 def test_opt_expr_subtract(
-    expr: Add,
+    expr: Binary,
     expected: Expression,
 ) -> None:
     assert opt_expr(expr) == expected
@@ -117,53 +117,61 @@ def test_opt_expr_subtract(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[Multiply, Expression]](
+    list[tuple[Binary, Expression]](
         [
             (
-                Multiply(Int(0), Var("x")),
+                Binary("*", Int(0), Var("x")),
                 Int(0),
             ),
             (
-                Multiply(Var("x"), Int(0)),
+                Binary("*", Var("x"), Int(0)),
                 Int(0),
             ),
             (
-                Multiply(Int(1), Int(2)),
+                Binary("*", Int(1), Var("x")),
+                Var("x"),
+            ),
+            (
+                Binary("*", Var("x"), Int(1)),
+                Var("x"),
+            ),
+            (
+                Binary("*", Int(1), Int(2)),
                 Int(2),
             ),
             (
-                Multiply(Int(1), Multiply(Int(2), Int(3))),
+                Binary("*", Int(1), Binary("*", Int(2), Int(3))),
                 Int(6),
             ),
             (
-                Multiply(Int(2), Multiply(Var("x"), Int(3))),
-                Multiply(Int(6), Var("x")),
+                Binary("*", Int(2), Binary("*", Var("x"), Int(3))),
+                Binary("*", Int(6), Var("x")),
             ),
             (
-                Multiply(Multiply(Int(2), Var("x")), Multiply(Int(3), Var("y"))),
-                Multiply(Int(6), Multiply(Var("x"), Var("y"))),
+                Binary("*", Binary("*", Int(2), Var("x")), Binary("*", Int(3), Var("y"))),
+                Binary("*", Int(6), Binary("*", Var("x"), Var("y"))),
             ),
             (
-                Multiply(Int(2), Multiply(Int(3), Var("x"))),
-                Multiply(Int(6), Var("x")),
+                Binary("*", Int(2), Binary("*", Int(3), Var("x"))),
+                Binary("*", Int(6), Var("x")),
             ),
             (
-                Multiply(Int(1), Var("x")),
-                Multiply(Int(1), Var("x")),
+                Binary("*", Int(2), Var("x")),
+                Binary("*", Int(2), Var("x")),
             ),
             (
-                Multiply(Var("x"), Int(1)),
-                Multiply(Int(1), Var("x")),
+                Binary("*", Var("x"), Int(2)),
+                Binary("*", Int(2), Var("x")),
             ),
             (
-                Multiply(Var("x"), Var("y")),
-                Multiply(Var("x"), Var("y")),
+                Binary("*", Var("x"), Var("y")),
+                Binary("*", Var("x"), Var("y")),
             ),
         ]
     ),
 )
 def test_opt_expr_multiply(
-    expr: Multiply,
+    expr: Binary,
     expected: Expression,
 ) -> None:
     assert opt_expr(expr) == expected
@@ -259,29 +267,69 @@ def test_opt_expr_if(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[Compare, Expression]](
+    list[tuple[Binary, Expression]](
         [
             (
-                Compare("<", Int(0), Int(1)),
+                Binary("<", Int(0), Int(1)),
                 Bool(True),
             ),
             (
-                Compare("==", Int(0), Int(0)),
-                Bool(True),
-            ),
-            (
-                Compare(">=", Int(1), Int(0)),
-                Bool(True),
-            ),
-            (
-                Compare(">=", Int(1), Var("x")),
-                Compare(">=", Int(1), Var("x")),
+                Binary("<", Int(0), Var("x")),
+                Binary("<", Int(0), Var("x")),
             ),
         ]
     ),
 )
-def test_opt_expr_compare(
-    expr: Compare,
+def test_opt_expr_less_than(
+    expr: Binary,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Binary, Expression]](
+        [
+            (
+                Binary("==", Int(0), Int(1)),
+                Bool(False),
+            ),
+            (
+                Binary("==", Bool(True), Bool(True)),
+                Bool(True),
+            ),
+            (
+                Binary("==", Int(1), Var("x")),
+                Binary("==", Int(1), Var("x")),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_equal_to(
+    expr: Binary,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Binary, Expression]](
+        [
+            (
+                Binary(">=", Int(0), Int(1)),
+                Bool(False),
+            ),
+            (
+                Binary(">=", Int(1), Var("x")),
+                Binary(">=", Int(1), Var("x")),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_greeater_than_or_equal_to(
+    expr: Binary,
     expected: Expression,
 ) -> None:
     assert opt_expr(expr) == expected

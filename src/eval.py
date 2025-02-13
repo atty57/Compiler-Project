@@ -1,14 +1,15 @@
 from collections.abc import Sequence, Mapping
 from functools import partial
 from typing import Union
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If, Unit
 
 
 type Value = Union[
-    int,
-    bool,
-    None,
+    Int,
+    Bool,
+    Unit,
 ]
+
 type Environment = Mapping[str, Value]
 
 
@@ -26,29 +27,54 @@ def eval_expr(
 ) -> Value:
     recur = partial(eval_expr, env=env)
     match expr:
-        case Int(i):
-            return i
+        case Int():
+            return expr
 
-        case Add(e1, e2):
-            match recur(e1), recur(e2):
-                case [int(i1), int(i2)]:
-                    return i1 + i2
-                case _:
-                    raise ValueError()
+        case Binary(operator, e1, e2):
+            match operator:
+                case "+":
+                    match recur(e1), recur(e2):
+                        case [Int(i1), Int(i2)]:
+                            return Int(i1 + i2)
+                        case _:  # pragma: no cover
+                            raise ValueError()
 
-        case Subtract(e1, e2):
-            match recur(e1), recur(e2):
-                case [int(i1), int(i2)]:
-                    return i1 - i2
-                case _:
-                    raise ValueError()
+                case "-":
+                    match recur(e1), recur(e2):
+                        case [Int(i1), Int(i2)]:
+                            return Int(i1 - i2)
+                        case _:  # pragma: no cover
+                            raise ValueError()
 
-        case Multiply(e1, e2):
-            match recur(e1), recur(e2):
-                case [int(i1), int(i2)]:
-                    return i1 - i2
-                case _:
-                    raise ValueError()
+                case "*":
+                    match recur(e1), recur(e2):
+                        case [Int(i1), Int(i2)]:
+                            return Int(i1 * i2)
+                        case _:  # pragma: no cover
+                            raise ValueError()
+
+                case "<":
+                    match recur(e1), recur(e2):
+                        case [Int(i1), Int(i2)]:
+                            return Bool(i1 < i2)
+                        case _:  # pragma: no cover
+                            raise ValueError()
+
+                case "==":
+                    match recur(e1), recur(e2):
+                        case [Int(i1), Int(i2)]:
+                            return Bool(i1 == i2)
+                        case [Bool(b1), Bool(b2)]:
+                            return Bool(b1 == b2)
+                        case _:  # pragma: no cover
+                            raise ValueError()
+
+                case ">=":  # pragma: no branch
+                    match recur(e1), recur(e2):
+                        case [Int(i1), Int(i2)]:
+                            return Bool(i1 >= i2)
+                        case _:  # pragma: no cover
+                            raise ValueError()
 
         case Let(x, e1, e2):
             return recur(e2, env={**env, x: recur(e1)})
@@ -56,27 +82,14 @@ def eval_expr(
         case Var(x):
             return env[x]
 
-        case Bool(b):
-            return b
+        case Bool():
+            return expr
 
-        case If(e1, e2, e3):
+        case If(e1, e2, e3):  # pragma: no branch
             match recur(e1):
-                case True:
+                case Bool(True):
                     return recur(e2)
-                case False:
+                case Bool(False):
                     return recur(e3)
-                case _:
-                    raise ValueError()
-
-        case Compare(operator, e1, e2):  # pragma: no branch
-            match recur(e1), recur(e2):
-                case [int(i1), int(i2)]:
-                    match operator:
-                        case "<":
-                            return i1 < i2
-                        case "==":
-                            return i1 == i2
-                        case ">=":  # pragma: no branch
-                            return i1 >= i2
-                case _:
+                case _:  # pragma: no cover
                     raise ValueError()

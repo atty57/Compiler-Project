@@ -1,5 +1,4 @@
 import os
-from typing import Literal
 from lark import (
     Lark,
     ParseTree,
@@ -10,14 +9,11 @@ from lark import (
 from kernel import (
     Expression,
     Int,
-    Add,
-    Subtract,
-    Multiply,
+    Binary,
     Let,
     Var,
     Bool,
     If,
-    Compare,
 )
 
 
@@ -29,26 +25,26 @@ class AstTransformer(Transformer[Token, Expression]):
     ) -> Int:
         return Int(value)
 
-    def add_expr(
+    def int_add_expr(
         self,
         x: Expression,
         y: Expression,
-    ) -> Add:
-        return Add(x, y)
+    ) -> Binary:
+        return Binary("+", x, y)
 
-    def subtract_expr(
+    def int_subtract_expr(
         self,
         x: Expression,
         y: Expression,
-    ) -> Subtract:
-        return Subtract(x, y)
+    ) -> Binary:
+        return Binary("-", x, y)
 
-    def multiply_expr(
+    def int_multiply_expr(
         self,
         x: Expression,
         y: Expression,
-    ) -> Multiply:
-        return Multiply(x, y)
+    ) -> Binary:
+        return Binary("*", x, y)
 
     def let_expr(
         self,
@@ -78,15 +74,28 @@ class AstTransformer(Transformer[Token, Expression]):
     ) -> If:
         return If(condition, consequent, alternative)
 
-    def compare_expr(
+    def less_than_expr(
         self,
-        operator: Literal["<", "==", ">="],
         e1: Expression,
         e2: Expression,
-    ) -> Compare:
-        return Compare(operator, e1, e2)
+    ) -> Binary:
+        return Binary("<", e1, e2)
 
-    def nat(
+    def equal_to_expr(
+        self,
+        e1: Expression,
+        e2: Expression,
+    ) -> Binary:
+        return Binary("==", e1, e2)
+
+    def greater_than_or_equal_to_expr(
+        self,
+        e1: Expression,
+        e2: Expression,
+    ) -> Binary:
+        return Binary(">=", e1, e2)
+
+    def int(
         self,
         value: Token,
     ) -> int:

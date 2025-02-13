@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from functools import partial
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
 
 
 type Environment = Mapping[str, str]
@@ -28,14 +28,8 @@ def uniqify_expr(
         case Int():
             return expr
 
-        case Add(e1, e2):
-            return Add(recur(e1), recur(e2))
-
-        case Subtract(e1, e2):
-            return Subtract(recur(e1), recur(e2))
-
-        case Multiply(e1, e2):
-            return Multiply(recur(e1), recur(e2))
+        case Binary(operator, e1, e2):
+            return Binary(operator, recur(e1), recur(e2))
 
         case Let(x, e1, e2):
             y = fresh(x)
@@ -47,8 +41,5 @@ def uniqify_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):
+        case If(e1, e2, e3):  # pragma: no branch
             return If(recur(e1), recur(e2), recur(e3))
-
-        case Compare(operator, e1, e2):  # pragma: no branch
-            return Compare(operator, recur(e1), recur(e2))
