@@ -10,7 +10,9 @@ type Expression = Union[
     Multiply,
     Let,
     Var,
+    Bool,
     If,
+    Compare,
 ]
 
 
@@ -50,6 +52,11 @@ class Var:
 
 
 @dataclass(frozen=True)
+class Bool:
+    value: bool
+
+
+@dataclass(frozen=True)
 class If:
     condition: Expression
     consequent: Expression
@@ -59,11 +66,8 @@ class If:
 @dataclass(frozen=True)
 class Compare:
     operator: Literal[
-        "<=",
         "<",
         "==",
-        "!=",
-        ">",
         ">=",
     ]
     x: str
