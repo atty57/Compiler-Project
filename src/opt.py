@@ -50,6 +50,10 @@ def opt_expr(
                     return Int(0)
                 case [e1, Int(0)]:
                     return Int(0)
+                case [Int(1), e2]:
+                    return e2
+                case [e1, Int(1)]:
+                    return e1
                 case [Int(i1), Int(i2)]:
                     return Int(i1 * i2)
                 case [Int(i1), Multiply(Int(i2), e2)]:
