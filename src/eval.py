@@ -2,7 +2,7 @@ from collections.abc import Sequence, Mapping
 from functools import partial
 from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var
 
-type Value = int
+type Value = Int
 type Environment = Mapping[str, Value]
 
 
@@ -20,17 +20,23 @@ def eval_expr(
 ) -> Value:
     recur = partial(eval_expr, env=env)
     match expr:
-        case Int(i):
-            return i
+        case Int():
+            return expr
 
         case Add(e1, e2):
-            return recur(e1) + recur(e2)
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Int(i1 + i2)
 
         case Subtract(e1, e2):
-            return recur(e1) - recur(e2)
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Int(i1 * i2)
 
         case Multiply(e1, e2):
-            return recur(e1) * recur(e2)
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Int(i1 * i2)
 
         case Let(x, e1, e2):
             raise NotImplementedError()
