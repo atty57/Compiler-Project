@@ -128,6 +128,14 @@ def test_opt_expr_subtract(
                 Int(0),
             ),
             (
+                Multiply(Int(1), Var("x")),
+                Var("x"),
+            ),
+            (
+                Multiply(Var("x"), Int(1)),
+                Var("x"),
+            ),
+            (
                 Multiply(Int(1), Int(2)),
                 Int(2),
             ),
@@ -148,12 +156,12 @@ def test_opt_expr_subtract(
                 Multiply(Int(6), Var("x")),
             ),
             (
-                Multiply(Int(1), Var("x")),
-                Multiply(Int(1), Var("x")),
+                Multiply(Int(2), Var("x")),
+                Multiply(Int(2), Var("x")),
             ),
             (
-                Multiply(Var("x"), Int(1)),
-                Multiply(Int(1), Var("x")),
+                Multiply(Var("x"), Int(2)),
+                Multiply(Int(2), Var("x")),
             ),
             (
                 Multiply(Var("x"), Var("y")),

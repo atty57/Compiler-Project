@@ -12,12 +12,12 @@ from eval import Value, Environment, eval, eval_expr
             (
                 Program([], Int(0)),
                 [],
-                0,
+                Int(0),
             ),
             (
                 Program(["x"], Var("x")),
-                [0],
-                0,
+                [Int(0)],
+                Int(0),
             ),
         ]
     ),
@@ -37,7 +37,7 @@ def test_eval(
             (
                 Int(0),
                 {},
-                0,
+                Int(0),
             ),
         ]
     ),
@@ -57,7 +57,7 @@ def test_eval_expr_int(
             (
                 Add(Int(1), Int(1)),
                 {},
-                2,
+                Int(2),
             ),
         ]
     ),
@@ -77,7 +77,7 @@ def test_eval_expr_add(
             (
                 Subtract(Int(1), Int(1)),
                 {},
-                0,
+                Int(0),
             ),
         ]
     ),
@@ -97,7 +97,7 @@ def test_eval_expr_subtract(
             (
                 Multiply(Int(1), Int(2)),
                 {},
-                2,
+                Int(2),
             ),
         ]
     ),
@@ -117,7 +117,7 @@ def test_eval_multiply(
             (
                 Let("x", Int(1), Var("x")),
                 {},
-                1,
+                Int(1),
             ),
         ]
     ),
@@ -136,8 +136,8 @@ def test_eval_expr_let(
         [
             (
                 Var("x"),
-                {"x": 0},
-                0,
+                {"x": Int(0)},
+                Int(0),
             ),
         ]
     ),
@@ -157,12 +157,12 @@ def test_eval_expr_var(
             (
                 Bool(True),
                 {},
-                True,
+                Bool(True),
             ),
             (
                 Bool(False),
                 {},
-                False,
+                Bool(False),
             ),
         ]
     ),
@@ -180,14 +180,14 @@ def test_eval_expr_bool(
     list[tuple[If, Environment, Value]](
         [
             (
-                If(Int(0), Int(10), Int(20)),
+                If(Bool(True), Int(10), Int(20)),
                 {},
-                20,
+                Int(10),
             ),
             (
-                If(Int(1), Int(10), Int(20)),
+                If(Bool(False), Int(10), Int(20)),
                 {},
-                10,
+                Int(20),
             ),
         ]
     ),
@@ -207,17 +207,17 @@ def test_eval_expr_if(
             (
                 Compare("<", Int(1), Int(2)),
                 {},
-                True,
+                Bool(True),
             ),
             (
                 Compare("==", Int(1), Int(1)),
                 {},
-                True,
+                Bool(True),
             ),
             (
                 Compare(">=", Int(1), Int(2)),
                 {},
-                False,
+                Bool(False),
             ),
         ]
     ),
