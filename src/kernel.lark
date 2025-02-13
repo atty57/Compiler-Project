@@ -1,15 +1,23 @@
 expr: nat                                                           -> int_expr
     | "(" "+" expr expr ")"                                         -> add_expr
     | "(" "-" expr expr ")"                                         -> subtract_expr
-    | "(" "*" expr expr ")"                                         -> multiply_expr    
+    | "(" "*" expr expr ")"                                         -> multiply_expr
     | "(" "let" "(" "[" identifier expr "]" ")" expr ")"            -> let_expr
     | identifier                                                    -> var_expr
+    | (true | false)                                                -> bool_expr
+    | "(" "if" expr expr expr ")"                                   -> if_expr
+    | "(" (/</ | /==/ | />=/) expr expr ")"                         -> compare_expr
 
 nat: NAT
+true: TRUE
+false: FALSE
 identifier: IDENTIFIER
 
 NAT:    "1".."9"        ("_"?  "0".."9")*
     |   "0"             ("_"?  "0"     )* /(?![1-9])/   
+
+TRUE.1: "true"
+FALSE.1: "false"
 
 IDENTIFIER: /[^\W\d]\w*/
 
