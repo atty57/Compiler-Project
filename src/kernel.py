@@ -13,6 +13,10 @@ type Expression = Union[
     Bool,
     If,
     Compare,
+    Unit,
+    Cell,
+    CellGet,
+    CellSet,
 ]
 
 
@@ -72,6 +76,27 @@ class Compare:
     ]
     x: Expression
     y: Expression
+
+
+@dataclass(frozen=True)
+class Unit:
+    pass
+
+
+@dataclass(frozen=True)
+class Cell:
+    value: Expression
+
+
+@dataclass(frozen=True)
+class CellGet:
+    cell: Expression
+
+
+@dataclass(frozen=True)
+class CellSet:
+    cell: Expression
+    value: Expression
 
 
 @dataclass(frozen=True)

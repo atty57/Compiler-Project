@@ -1,6 +1,22 @@
 from collections.abc import Sequence
 import pytest
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
+from kernel import (
+    Program,
+    Expression,
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    Compare,
+    Unit,
+    Cell,
+    CellGet,
+    CellSet,
+)
 from eval import Value, Environment, eval, eval_expr
 
 
@@ -297,6 +313,46 @@ def test_eval_expr_if(
 )
 def test_eval_expr_compare(
     expr: Expression,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Unit, Environment, Value]](
+        [
+            (
+                Unit(),
+                {},
+                None,
+            ),
+        ]
+    ),
+)
+def test_eval_expr_cell(
+    expr: Unit,
+    env: Environment,
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Cell, Environment, Value]](
+        [
+            (
+                Cell(Int(0)),
+                {},
+                True,
+            ),
+        ]
+    ),
+)
+def test_eval_expr_cell(
+    expr: Cell,
     env: Environment,
     expected: Value,
 ) -> None:

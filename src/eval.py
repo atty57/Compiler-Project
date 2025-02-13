@@ -4,7 +4,11 @@ from typing import Union
 from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
 
 
-type Value = Union[int, bool]
+type Value = Union[
+    int,
+    bool,
+    None,
+]
 type Environment = Mapping[str, Value]
 
 
@@ -26,13 +30,25 @@ def eval_expr(
             return i
 
         case Add(e1, e2):
-            return recur(e1) + recur(e2)
+            match recur(e1), recur(e2):
+                case [int(i1), int(i2)]:
+                    return i1 + i2
+                case _:
+                    raise ValueError()
 
         case Subtract(e1, e2):
-            return recur(e1) - recur(e2)
+            match recur(e1), recur(e2):
+                case [int(i1), int(i2)]:
+                    return i1 - i2
+                case _:
+                    raise ValueError()
 
         case Multiply(e1, e2):
-            return recur(e1) * recur(e2)
+            match recur(e1), recur(e2):
+                case [int(i1), int(i2)]:
+                    return i1 - i2
+                case _:
+                    raise ValueError()
 
         case Let(x, e1, e2):
             return recur(e2, env={**env, x: recur(e1)})
@@ -44,13 +60,23 @@ def eval_expr(
             return b
 
         case If(e1, e2, e3):
-            return recur(e2) if recur(e1) else recur(e3)
+            match recur(e1):
+                case True:
+                    return recur(e2)
+                case False:
+                    return recur(e3)
+                case _:
+                    raise ValueError()
 
         case Compare(operator, e1, e2):  # pragma: no branch
-            match operator:
-                case "<":
-                    return recur(e1) < recur(e2)
-                case "==":
-                    return recur(e1) == recur(e2)
-                case ">=":  # pragma: no branch
-                    return recur(e1) >= recur(e2)
+            match recur(e1), recur(e2):
+                case [int(i1), int(i2)]:
+                    match operator:
+                        case "<":
+                            return i1 < i2
+                        case "==":
+                            return i1 == i2
+                        case ">=":  # pragma: no branch
+                            return i1 >= i2
+                case _:
+                    raise ValueError()
