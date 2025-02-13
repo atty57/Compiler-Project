@@ -1,5 +1,5 @@
 import pytest
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var, Bool, If, Compare
+from kernel import Program, Expression, Int, Binary, Let, Var, Bool, If
 from uniqify import Environment, uniqify, uniqify_expr
 from util import SequentialNameGenerator
 
@@ -50,60 +50,18 @@ def test_uniqify_expr_int(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Add, Environment, Expression]](
+    list[tuple[Binary, Environment, Binary]](
         [
             (
-                Add(Int(1), Int(1)),
+                Binary("+", Int(1), Int(1)),
                 {},
-                Add(Int(1), Int(1)),
+                Binary("+", Int(1), Int(1)),
             ),
         ]
     ),
 )
-def test_uniqify_expr_add(
+def test_uniqify_expr_binary(
     expr: Expression,
-    env: Environment,
-    expected: Expression,
-) -> None:
-    fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, env, expected",
-    list[tuple[Subtract, Environment, Expression]](
-        [
-            (
-                Subtract(Int(1), Int(1)),
-                {},
-                Subtract(Int(1), Int(1)),
-            ),
-        ]
-    ),
-)
-def test_uniqify_expr_subtract(
-    expr: Expression,
-    env: Environment,
-    expected: Expression,
-) -> None:
-    fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, env, expected",
-    list[tuple[Multiply, Environment, Expression]](
-        [
-            (
-                Multiply(Int(1), Int(1)),
-                {},
-                Multiply(Int(1), Int(1)),
-            ),
-        ]
-    ),
-)
-def test_uniqify_expr_multiply(
-    expr: Multiply,
     env: Environment,
     expected: Expression,
 ) -> None:
@@ -193,27 +151,6 @@ def test_uniqify_expr_bool(
 )
 def test_uniqify_expr_if(
     expr: If,
-    env: Environment,
-    expected: Expression,
-) -> None:
-    fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, env, expected",
-    list[tuple[Compare, Environment, Expression]](
-        [
-            (
-                Compare("==", Int(0), Int(0)),
-                {},
-                Compare("==", Int(0), Int(0)),
-            ),
-        ]
-    ),
-)
-def test_uniqify_expr_compare(
-    expr: Compare,
     env: Environment,
     expected: Expression,
 ) -> None:

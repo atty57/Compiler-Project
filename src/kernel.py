@@ -5,14 +5,11 @@ from typing import Literal, Union
 
 type Expression = Union[
     Int,
-    Add,
-    Subtract,
-    Multiply,
+    Binary,
     Let,
     Var,
     Bool,
     If,
-    Compare,
 ]
 
 
@@ -22,19 +19,15 @@ class Int:
 
 
 @dataclass(frozen=True)
-class Add:
-    x: Expression
-    y: Expression
-
-
-@dataclass(frozen=True)
-class Subtract:
-    x: Expression
-    y: Expression
-
-
-@dataclass(frozen=True)
-class Multiply:
+class Binary:
+    operator: Literal[
+        "+",
+        "-",
+        "*",
+        "<",
+        "==",
+        ">=",
+    ]
     x: Expression
     y: Expression
 
@@ -61,17 +54,6 @@ class If:
     condition: Expression
     consequent: Expression
     alternative: Expression
-
-
-@dataclass(frozen=True)
-class Compare:
-    operator: Literal[
-        "<",
-        "==",
-        ">=",
-    ]
-    x: Expression
-    y: Expression
 
 
 @dataclass(frozen=True)
