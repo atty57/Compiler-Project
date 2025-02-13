@@ -1,4 +1,5 @@
 import os
+from typing import Literal
 from lark import (
     Lark,
     ParseTree,
@@ -14,6 +15,9 @@ from kernel import (
     Multiply,
     Let,
     Var,
+    Bool,
+    If,
+    Compare,
 )
 
 
@@ -27,24 +31,24 @@ class AstTransformer(Transformer[Token, Expression]):
 
     def add_expr(
         self,
-        e1: Expression,
-        e2: Expression,
+        x: Expression,
+        y: Expression,
     ) -> Add:
-        return Add(e1, e2)
+        return Add(x, y)
 
     def subtract_expr(
         self,
-        e1: Expression,
-        e2: Expression,
+        x: Expression,
+        y: Expression,
     ) -> Subtract:
-        return Subtract(e1, e2)
+        return Subtract(x, y)
 
     def multiply_expr(
         self,
-        e1: Expression,
-        e2: Expression,
+        x: Expression,
+        y: Expression,
     ) -> Multiply:
-        return Multiply(e1, e2)
+        return Multiply(x, y)
 
     def let_expr(
         self,
@@ -60,11 +64,45 @@ class AstTransformer(Transformer[Token, Expression]):
     ) -> Var:
         return Var(name)
 
+    def bool_expr(
+        self,
+        value: bool,
+    ) -> Bool:
+        return Bool(value)
+
+    def if_expr(
+        self,
+        condition: Expression,
+        consequent: Expression,
+        alternative: Expression,
+    ) -> If:
+        return If(condition, consequent, alternative)
+
+    def compare_expr(
+        self,
+        operator: Literal["<", "==", ">="],
+        e1: Expression,
+        e2: Expression,
+    ) -> Compare:
+        return Compare(operator, e1, e2)
+
     def nat(
         self,
         value: Token,
     ) -> int:
         return int(value)
+
+    def true(
+        self,
+        value: Token,
+    ) -> bool:
+        return True
+
+    def false(
+        self,
+        value: Token,
+    ) -> bool:
+        return False
 
     def identifier(
         self,
@@ -83,11 +121,3 @@ def parse_expr(
         parser = Lark(f, start="expr")
         tree: ParseTree = parser.parse(source)
         return AstTransformer().transform(tree)  # type: ignore
-
-
-if __name__ == "__main__":
-    source = """
-    (let ([x 1]) x)
-    """
-    expr = parse_expr(source)
-    print(expr)

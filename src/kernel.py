@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Union
+from typing import Literal, Union
 
 
 type Expression = Union[
@@ -10,6 +10,9 @@ type Expression = Union[
     Multiply,
     Let,
     Var,
+    Bool,
+    If,
+    Compare,
 ]
 
 
@@ -46,6 +49,29 @@ class Let:
 @dataclass(frozen=True)
 class Var:
     name: str
+
+
+@dataclass(frozen=True)
+class Bool:
+    value: bool
+
+
+@dataclass(frozen=True)
+class If:
+    condition: Expression
+    consequent: Expression
+    alternative: Expression
+
+
+@dataclass(frozen=True)
+class Compare:
+    operator: Literal[
+        "<",
+        "==",
+        ">=",
+    ]
+    x: Expression
+    y: Expression
 
 
 @dataclass(frozen=True)
