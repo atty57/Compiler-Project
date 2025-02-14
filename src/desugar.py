@@ -25,10 +25,8 @@ def desugar_expr(
             match es:
                 case []:
                     return kernel.Int(0)
-                case [first, *rest]:
+                case [first, *rest]:  # pragma: no branch
                     return kernel.Add(recur(first), recur(sugar.Add(rest)))
-                case _:
-                    pass
 
         case sugar.Subtract(es):
             match es:
@@ -36,20 +34,15 @@ def desugar_expr(
                     return kernel.Subtract(kernel.Int(0), recur(first))
                 case [first, second]:  # Two operands: Convert directly
                     return kernel.Subtract(recur(first), recur(second))
-                case [first, *rest]:  # More than two operands: Nest subtraction
+                case [first, *rest]:  # pragma: no branch # More than two operands: Nest subtraction
                     return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
-                case _:
-                    pass
-
 
         case sugar.Multiply(es):
             match es:
                 case []:
                     return kernel.Int(1)
-                case [first, *rest]:
+                case [first, *rest]:  # pragma: no branch
                     return kernel.Multiply(recur(first), recur(sugar.Multiply(rest)))
-                case _:
-                    pass
 
         case sugar.Let(x, e1, e2):
             return kernel.Let(x, recur(e1), recur(e2))

@@ -79,3 +79,8 @@ def test_eval_expr(
     expected: Value,
 ) -> None:
     assert eval_expr(expr, env) == expected
+
+
+def test_eval_undefined_var():
+    with pytest.raises(KeyError, match=r"Undefined variable: x"):
+        eval_expr(Var("x"), {})

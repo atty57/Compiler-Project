@@ -95,7 +95,7 @@ def opt_expr(
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
                     return Int(i1 - i2)
-                case [e1, e2]:
+                case [e1, e2]:  # pragma: no branch
                     return Subtract(e1, e2)
 
         case Multiply(e1, e2):
@@ -112,6 +112,5 @@ def opt_expr(
                 return new_e1
             return Let(x, new_e1, new_e2)
 
-        case Var(x):
+        case Var(x):  # pragma: no branch
             return expr
-
