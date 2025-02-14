@@ -32,15 +32,15 @@ def desugar_expr(
 
         case sugar.Subtract(es):
             match es:
-                case []:
-                    return kernel.Int(0)
-                case [first, *rest]:
-                    if not rest:
-                        return kernel.Subtract(kernel.Int(0), recur(first))
-                    else:
-                        return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
+                case [first]:  # Single operand: Convert to (0 - first)
+                    return kernel.Subtract(kernel.Int(0), recur(first))
+                case [first, second]:  # Two operands: Convert directly
+                    return kernel.Subtract(recur(first), recur(second))
+                case [first, *rest]:  # More than two operands: Nest subtraction
+                    return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
                 case _:
                     pass
+
 
         case sugar.Multiply(es):
             match es:

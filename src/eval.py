@@ -10,7 +10,7 @@ def eval(
     program: Program,
     arguments: Sequence[Value],
 ) -> Value:
-    env: Environment = {}
+    env: Environment = dict(zip(program.parameters, arguments)) # Bind parameters to arguments
     return eval_expr(program.body, env)
 
 
@@ -36,4 +36,6 @@ def eval_expr(
             return recur(e2, env={**env, x: recur(e1)})
 
         case Var(x):  # pragma: no branch
+            if x not in env:
+                raise KeyError(f"Undefined variable: {x}")
             return env[x]
