@@ -28,6 +28,10 @@ def rco_expr(
         case kernel.Int(i):
             return monadic.Int(i)
 
+        case kernel.Unary(operator, e1):
+            a1, b1 = to_atom(e1)
+            return wrap(b1, monadic.Unary(operator, a1))
+
         case kernel.Binary(operator, e1, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
@@ -42,11 +46,19 @@ def rco_expr(
         case kernel.Bool(b):
             return monadic.Bool(b)
 
-        case kernel.If(e1, e2, e3):  # pragma: no branch
+        case kernel.If(e1, e2, e3):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             e3 = to_expr(e3)
             return monadic.If(e1, e2, e3)
+
+        case kernel.Unit():
+            return monadic.Unit()
+
+        case kernel.While(e1, e2):  # pragma: no branch
+            e1 = to_expr(e1)
+            e2 = to_expr(e2)
+            return monadic.While(e1, e2)
 
 
 def rco_atom(
@@ -60,6 +72,11 @@ def rco_atom(
         case kernel.Int(i):
             tmp = fresh("t")
             return tmp, {tmp: monadic.Int(i)}
+
+        case kernel.Unary(operator, e1):
+            a1, b1 = to_atom(e1)
+            tmp = fresh("t")
+            return tmp, {**b1, tmp: monadic.Unary(operator, a1)}
 
         case kernel.Binary(operator, e1, e2):
             a1, b1 = to_atom(e1)
@@ -78,12 +95,22 @@ def rco_atom(
             tmp = fresh("t")
             return tmp, {tmp: monadic.Bool(b)}
 
-        case kernel.If(e1, e2, e3):  # pragma: no branch
+        case kernel.If(e1, e2, e3):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             e3 = to_expr(e3)
             tmp = fresh("t")
             return tmp, {tmp: monadic.If(e1, e2, e3)}
+
+        case kernel.Unit():
+            tmp = fresh("t")
+            return tmp, {tmp: monadic.Unit()}
+
+        case kernel.While(e1, e2):  # pragma: no branch
+            e1 = to_expr(e1)
+            e2 = to_expr(e2)
+            tmp = fresh("t")
+            return tmp, {tmp: monadic.While(e1, e2)}
 
 
 def wrap(

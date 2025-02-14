@@ -6,17 +6,37 @@ from typing import Literal, Union
 type Expression = Union[
     Int,
     Var,
-    Binary,
+    Unary,
+    Binary[Literal["+"]],
+    Binary[Literal["-", "*", "<", "==", ">="]],
     Bool,
+    Unit,
     Block,
 ]
 
 type Statement = Union[
-    Let,
+    Assign,
+    Binary[Literal[":="]],
+]
+
+type Tail = Union[
+    Seq,
     Jump,
     Branch,
     Return,
 ]
+
+
+@dataclass(frozen=True)
+class Assign:
+    name: str
+    value: Expression
+
+
+@dataclass(frozen=True)
+class Seq:
+    statement: Statement
+    next: Tail
 
 
 @dataclass(frozen=True)
@@ -25,15 +45,14 @@ class Int:
 
 
 @dataclass(frozen=True)
-class Binary:
-    operator: Literal[
-        "+",
-        "-",
-        "*",
-        "<",
-        "==",
-        ">=",
-    ]
+class Unary:
+    operator: Literal["cell", "^"]
+    x: str
+
+
+@dataclass(frozen=True)
+class Binary[Operator]:
+    operator: Operator
     x: str
     y: str
 
@@ -56,8 +75,13 @@ class Bool:
 
 
 @dataclass(frozen=True)
+class Unit:
+    pass
+
+
+@dataclass(frozen=True)
 class Block:
-    body: Statement
+    body: Tail
 
 
 @dataclass(frozen=True)
@@ -80,4 +104,4 @@ class Return:
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
-    body: Statement
+    body: Tail

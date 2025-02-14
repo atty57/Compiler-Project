@@ -5,6 +5,7 @@ from typing import Literal, Union
 
 type Expression = Union[
     Int,
+    Unary,
     Binary,
     Let,
     Var,
@@ -21,8 +22,14 @@ class Int:
 
 
 @dataclass(frozen=True)
+class Unary:
+    operator: Literal["cell", "^"]
+    x: Expression
+
+
+@dataclass(frozen=True)
 class Binary:
-    operator: Literal["+", "-", "*", "<", "==", ">="]
+    operator: Literal["+", "-", "*", "<", "==", ">=", ":="]
     x: Expression
     y: Expression
 
