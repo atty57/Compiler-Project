@@ -1,5 +1,19 @@
 from functools import partial
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var
+from kernel import (
+    Program,
+    Expression,
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 
 
 def opt(
@@ -69,8 +83,11 @@ def opt_expr(
             match recur(e2):
                 case Var(y) if x == y:
                     return recur(e1)
-                case e2:
+                case e2:  # pragma: no branch
                     return Let(x, recur(e1), e2)
 
-        case Var():  # pragma: no branch
+        case Var():
             return expr
+
+        case _:
+            raise NotImplementedError()

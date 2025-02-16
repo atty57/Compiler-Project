@@ -1,6 +1,20 @@
 from collections.abc import Callable, Mapping
 from functools import partial
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var
+from kernel import (
+    Program,
+    Expression,
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 
 
 type Environment = Mapping[str, str]
@@ -41,5 +55,8 @@ def uniqify_expr(
             y = fresh(x)
             return Let(y, recur(e1), recur(e2, env={**env, x: y}))
 
-        case Var(x):  # pragma: no branch
+        case Var(x):
             return Var(env[x])
+
+        case _:
+            raise NotImplementedError()

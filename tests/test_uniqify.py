@@ -1,5 +1,19 @@
 import pytest
-from kernel import Program, Expression, Int, Add, Subtract, Multiply, Let, Var
+from kernel import (
+    Program,
+    Expression,
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 from uniqify import Environment, uniqify, uniqify_expr
 from util import SequentialNameGenerator
 
@@ -50,7 +64,7 @@ def test_uniqify_expr_int(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Add, Environment, Expression]](
+    list[tuple[Expression, Environment, Expression]](
         [
             (
                 Add(Int(1), Int(1)),
@@ -71,7 +85,7 @@ def test_uniqify_expr_add(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Subtract, Environment, Expression]](
+    list[tuple[Expression, Environment, Expression]](
         [
             (
                 Subtract(Int(1), Int(1)),
@@ -92,7 +106,7 @@ def test_uniqify_expr_subtract(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Multiply, Environment, Expression]](
+    list[tuple[Expression, Environment, Expression]](
         [
             (
                 Multiply(Int(1), Int(1)),
@@ -103,7 +117,7 @@ def test_uniqify_expr_subtract(
     ),
 )
 def test_uniqify_expr_multiply(
-    expr: Multiply,
+    expr: Expression,
     env: Environment,
     expected: Expression,
 ) -> None:
@@ -113,7 +127,7 @@ def test_uniqify_expr_multiply(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Let, Environment, Expression]](
+    list[tuple[Expression, Environment, Expression]](
         [
             (
                 Let("x", Int(1), Var("x")),
@@ -129,7 +143,7 @@ def test_uniqify_expr_multiply(
     ),
 )
 def test_uniqify_expr_let(
-    expr: Let,
+    expr: Expression,
     env: Environment,
     expected: Expression,
 ) -> None:
@@ -139,7 +153,7 @@ def test_uniqify_expr_let(
 
 @pytest.mark.parametrize(
     "expr, env, expected",
-    list[tuple[Var, Environment, Expression]](
+    list[tuple[Expression, Environment, Expression]](
         [
             (
                 Var("x"),
@@ -150,7 +164,117 @@ def test_uniqify_expr_let(
     ),
 )
 def test_uniqify_expr_var(
-    expr: Var,
+    expr: Expression,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Expression, Environment, Expression]](
+        [
+            (
+                Bool(True),
+                {},
+                Bool(True),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_bool(
+    expr: Expression,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Expression, Environment, Expression]](
+        [
+            (
+                If(Bool(True), Int(2), Int(2)),
+                {},
+                If(Bool(True), Int(2), Int(2)),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_if(
+    expr: Expression,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Expression, Environment, Expression]](
+        [
+            (
+                LessThan(Int(1), Int(1)),
+                {},
+                LessThan(Int(1), Int(1)),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_less_than(
+    expr: Expression,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Expression, Environment, Expression]](
+        [
+            (
+                EqualTo(Int(1), Int(1)),
+                {},
+                EqualTo(Int(1), Int(1)),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_equal_to(
+    expr: Expression,
+    env: Environment,
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, env, expected",
+    list[tuple[Expression, Environment, Expression]](
+        [
+            (
+                GreaterThanOrEqualTo(Int(1), Int(1)),
+                {},
+                GreaterThanOrEqualTo(Int(1), Int(1)),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_greater_than_or_equal_to(
+    expr: Expression,
     env: Environment,
     expected: Expression,
 ) -> None:
