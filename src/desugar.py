@@ -1,6 +1,34 @@
 from functools import partial
 import sugar
+from sugar import (
+    Sum,
+    Difference,
+    Product,
+    LetStar,
+    Cond,
+    Not,
+    All,
+    Any,
+    NonAscending,
+    Descending,
+    Same,
+    Ascending,
+    NonDescending,
+)
 import kernel
+from kernel import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 
 
 def desugar(
@@ -18,122 +46,153 @@ def desugar_expr(
     recur = partial(desugar_expr)
 
     match expr:
-        case sugar.Int(i):
-            return kernel.Int(i)
+        case Int():
+            return expr
 
-        case sugar.Add(es):
+        case kernel.Add(e1, e2):
+            return kernel.Add(recur(e1), recur(e2))
+
+        case kernel.Subtract(e1, e2):
+            return kernel.Subtract(recur(e1), recur(e2))
+
+        case kernel.Multiply(e1, e2):
+            return kernel.Multiply(recur(e1), recur(e2))
+
+        case Let(x, e1, e2):
+            return Let(x, recur(e1), recur(e2))
+
+        case Var():
+            return expr
+
+        case Bool():
+            return expr
+
+        case If(e1, e2, e3):
+            return If(recur(e1), recur(e2), recur(e3))
+
+        case LessThan(e1, e2):
+            return LessThan(recur(e1), recur(e2))
+
+        case EqualTo(e1, e2):
+            return EqualTo(recur(e1), recur(e2))
+
+        case GreaterThanOrEqualTo(e1, e2):
+            return GreaterThanOrEqualTo(recur(e1), recur(e2))
+
+        case Sum(es):
             match es:
                 case []:
-                    return kernel.Int(0)
+                    return Int(0)
                 case [first, *rest]:
-                    return kernel.Binary("+", recur(first), recur(sugar.Add(rest)))
+                    return Add(recur(first), recur(Sum(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Subtract(es):
+        case Difference(es):
             match es:
                 case [first]:
-                    return kernel.Binary("-", kernel.Int(0), recur(first))
+                    return Subtract(Int(0), recur(first))
                 case [first, second]:
-                    return kernel.Binary("-", recur(first), recur(second))
+                    return Subtract(recur(first), recur(second))
                 case [first, *rest]:
-                    return kernel.Binary("-", recur(first), recur(sugar.Subtract(rest)))
+                    return Subtract(recur(first), recur(Difference(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Multiply(es):
+        case Product(es):
             match es:
                 case []:
-                    return kernel.Int(1)
+                    return Int(1)
                 case [first, *rest]:
-                    return kernel.Binary("*", recur(first), recur(sugar.Multiply(rest)))
+                    return Multiply(recur(first), recur(Product(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Let(x, e1, e2):
-            return kernel.Let(x, recur(e1), recur(e2))
+        case LetStar(bindings, body):
+            match bindings:
+                case []:
+                    return recur(body)
+                case [[x, e1], *rest]:
+                    return Let(x, recur(e1), recur(LetStar(rest, body)))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
 
-        case sugar.Var(x):  # pragma: no branch
-            return kernel.Var(x)
+        case Cond(arms, default):
+            match arms:
+                case []:
+                    return recur(default)
+                case [[e1, e2], *rest]:
+                    return If(recur(e1), recur(e2), recur(Cond(rest, default)))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
 
-        case sugar.Bool(b):
-            return kernel.Bool(b)
+        case Not(e1):
+            return If(kernel.EqualTo(recur(e1), Bool(True)), Bool(False), Bool(True))
 
-        case sugar.Not(e1):
-            return kernel.If(
-                kernel.Binary("==", recur(e1), kernel.Bool(True)),
-                kernel.Bool(False),
-                kernel.Bool(True),
-            )
-
-        case sugar.And(es):
+        case All(es):
             match es:
                 case []:
-                    return kernel.Bool(True)
+                    return Bool(True)
                 case [first, *rest]:
-                    return kernel.If(recur(first), recur(sugar.And(rest)), kernel.Bool(True))
+                    return If(recur(first), recur(All(rest)), Bool(True))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Or(es):
+        case Any(es):
             match es:
                 case []:
-                    return kernel.Bool(False)
+                    return Bool(False)
                 case [first, *rest]:
-                    return kernel.If(recur(first), kernel.Bool(True), recur(sugar.Or(rest)))
+                    return If(recur(first), Bool(True), recur(Any(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.If(e1, e2, e3):
-            return kernel.If(recur(e1), recur(e2), recur(e3))
-
-        case sugar.LessThan(es):
+        # >
+        case Descending(es):
             match es:
                 case [first, second]:
-                    return kernel.Binary("<", recur(first), recur(second))
+                    return LessThan(recur(second), recur(first))
                 case [first, second, *rest]:
-                    return recur(sugar.And([sugar.LessThan([first, second]), sugar.LessThan([second, *rest])]))
+                    return recur(All([Descending([first, second]), Descending([second, *rest])]))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.LessThanOrEqualTo(es):
+        # >=
+        case NonAscending(es):
             match es:
                 case [first, second]:
-                    return kernel.Binary(">=", recur(second), recur(first))
+                    return GreaterThanOrEqualTo(recur(first), recur(second))
                 case [first, second, *rest]:
-                    return recur(
-                        sugar.And([sugar.LessThanOrEqualTo([first, second]), sugar.LessThanOrEqualTo([second, *rest])])
-                    )
+                    return recur(All([NonAscending([first, second]), NonAscending([second, *rest])]))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.EqualTo(es):
+        # =
+        case Same(es):
             match es:
                 case [first, second]:
-                    return kernel.Binary("==", recur(first), recur(second))
+                    return EqualTo(recur(first), recur(second))
                 case [first, second, *rest]:
-                    return recur(sugar.And([sugar.EqualTo([first, second]), sugar.EqualTo([second, *rest])]))
+                    return recur(All([Same([first, second]), Same([second, *rest])]))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.GreaterThan(es):
+        # <=
+        case NonDescending(es):
             match es:
                 case [first, second]:
-                    return kernel.Binary("<", recur(second), recur(first))
+                    return GreaterThanOrEqualTo(recur(second), recur(first))
                 case [first, second, *rest]:
-                    return recur(sugar.And([sugar.GreaterThan([first, second]), sugar.GreaterThan([second, *rest])]))
+                    return recur(All([NonDescending([first, second]), NonDescending([second, *rest])]))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.GreaterThanOrEqualTo(es):  # pragma: no branch
+        # <
+        case Ascending(es):  # pragma: no branch
             match es:
                 case [first, second]:
-                    return kernel.Binary(">=", recur(first), recur(second))
+                    return LessThan(recur(first), recur(second))
                 case [first, second, *rest]:
-                    return recur(
-                        sugar.And(
-                            [sugar.GreaterThanOrEqualTo([first, second]), sugar.GreaterThanOrEqualTo([second, *rest])]
-                        )
-                    )
+                    return recur(All([Ascending([first, second]), Ascending([second, *rest])]))
                 case _:  # pragma: no cover
                     raise NotImplementedError()

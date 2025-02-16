@@ -9,11 +9,16 @@ from lark import (
 from kernel import (
     Expression,
     Int,
-    Binary,
+    Add,
+    Subtract,
+    Multiply,
     Let,
     Var,
     Bool,
     If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
 )
 
 
@@ -25,33 +30,33 @@ class AstTransformer(Transformer[Token, Expression]):
     ) -> Int:
         return Int(value)
 
-    def int_add_expr(
+    def add_expr(
         self,
         x: Expression,
         y: Expression,
-    ) -> Binary:
-        return Binary("+", x, y)
+    ) -> Add[Expression]:
+        return Add(x, y)
 
-    def int_subtract_expr(
+    def subtract_expr(
         self,
         x: Expression,
         y: Expression,
-    ) -> Binary:
-        return Binary("-", x, y)
+    ) -> Subtract[Expression]:
+        return Subtract(x, y)
 
-    def int_multiply_expr(
+    def multiply_expr(
         self,
         x: Expression,
         y: Expression,
-    ) -> Binary:
-        return Binary("*", x, y)
+    ) -> Multiply[Expression]:
+        return Multiply(x, y)
 
     def let_expr(
         self,
         name: str,
         value: Expression,
         body: Expression,
-    ) -> Let:
+    ) -> Let[Expression, Expression]:
         return Let(name, value, body)
 
     def var_expr(
@@ -71,29 +76,29 @@ class AstTransformer(Transformer[Token, Expression]):
         condition: Expression,
         consequent: Expression,
         alternative: Expression,
-    ) -> If:
+    ) -> If[Expression, Expression, Expression]:
         return If(condition, consequent, alternative)
 
     def less_than_expr(
         self,
         e1: Expression,
         e2: Expression,
-    ) -> Binary:
-        return Binary("<", e1, e2)
+    ) -> LessThan[Expression]:
+        return LessThan(e1, e2)
 
     def equal_to_expr(
         self,
         e1: Expression,
         e2: Expression,
-    ) -> Binary:
-        return Binary("==", e1, e2)
+    ) -> EqualTo[Expression]:
+        return EqualTo(e1, e2)
 
     def greater_than_or_equal_to_expr(
         self,
         e1: Expression,
         e2: Expression,
-    ) -> Binary:
-        return Binary(">=", e1, e2)
+    ) -> GreaterThanOrEqualTo[Expression]:
+        return GreaterThanOrEqualTo(e1, e2)
 
     def int(
         self,
