@@ -1,7 +1,9 @@
 from collections.abc import Callable
 from functools import partial
 import monadic
+from monadic import Int, Add, Subtract, Multiply, Let, Var, Bool, If, LessThan, EqualTo, GreaterThanOrEqualTo
 import cps
+from cps import Block, Assign, Seq, Return, Jump, Branch
 
 
 def explicate_control(
@@ -21,41 +23,25 @@ def ec_tail(
     tail = partial(ec_tail, fresh=fresh)
     assign = partial(ec_assign, fresh=fresh)
     predicate = partial(ec_predicate, fresh=fresh)
-    effect = partial(ec_effect, fresh=fresh)
 
     match expr:
-        case monadic.Int(i):
-            return cps.Return(cps.Int(i))
+        case Int() | monadic.Add() | monadic.Subtract() | monadic.Multiply():
+            return Return(expr)
 
-        case monadic.Unary(operator, a1):
-            return cps.Return(cps.Unary(operator, a1))
-
-        case monadic.Binary(operator, a1, a2):
-            match operator:
-                case "+" | "-" | "*":
-                    return cps.Return(cps.Binary(operator, a1, a2))
-                case "<" | "==" | ">=":
-                    return cps.Return(cps.Binary(operator, a1, a2))
-                case ":=":
-                    return effect(expr, cps.Return(cps.Unit()))
-
-        case monadic.Let(x, e1, e2):
+        case Let(x, e1, e2):
             return assign(x, e1, next=tail(e2))
 
-        case monadic.Var(x):
-            return cps.Return(cps.Var(x))
+        case Var():
+            return Return(expr)
 
-        case monadic.Bool(b):
-            return cps.Return(cps.Bool(b))
+        case Bool():
+            return Return(expr)
 
-        case monadic.If(e1, e2, e3):  # pragma: no branch
+        case If(e1, e2, e3):
             return predicate(e1, then=tail(e2), otherwise=tail(e3))
 
-        case monadic.Unit():
-            return cps.Return(cps.Unit())
-
-        case monadic.While():
-            return effect(expr, cps.Return(cps.Unit()))
+        case LessThan() | EqualTo() | GreaterThanOrEqualTo():  # pragma: no branch
+            return Return(expr)
 
 
 def ec_assign(
@@ -66,39 +52,28 @@ def ec_assign(
 ) -> cps.Tail:
     assign = partial(ec_assign, fresh=fresh)
     predicate = partial(ec_predicate, fresh=fresh)
-    effect = partial(ec_effect, fresh=fresh)
 
     match value:
-        case monadic.Int(i):
-            return cps.Seq(cps.Assign(dest, cps.Int(i)), next)
+        case Int():
+            return Seq(Assign(dest, value), next)
 
-        case monadic.Unary(operator, a1):
-            return cps.Seq(cps.Assign(dest, cps.Unary(operator, a1)), next)
+        case Add() | Subtract() | Multiply():
+            return Seq(Assign(dest, value), next)
 
-        case monadic.Binary(operator, a1, a2):
-            match operator:
-                case "+" | "-" | "*" | "<" | "==" | ">=":
-                    return cps.Seq(cps.Assign(dest, cps.Binary(operator, a1, a2)), next)
-                case ":=":
-                    return effect(value, cps.Seq(cps.Assign(dest, cps.Unit()), next))
+        case Var():
+            return Seq(Assign(dest, value), next)
 
-        case monadic.Var(x):
-            return cps.Seq(cps.Assign(dest, cps.Var(x)), next)
+        case Bool():
+            return Seq(Assign(dest, value), next)
 
-        case monadic.Bool(b):
-            return cps.Seq(cps.Assign(dest, cps.Bool(b)), next)
-
-        case monadic.Let(x, e1, e2):
+        case Let(x, e1, e2):
             return assign(x, e1, assign(dest, e2, next))
 
-        case monadic.If(e1, e2, e3):
+        case If(e1, e2, e3):
             return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
 
-        case monadic.Unit():
-            return cps.Seq(cps.Assign(dest, cps.Unit()), next)
-
-        case monadic.While():  # pragma: no branch
-            return effect(value, assign(dest, monadic.Unit(), next))
+        case LessThan() | EqualTo() | GreaterThanOrEqualTo():  # pragma: no branch
+            return Return(value)
 
 
 def ec_predicate(
@@ -111,104 +86,84 @@ def ec_predicate(
     predicate = partial(ec_predicate, fresh=fresh)
 
     match expr:
-        case monadic.Int():  # pragma: no cover
+        case Int() | Add() | Subtract() | Multiply():  # pragma: no cover
             raise ValueError()
 
-        case monadic.Unary(operator, _):
-            match operator:
-                case "cell":  # pragma: no cover
-                    raise ValueError()
-                case "^":
-                    tmp = fresh("t")
-                    return assign(tmp, expr, predicate(monadic.Var(tmp), then, otherwise))
-
-        case monadic.Binary(operator, _, _):
-            match operator:
-                case "+" | "-" | "*":  # pragma: no cover
-                    raise ValueError()
-                case "<" | "==" | ">=":
-                    tmp = fresh("t")
-                    return assign(tmp, expr, predicate(monadic.Var(tmp), then, otherwise))
-                case ":=":  # pragma: no cover
-                    raise ValueError()
-
-        case monadic.Let(x, e1, e2):
+        case Let(x, e1, e2):
             return assign(x, e1, next=predicate(e2, then, otherwise))
 
-        case monadic.Var(x):
+        case Var(x):
             ifTrue = fresh("then")
             ifFalse = fresh("else")
-            return cps.Seq(
-                cps.Assign(ifTrue, cps.Block(then)),
-                cps.Seq(
-                    cps.Assign(ifFalse, cps.Block(otherwise)),
-                    cps.Branch(x, cps.Jump(ifTrue), cps.Jump(ifFalse)),
+            return Seq(
+                Assign(ifTrue, Block(then)),
+                Seq(
+                    Assign(ifFalse, Block(otherwise)),
+                    Branch(x, Jump(ifTrue), Jump(ifFalse)),
                 ),
             )
 
-        case monadic.Bool(b):
+        case Bool(b):
             match b:
                 case True:
                     return then
                 case False:
                     return otherwise
 
-        case monadic.If(e1, e2, e3):
+        case If(e1, e2, e3):
             return predicate(e1, predicate(e2, then, otherwise), predicate(e3, then, otherwise))
 
-        case monadic.Unit():  # pragma: no cover
-            raise ValueError()
-
-        case monadic.While():  # pragma: no cover
-            raise ValueError()
+        case LessThan() | EqualTo() | GreaterThanOrEqualTo():  # pragma: no branch
+            tmp = fresh("t")
+            return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
 
 
-def ec_effect(
-    expr: monadic.Expression,
-    next: cps.Tail,
-    fresh: Callable[[str], str],
-) -> cps.Tail:
-    assign = partial(ec_assign, fresh=fresh)
-    predicate = partial(ec_predicate, fresh=fresh)
-    effect = partial(ec_effect, fresh=fresh)
+# def ec_effect(
+#     expr: monadic.Expression,
+#     next: cps.Tail,
+#     fresh: Callable[[str], str],
+# ) -> cps.Tail:
+#     assign = partial(ec_assign, fresh=fresh)
+#     predicate = partial(ec_predicate, fresh=fresh)
+#     effect = partial(ec_effect, fresh=fresh)
 
-    match expr:
-        case monadic.Int():
-            return next
+#     match expr:
+#         case monadic.Int():
+#             return next
 
-        case monadic.Unary(operator, _):
-            return next
+#         case monadic.Unary(operator, _):
+#             return next
 
-        case monadic.Binary(operator, a1, a2):
-            match operator:
-                case "+" | "-" | "*":
-                    return next
-                case "<" | "==" | ">=":
-                    return next
-                case ":=":
-                    return cps.Seq(cps.Binary(operator, a1, a2), next)
+#         case monadic.Binary(operator, a1, a2):
+#             match operator:
+#                 case "+" | "-" | "*":
+#                     return next
+#                 case "<" | "==" | ">=":
+#                     return next
+#                 case ":=":
+#                     return cps.Seq(cps.Binary(operator, a1, a2), next)
 
-        case monadic.Let(x, e1, e2):
-            return assign(x, e1, effect(e2, next))
+#         case monadic.Let(x, e1, e2):
+#             return assign(x, e1, effect(e2, next))
 
-        case monadic.Var():
-            return next
+#         case monadic.Var():
+#             return next
 
-        case monadic.Bool():
-            return next
+#         case monadic.Bool():
+#             return next
 
-        case monadic.If(e1, e2, e3):
-            return predicate(e1, effect(e2, next), effect(e3, next))
+#         case monadic.If(e1, e2, e3):
+#             return predicate(e1, effect(e2, next), effect(e3, next))
 
-        case monadic.Unit():
-            return next
+#         case monadic.Unit():
+#             return next
 
-        case monadic.While(e1, e2):  # pragma: no branch
-            loop = fresh("loop")
-            return cps.Seq(
-                cps.Assign(
-                    loop,
-                    cps.Block(predicate(e1, effect(e2, cps.Jump(loop)), next)),
-                ),
-                cps.Jump(loop),
-            )
+#         case monadic.While(e1, e2):  # pragma: no branch
+#             loop = fresh("loop")
+#             return cps.Seq(
+#                 cps.Assign(
+#                     loop,
+#                     cps.Block(predicate(e1, effect(e2, cps.Jump(loop)), next)),
+#                 ),
+#                 cps.Jump(loop),
+#             )

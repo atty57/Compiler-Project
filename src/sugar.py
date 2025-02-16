@@ -1,110 +1,102 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Annotated, Union
-
+import kernel
 
 type Expression = Union[
-    Int,
-    Add,
-    Subtract,
-    Multiply,
-    Let,
-    Var,
-    Bool,
-    Not,
-    And,
-    Or,
-    If,
-    LessThan,
-    LessThanOrEqualTo,
-    EqualTo,
-    GreaterThan,
-    GreaterThanOrEqualTo,
+    kernel.Int,
+    kernel.Add[Expression],
+    kernel.Subtract[Expression],
+    kernel.Multiply[Expression],
+    kernel.Let[Expression, Expression],
+    kernel.Var,
+    kernel.Bool,
+    kernel.If[Expression, Expression, Expression],
+    kernel.LessThan[Expression],
+    kernel.EqualTo[Expression],
+    kernel.GreaterThanOrEqualTo[Expression],
+    #
+    Sum[Expression],
+    Difference[Expression],
+    Product[Expression],
+    LetStar[Expression, Expression],
+    Not[Expression],
+    All[Expression],
+    Any[Expression],
+    Cond[Expression, Expression, Expression],
+    NonDescending[Expression],
+    Ascending[Expression],
+    Same[Expression],
+    Descending[Expression],
+    NonAscending[Expression],
 ]
 
 
 @dataclass(frozen=True)
-class Int:
-    value: int
+class Sum[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Add:
-    operands: Sequence[Expression]
+class Difference[Operand]:
+    operands: Annotated[Sequence[Operand], "non-empty"]
 
 
 @dataclass(frozen=True)
-class Subtract:
-    operands: Annotated[Sequence[Expression], "non-empty"]
+class Product[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Multiply:
-    operands: Sequence[Expression]
+class LetStar[Value, Body]:
+    bindings: Sequence[tuple[str, Value]]
+    body: Body
 
 
 @dataclass(frozen=True)
-class Let:
-    name: str
-    value: Expression
-    body: Expression
+class Not[Operand]:
+    x: Operand
 
 
 @dataclass(frozen=True)
-class Var:
-    name: str
+class All[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Bool:
-    value: bool
+class Any[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Not:
-    operand: Expression
+class Cond[Condition, Consequent, Default]:
+    arms: Sequence[tuple[Condition, Consequent]]
+    default: Default
 
 
 @dataclass(frozen=True)
-class And:
-    operands: Sequence[Expression]
+class NonDescending[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Or:
-    operands: Sequence[Expression]
+class Ascending[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class If:
-    condition: Expression
-    consequent: Expression
-    alternative: Expression
+class Same[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class LessThan:
-    operands: Sequence[Expression]
+class Descending[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class LessThanOrEqualTo:
-    operands: Sequence[Expression]
-
-
-@dataclass(frozen=True)
-class EqualTo:
-    operands: Sequence[Expression]
-
-
-@dataclass(frozen=True)
-class GreaterThan:
-    operands: Sequence[Expression]
-
-
-@dataclass(frozen=True)
-class GreaterThanOrEqualTo:
-    operands: Sequence[Expression]
+class NonAscending[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)

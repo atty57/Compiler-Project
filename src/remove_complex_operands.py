@@ -1,6 +1,7 @@
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Sequence
 from functools import partial
 import kernel
+from kernel import Int, Add, Subtract, Multiply, Let, Var, Bool, If, LessThan, EqualTo, GreaterThanOrEqualTo
 import monadic
 
 
@@ -25,98 +26,126 @@ def rco_expr(
     to_atom = partial(rco_atom, fresh=fresh)
 
     match expr:
-        case kernel.Int(i):
-            return monadic.Int(i)
+        case Int():
+            return expr
 
-        case kernel.Unary(operator, e1):
-            a1, b1 = to_atom(e1)
-            return wrap(b1, monadic.Unary(operator, a1))
-
-        case kernel.Binary(operator, e1, e2):
+        case Add(e1, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
-            return wrap({**b1, **b2}, monadic.Binary(operator, a1, a2))
+            return wrap(b1, wrap(b2, Add(a1, a2)))
 
-        case kernel.Let(x, e1, e2):
-            return monadic.Let(x, to_expr(e1), to_expr(e2))
+        case Subtract(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            return wrap(b1, wrap(b2, Subtract(a1, a2)))
 
-        case kernel.Var(x):
-            return monadic.Var(x)
+        case Multiply(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            return wrap(b1, wrap(b2, Multiply(a1, a2)))
 
-        case kernel.Bool(b):
-            return monadic.Bool(b)
+        case Let(x, e1, e2):
+            return Let(x, to_expr(e1), to_expr(e2))
 
-        case kernel.If(e1, e2, e3):
+        case Var():
+            return expr
+
+        case Bool():
+            return expr
+
+        case If(e1, e2, e3):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             e3 = to_expr(e3)
-            return monadic.If(e1, e2, e3)
+            return If(e1, e2, e3)
 
-        case kernel.Unit():
-            return monadic.Unit()
+        case LessThan(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            return wrap(b1, wrap(b2, LessThan(a1, a2)))
 
-        case kernel.While(e1, e2):  # pragma: no branch
-            e1 = to_expr(e1)
-            e2 = to_expr(e2)
-            return monadic.While(e1, e2)
+        case EqualTo(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            return wrap(b1, wrap(b2, EqualTo(a1, a2)))
+
+        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            return wrap(b1, wrap(b2, GreaterThanOrEqualTo(a1, a2)))
 
 
 def rco_atom(
     expr: kernel.Expression,
     fresh: Callable[[str], str],
-) -> tuple[str, Mapping[str, monadic.Expression]]:
+) -> tuple[str, Sequence[Binding]]:
     to_expr = partial(rco_expr, fresh=fresh)
     to_atom = partial(rco_atom, fresh=fresh)
 
     match expr:
-        case kernel.Int(i):
+        case Int():
             tmp = fresh("t")
-            return tmp, {tmp: monadic.Int(i)}
+            return tmp, [(tmp, expr)]
 
-        case kernel.Unary(operator, e1):
-            a1, b1 = to_atom(e1)
-            tmp = fresh("t")
-            return tmp, {**b1, tmp: monadic.Unary(operator, a1)}
-
-        case kernel.Binary(operator, e1, e2):
+        case Add(e1, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
             tmp = fresh("t")
-            return tmp, {**b1, **b2, tmp: monadic.Binary(operator, a1, a2)}
+            return tmp, [*b1, *b2, (tmp, Add(a1, a2))]
 
-        case kernel.Var(x):
-            return x, {}
-
-        case kernel.Let(x, e1, e2):
+        case Subtract(e1, e2):
+            a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
-            return a2, {x: to_expr(e1), **b2}
-
-        case kernel.Bool(b):
             tmp = fresh("t")
-            return tmp, {tmp: monadic.Bool(b)}
+            return tmp, [*b1, *b2, (tmp, Subtract(a1, a2))]
 
-        case kernel.If(e1, e2, e3):
+        case Multiply(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            tmp = fresh("t")
+            return tmp, [*b1, *b2, (tmp, Multiply(a1, a2))]
+
+        case Let(x, e1, e2):
+            a2, b2 = to_atom(e2)
+            return a2, [(x, to_expr(e1)), *b2]
+
+        case Var(x):
+            return x, []
+
+        case Bool():
+            tmp = fresh("t")
+            return tmp, [(tmp, expr)]
+
+        case If(e1, e2, e3):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             e3 = to_expr(e3)
             tmp = fresh("t")
-            return tmp, {tmp: monadic.If(e1, e2, e3)}
+            return tmp, [(tmp, If(e1, e2, e3))]
 
-        case kernel.Unit():
+        case LessThan(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
             tmp = fresh("t")
-            return tmp, {tmp: monadic.Unit()}
+            return tmp, [*b1, *b2, (tmp, LessThan(a1, a2))]
 
-        case kernel.While(e1, e2):  # pragma: no branch
-            e1 = to_expr(e1)
-            e2 = to_expr(e2)
+        case EqualTo(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
             tmp = fresh("t")
-            return tmp, {tmp: monadic.While(e1, e2)}
+            return tmp, [*b1, *b2, (tmp, EqualTo(a1, a2))]
+
+        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            tmp = fresh("t")
+            return tmp, [*b1, *b2, (tmp, GreaterThanOrEqualTo(a1, a2))]
 
 
 def wrap(
-    bindings: Mapping[str, monadic.Expression],
+    bindings: Sequence[tuple[str, monadic.Expression]],
     expr: monadic.Expression,
 ) -> monadic.Expression:
-    for x, e in reversed(list(bindings.items())):
-        expr = monadic.Let(x, e, expr)
+    for x, e in reversed(list(bindings)):
+        expr = Let(x, e, expr)
     return expr

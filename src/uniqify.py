@@ -1,6 +1,20 @@
 from collections.abc import Callable, Mapping
 from functools import partial
-from kernel import Program, Expression, Int, Unary, Binary, Let, Var, Bool, If, Unit, While
+from kernel import (
+    Program,
+    Expression,
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 
 
 type Environment = Mapping[str, str]
@@ -28,11 +42,14 @@ def uniqify_expr(
         case Int():
             return expr
 
-        case Unary(operator, e1):
-            return Unary(operator, recur(e1))
+        case Add(e1, e2):
+            return Add(recur(e1), recur(e2))
 
-        case Binary(operator, e1, e2):
-            return Binary(operator, recur(e1), recur(e2))
+        case Subtract(e1, e2):
+            return Subtract(recur(e1), recur(e2))
+
+        case Multiply(e1, e2):
+            return Multiply(recur(e1), recur(e2))
 
         case Let(x, e1, e2):
             y = fresh(x)
@@ -47,8 +64,11 @@ def uniqify_expr(
         case If(e1, e2, e3):
             return If(recur(e1), recur(e2), recur(e3))
 
-        case Unit():
-            return expr
+        case LessThan(e1, e2):
+            return LessThan(recur(e1), recur(e2))
 
-        case While(e1, e2):  # pragma: no branch
-            return While(recur(e1), recur(e2))
+        case EqualTo(e1, e2):
+            return EqualTo(recur(e1), recur(e2))
+
+        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+            return GreaterThanOrEqualTo(recur(e1), recur(e2))
