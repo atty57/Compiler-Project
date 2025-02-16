@@ -49,14 +49,14 @@ def desugar_expr(
         case Int():
             return expr
 
-        case kernel.Add(e1, e2):
-            return kernel.Add(recur(e1), recur(e2))
+        case Add(e1, e2):
+            return Add(recur(e1), recur(e2))
 
-        case kernel.Subtract(e1, e2):
-            return kernel.Subtract(recur(e1), recur(e2))
+        case Subtract(e1, e2):
+            return Subtract(recur(e1), recur(e2))
 
-        case kernel.Multiply(e1, e2):
-            return kernel.Multiply(recur(e1), recur(e2))
+        case Multiply(e1, e2):
+            return Multiply(recur(e1), recur(e2))
 
         case Let(x, e1, e2):
             return Let(x, recur(e1), recur(e2))
@@ -127,7 +127,7 @@ def desugar_expr(
                     raise NotImplementedError()
 
         case Not(e1):
-            return If(kernel.EqualTo(recur(e1), Bool(True)), Bool(False), Bool(True))
+            return If(EqualTo(recur(e1), Bool(True)), Bool(False), Bool(True))
 
         case All(es):
             match es:
@@ -150,6 +150,8 @@ def desugar_expr(
         # >
         case Descending(es):
             match es:
+                case [] | [_]:
+                    return Bool(True)
                 case [first, second]:
                     return LessThan(recur(second), recur(first))
                 case [first, second, *rest]:
@@ -160,6 +162,8 @@ def desugar_expr(
         # >=
         case NonAscending(es):
             match es:
+                case [] | [_]:
+                    return Bool(True)
                 case [first, second]:
                     return GreaterThanOrEqualTo(recur(first), recur(second))
                 case [first, second, *rest]:
@@ -170,6 +174,8 @@ def desugar_expr(
         # =
         case Same(es):
             match es:
+                case [] | [_]:
+                    return Bool(True)
                 case [first, second]:
                     return EqualTo(recur(first), recur(second))
                 case [first, second, *rest]:
@@ -180,6 +186,9 @@ def desugar_expr(
         # <=
         case NonDescending(es):
             match es:
+                case [] | [_]:
+                    return Bool(True)
+
                 case [first, second]:
                     return GreaterThanOrEqualTo(recur(second), recur(first))
                 case [first, second, *rest]:
@@ -190,6 +199,8 @@ def desugar_expr(
         # <
         case Ascending(es):  # pragma: no branch
             match es:
+                case [] | [_]:
+                    return Bool(True)
                 case [first, second]:
                     return LessThan(recur(first), recur(second))
                 case [first, second, *rest]:

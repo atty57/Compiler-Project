@@ -423,7 +423,6 @@ def test_desugar_expr_any(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
-    print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
 
 
@@ -454,6 +453,14 @@ def test_desugar_expr_cond(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
+                NonDescending([]),
+                Bool(True),
+            ),
+            (
+                NonDescending([Int(0)]),
+                Bool(True),
+            ),
+            (
                 NonDescending([Int(1), Int(2)]),
                 GreaterThanOrEqualTo(Int(2), Int(1)),
             ),
@@ -479,6 +486,14 @@ def test_desugar_expr_non_descending(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
+            (
+                Ascending([]),
+                Bool(True),
+            ),
+            (
+                Ascending([Int(0)]),
+                Bool(True),
+            ),
             (
                 Ascending([Int(1), Int(2)]),
                 LessThan(Int(1), Int(2)),
@@ -506,6 +521,14 @@ def test_desugar_expr_ascending(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
+                Same([]),
+                Bool(True),
+            ),
+            (
+                Same([Int(0)]),
+                Bool(True),
+            ),
+            (
                 Same([Int(1), Int(2)]),
                 EqualTo(Int(1), Int(2)),
             ),
@@ -532,6 +555,14 @@ def test_desugar_expr_same(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
+                Descending([]),
+                Bool(True),
+            ),
+            (
+                Descending([Int(0)]),
+                Bool(True),
+            ),
+            (
                 Descending([Int(1), Int(2)]),
                 LessThan(Int(2), Int(1)),
             ),
@@ -550,7 +581,6 @@ def test_desugar_expr_descending(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
-    print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
 
 
@@ -558,6 +588,14 @@ def test_desugar_expr_descending(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
+            (
+                NonAscending([]),
+                Bool(True),
+            ),
+            (
+                NonAscending([Int(0)]),
+                Bool(True),
+            ),
             (
                 NonAscending([Int(1), Int(2)]),
                 GreaterThanOrEqualTo(Int(1), Int(2)),

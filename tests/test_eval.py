@@ -75,7 +75,7 @@ def test_eval_expr_int(
         ]
     ),
 )
-def test_eval_expr_int_add(
+def test_eval_expr_add(
     expr: Expression,
     env: Environment,
     expected: Value,
@@ -95,7 +95,7 @@ def test_eval_expr_int_add(
         ]
     ),
 )
-def test_eval_expr_int_subtract(
+def test_eval_expr_subtract(
     expr: Expression,
     env: Environment,
     expected: Value,
