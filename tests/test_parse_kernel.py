@@ -1,5 +1,18 @@
 import pytest
-from kernel import Int, Binary, Let, Var, Bool, If
+from kernel import (
+    Expression,
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 from parse_kernel import parse_expr
 
 
@@ -23,61 +36,61 @@ def test_parse_expr_int(
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Binary]](
+    list[tuple[str, Expression]](
         [
             (
                 "(+ 1 2)",
-                Binary("+", Int(1), Int(2)),
+                Add(Int(1), Int(2)),
             ),
         ]
     ),
 )
-def test_parse_expr_int_add(
+def test_parse_expr_add(
     source: str,
-    expected: Binary,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Binary]](
+    list[tuple[str, Expression]](
         [
             (
                 "(- 2 1)",
-                Binary("-", Int(2), Int(1)),
+                Subtract(Int(2), Int(1)),
             ),
         ]
     ),
 )
-def test_parse_expr_int_subtract(
+def test_parse_expr_subtract(
     source: str,
-    expected: Binary,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Binary]](
+    list[tuple[str, Expression]](
         [
             (
                 "(* 1 2)",
-                Binary("*", Int(1), Int(2)),
+                Multiply(Int(1), Int(2)),
             ),
         ]
     ),
 )
 def test_parse_expr_multiply(
     source: str,
-    expected: Binary,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Let]](
+    list[tuple[str, Expression]](
         [
             (
                 "(let ([x 1]) x)",
@@ -88,14 +101,14 @@ def test_parse_expr_multiply(
 )
 def test_parse_expr_let(
     source: str,
-    expected: Let,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Var]](
+    list[tuple[str, Expression]](
         [
             (
                 "x",
@@ -106,14 +119,14 @@ def test_parse_expr_let(
 )
 def test_parse_expr_var(
     source: str,
-    expected: Var,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Bool]](
+    list[tuple[str, Expression]](
         [
             (
                 "#t",
@@ -128,14 +141,14 @@ def test_parse_expr_var(
 )
 def test_parse_expr_bool(
     source: str,
-    expected: Bool,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, If]](
+    list[tuple[str, Expression]](
         [
             (
                 "(if x 1 0)",
@@ -146,60 +159,60 @@ def test_parse_expr_bool(
 )
 def test_parse_expr_if(
     source: str,
-    expected: If,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Binary]](
+    list[tuple[str, Expression]](
         [
             (
                 "(< 1 0)",
-                Binary("<", Int(1), Int(0)),
+                LessThan(Int(1), Int(0)),
             ),
         ]
     ),
 )
 def test_parse_expr_less_than(
     source: str,
-    expected: Binary,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Binary]](
+    list[tuple[str, Expression]](
         [
             (
                 "(== 1 0)",
-                Binary("==", Int(1), Int(0)),
+                EqualTo(Int(1), Int(0)),
             ),
         ]
     ),
 )
 def test_parse_expr_equal_to(
     source: str,
-    expected: Binary,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Binary]](
+    list[tuple[str, Expression]](
         [
             (
                 "(>= 1 0)",
-                Binary(">=", Int(1), Int(0)),
+                GreaterThanOrEqualTo(Int(1), Int(0)),
             ),
         ]
     ),
 )
 def test_parse_expr_greater_than_or_equal_to(
     source: str,
-    expected: Binary,
+    expected: Expression,
 ) -> None:
     assert parse_expr(source) == expected

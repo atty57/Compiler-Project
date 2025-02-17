@@ -1,17 +1,30 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal, Union
+from typing import Union
 
 
 type Expression = Union[
+    # Int
     Int,
-    Binary,
-    Let,
+    Add[Expression],
+    Subtract[Expression],
+    Multiply[Expression],
+    # Var
+    Let[Expression, Expression],
     Var,
+    # If
     Bool,
-    If,
+    If[Expression, Expression, Expression],
+    LessThan[Expression],
+    EqualTo[Expression],
+    GreaterThanOrEqualTo[Expression],
+    # Store
     Unit,
-    While,
+    Cell[Expression],
+    Get[Expression],
+    Set[Expression],
+    # While
+    While[Expression, Expression],
 ]
 
 
@@ -21,24 +34,28 @@ class Int:
 
 
 @dataclass(frozen=True)
-class Binary:
-    operator: Literal[
-        "+",
-        "-",
-        "*",
-        "<",
-        "==",
-        ">=",
-    ]
-    x: Expression
-    y: Expression
+class Add[Operand]:
+    x: Operand
+    y: Operand
 
 
 @dataclass(frozen=True)
-class Let:
+class Subtract[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class Multiply[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class Let[Value, Name]:
     name: str
-    value: Expression
-    body: Expression
+    value: Value
+    body: Name
 
 
 @dataclass(frozen=True)
@@ -52,10 +69,28 @@ class Bool:
 
 
 @dataclass(frozen=True)
-class If:
-    condition: Expression
-    consequent: Expression
-    alternative: Expression
+class If[Condition, Consequent, Alternative]:
+    condition: Condition
+    consequent: Consequent
+    alternative: Alternative
+
+
+@dataclass(frozen=True)
+class LessThan[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class EqualTo[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class GreaterThanOrEqualTo[Operand]:
+    x: Operand
+    y: Operand
 
 
 @dataclass(frozen=True)
@@ -64,25 +99,25 @@ class Unit:
 
 
 @dataclass(frozen=True)
-class Cell:
-    value: Expression
+class Cell[Operand]:
+    x: Operand
 
 
 @dataclass(frozen=True)
-class CellGet:
-    cell: Expression
+class Get[Operand]:
+    x: Operand
 
 
 @dataclass(frozen=True)
-class CellSet:
-    cell: Expression
-    value: Expression
+class Set[Operand]:
+    x: Operand
+    y: Operand
 
 
 @dataclass(frozen=True)
-class While:
-    condition: Expression
-    body: Expression
+class While[Condition, Body]:
+    condition: Condition
+    body: Body
 
 
 @dataclass(frozen=True)
