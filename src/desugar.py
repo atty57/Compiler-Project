@@ -64,20 +64,5 @@ def desugar_expr(
         case Var():
             return expr
 
-        case Bool():
-            return expr
-
-        case If(e1, e2, e3):
-            return If(recur(e1), recur(e2), recur(e3))
-
-        case LessThan(e1, e2):
-            return LessThan(recur(e1), recur(e2))
-
-        case EqualTo(e1, e2):
-            return EqualTo(recur(e1), recur(e2))
-
-        case GreaterThanOrEqualTo(e1, e2):
-            return GreaterThanOrEqualTo(recur(e1), recur(e2))
-
         case _:
             raise NotImplementedError()
