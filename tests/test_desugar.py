@@ -395,11 +395,11 @@ def test_desugar_expr_not(
             ),
             (
                 All([Bool(True)]),
-                If(Bool(True), Bool(True), Bool(True)),
+                If(Bool(True), Bool(True), Bool(False)),
             ),
             (
                 All([Bool(True), Bool(False)]),
-                If(Bool(True), If(Bool(False), Bool(True), Bool(True)), Bool(True)),
+                If(Bool(True), If(Bool(False), Bool(True), Bool(False)), Bool(False)),
             ),
         ]
     ),
@@ -408,6 +408,7 @@ def test_desugar_expr_all(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
+    print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
 
 
@@ -483,7 +484,7 @@ def test_desugar_expr_cond(
                 If(
                     GreaterThanOrEqualTo(Int(2), Int(1)),
                     If(GreaterThanOrEqualTo(Int(3), Int(2)), Bool(True), Bool(False)),
-                    Bool(True),
+                    Bool(False),
                 ),
             ),
         ]
@@ -518,7 +519,7 @@ def test_desugar_expr_non_descending(
                 If(
                     LessThan(Int(1), Int(2)),
                     If(LessThan(Int(2), Int(3)), Bool(True), Bool(False)),
-                    Bool(True),
+                    Bool(False),
                 ),
             ),
         ]
@@ -553,7 +554,7 @@ def test_desugar_expr_ascending(
                 If(
                     EqualTo(Int(1), Int(2)),
                     If(EqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
-                    Bool(True),
+                    Bool(False),
                 ),
             ),
         ]
@@ -588,7 +589,7 @@ def test_desugar_expr_same(
                 If(
                     LessThan(Int(2), Int(1)),
                     If(LessThan(Int(3), Int(2)), Bool(True), Bool(False)),
-                    Bool(True),
+                    Bool(False),
                 ),
             ),
         ]
@@ -623,7 +624,7 @@ def test_desugar_expr_descending(
                 If(
                     GreaterThanOrEqualTo(Int(1), Int(2)),
                     If(GreaterThanOrEqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
-                    Bool(True),
+                    Bool(False),
                 ),
             ),
         ]
