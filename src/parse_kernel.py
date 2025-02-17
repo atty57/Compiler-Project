@@ -123,8 +123,9 @@ class AstTransformer(Transformer[Token, Any]):
 
     def unit_expr(
         self,
+        value: Unit,
     ) -> Unit:
-        return Unit()
+        return value
 
     def cell_expr(
         self,

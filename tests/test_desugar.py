@@ -473,7 +473,6 @@ def test_desugar_expr_all(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
-    print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
 
 
