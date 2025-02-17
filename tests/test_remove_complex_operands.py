@@ -15,6 +15,7 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
 )
+from monadic import Atom
 from remove_complex_operands import (
     Binding,
     remove_complex_operands,
@@ -88,7 +89,7 @@ def test_rco_expr_int(
         [
             (
                 Add(Var("x"), Var("y")),
-                Add("x", "y"),
+                Add(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -107,7 +108,7 @@ def test_rco_expr_add(
         [
             (
                 Subtract(Var("x"), Var("y")),
-                Subtract("x", "y"),
+                Subtract(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -126,7 +127,7 @@ def test_rco_expr_subtract(
         [
             (
                 Multiply(Var("x"), Var("y")),
-                Multiply("x", "y"),
+                Multiply(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -202,7 +203,7 @@ def test_rco_expr_if(
         [
             (
                 LessThan(Var("x"), Var("y")),
-                LessThan("x", "y"),
+                LessThan(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -221,7 +222,7 @@ def test_rco_expr_less_than(
         [
             (
                 EqualTo(Var("x"), Var("y")),
-                EqualTo("x", "y"),
+                EqualTo(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -240,7 +241,7 @@ def test_rco_expr_equal_to(
         [
             (
                 GreaterThanOrEqualTo(Var("x"), Var("y")),
-                GreaterThanOrEqualTo("x", "y"),
+                GreaterThanOrEqualTo(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -255,11 +256,11 @@ def test_rco_expr_greater_than_or_equal_to(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Int(0),
-                ("_t0", [("_t0", Int(0))]),
+                (Int(0), []),
             ),
         ]
     ),
@@ -274,11 +275,11 @@ def test_rco_atom_int(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Add(Var("x"), Var("y")),
-                ("_t0", [("_t0", Add("x", "y"))]),
+                (Var("_t0"), [("_t0", Add(Var("x"), Var("y")))]),
             ),
         ]
     ),
@@ -293,11 +294,11 @@ def test_rco_atom_add(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Subtract(Var("x"), Var("y")),
-                ("_t0", [("_t0", Subtract("x", "y"))]),
+                (Var("_t0"), [("_t0", Subtract(Var("x"), Var("y")))]),
             ),
         ]
     ),
@@ -312,11 +313,11 @@ def test_rco_atom_subtract(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Multiply(Var("x"), Var("y")),
-                ("_t0", [("_t0", Multiply("x", "y"))]),
+                (Var("_t0"), [("_t0", Multiply(Var("x"), Var("y")))]),
             ),
         ]
     ),
@@ -331,11 +332,11 @@ def test_rco_atom_multiply(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
-                Let("x", Var("x"), Var("y")),
-                ("y", [("x", Var("x"))]),
+                Let("x", Int(0), Var("y")),
+                (Var("y"), [("x", Int(0))]),
             ),
         ]
     ),
@@ -350,11 +351,11 @@ def test_rco_atom_let(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Var("x"),
-                ("x", []),
+                (Var("x"), []),
             ),
         ]
     ),
@@ -369,11 +370,11 @@ def test_rco_atom_var(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Bool(True),
-                ("_t0", [("_t0", Bool(True))]),
+                (Bool(True), []),
             ),
         ]
     ),
@@ -388,11 +389,11 @@ def test_rco_atom_bool(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 If(Var("c"), Var("x"), Var("y")),
-                ("_t0", [("_t0", If(Var("c"), Var("x"), Var("y")))]),
+                (Var("_t0"), [("_t0", If(Var("c"), Var("x"), Var("y")))]),
             ),
         ]
     ),
@@ -407,11 +408,11 @@ def test_rco_atom_if(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 LessThan(Var("x"), Var("y")),
-                ("_t0", [("_t0", LessThan("x", "y"))]),
+                (Var("_t0"), [("_t0", LessThan(Var("x"), Var("y")))]),
             ),
         ]
     ),
@@ -426,11 +427,11 @@ def test_rco_atom_less_then(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 EqualTo(Var("x"), Var("y")),
-                ("_t0", [("_t0", EqualTo("x", "y"))]),
+                (Var("_t0"), [("_t0", EqualTo(Var("x"), Var("y")))]),
             ),
         ]
     ),
@@ -445,11 +446,11 @@ def test_rco_atom_equal_to(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[kernel.Expression, tuple[str, Sequence[Binding]]]](
+    list[tuple[kernel.Expression, tuple[Atom, Sequence[Binding]]]](
         [
             (
                 GreaterThanOrEqualTo(Var("x"), Var("y")),
-                ("_t0", [("_t0", GreaterThanOrEqualTo("x", "y"))]),
+                (Var("_t0"), [("_t0", GreaterThanOrEqualTo(Var("x"), Var("y")))]),
             ),
         ]
     ),

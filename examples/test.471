@@ -1,0 +1,4 @@
+(program (x)
+    (let ([a 10])
+        (let ([b 20])
+            (if (== x 0) a b))))

@@ -3,16 +3,20 @@ from dataclasses import dataclass
 from typing import Union
 from monadic import Int, Add, Subtract, Multiply, Var, Bool, LessThan, EqualTo, GreaterThanOrEqualTo
 
-type Expression = Union[
+type Atom = Union[
     Int,
-    Add[str],
-    Subtract[str],
-    Multiply[str],
     Var,
     Bool,
-    LessThan[str],
-    EqualTo[str],
-    GreaterThanOrEqualTo[str],
+]
+
+type Expression = Union[
+    Atom,
+    Add[Atom],
+    Subtract[Atom],
+    Multiply[Atom],
+    LessThan[Atom],
+    EqualTo[Atom],
+    GreaterThanOrEqualTo[Atom],
     Block,
 ]
 
@@ -51,7 +55,7 @@ class Jump:
 
 @dataclass(frozen=True)
 class Branch:
-    condition: str
+    condition: Var
     then: Jump
     otherwise: Jump
 

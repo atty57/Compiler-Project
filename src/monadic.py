@@ -3,18 +3,22 @@ from dataclasses import dataclass
 from typing import Union
 from kernel import Int, Add, Subtract, Multiply, Let, Var, Bool, If, LessThan, EqualTo, GreaterThanOrEqualTo
 
-type Expression = Union[
+type Atom = Union[
     Int,
-    Add[str],
-    Subtract[str],
-    Multiply[str],
-    Let[Expression, Expression],
     Var,
     Bool,
+]
+
+type Expression = Union[
+    Atom,
+    Add[Atom],
+    Subtract[Atom],
+    Multiply[Atom],
+    Let[Expression, Expression],
     If[Expression, Expression, Expression],
-    LessThan[str],
-    EqualTo[str],
-    GreaterThanOrEqualTo[str],
+    LessThan[Atom],
+    EqualTo[Atom],
+    GreaterThanOrEqualTo[Atom],
 ]
 
 
