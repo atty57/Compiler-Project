@@ -10,6 +10,7 @@ expr: int                                                           -> int_expr
     | "(" "<" expr expr ")"                                         -> less_than_expr
     | "(" "==" expr expr ")"                                        -> equal_to_expr
     | "(" ">=" expr expr ")"                                        -> greater_than_or_equal_to_expr
+    | "(" "while" expr expr ")"                                     -> while_expr
 
 int: INT
 true: TRUE

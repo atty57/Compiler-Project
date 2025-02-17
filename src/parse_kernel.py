@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 import os
 from lark import (
     Lark,
@@ -7,6 +8,7 @@ from lark import (
     v_args,  # type: ignore
 )
 from kernel import (
+    Program,
     Expression,
     Int,
     Add,
@@ -19,11 +21,26 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    While,
 )
 
 
 @v_args(inline=True)
 class AstTransformer(Transformer[Token, Expression]):
+    def program(
+        self,
+        parameters: Sequence[str],
+        body: Expression,
+    ) -> Program:
+        return Program(parameters, body)
+
+    @v_args(inline=False)
+    def parameters(
+        self,
+        parameters: Sequence[str],
+    ) -> Sequence[str]:
+        return parameters
+
     def int_expr(
         self,
         value: int,
@@ -100,6 +117,13 @@ class AstTransformer(Transformer[Token, Expression]):
     ) -> GreaterThanOrEqualTo[Expression]:
         return GreaterThanOrEqualTo(e1, e2)
 
+    def while_expr(
+        self,
+        condition: Expression,
+        body: Expression,
+    ) -> While[Expression, Expression]:
+        return While(condition, body)
+
     def int(
         self,
         value: Token,
@@ -126,6 +150,15 @@ class AstTransformer(Transformer[Token, Expression]):
 
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+def parse(
+    source: str,
+) -> Program:
+    with open(os.path.join(__location__, "./kernel.lark"), "r") as f:
+        parser = Lark(f, start="expr")
+        tree: ParseTree = parser.parse(source)
+        return AstTransformer().transform(tree)  # type: ignore
 
 
 def parse_expr(

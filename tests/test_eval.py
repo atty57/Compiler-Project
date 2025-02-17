@@ -406,6 +406,19 @@ def test_eval_expr_set(
                 Store(),
                 Unit(),
             ),
+            (
+                Let(
+                    "x",
+                    Cell(Bool(True)),
+                    While(
+                        Get(Var("x")),
+                        Set(Var("x"), Bool(False)),
+                    ),
+                ),
+                {},
+                Store(),
+                Unit(),
+            ),
         ]
     ),
 )
