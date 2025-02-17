@@ -150,7 +150,7 @@ def desugar_expr(
                 case []:
                     return Bool(True)
                 case [first, *rest]:
-                    return If(recur(first), recur(All(rest)), Bool(True))
+                    return If(recur(first), recur(All(rest)), Bool(False))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 

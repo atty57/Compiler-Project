@@ -1,4 +1,4 @@
-program: "(" "program" ")"
+program: "(" "program" "(" parameters ")" expr ")"
 
 expr: int                                                           -> int_expr
     | "(" "+" expr expr ")"                                         -> add_expr
@@ -16,6 +16,7 @@ expr: int                                                           -> int_expr
     | "(" "get" expr ")"                                            -> get_expr
     | "(" "set" expr expr ")"                                       -> set_expr
 
+parameters: identifier*
 
 int: INT
 true: TRUE
