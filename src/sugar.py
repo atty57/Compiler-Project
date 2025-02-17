@@ -15,6 +15,10 @@ type Expression = Union[
     kernel.LessThan[Expression],
     kernel.EqualTo[Expression],
     kernel.GreaterThanOrEqualTo[Expression],
+    kernel.Unit,
+    kernel.Cell[Expression],
+    kernel.Get[Expression],
+    kernel.Set[Expression],
     #
     Sum[Expression],
     Difference[Expression],

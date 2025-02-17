@@ -28,6 +28,10 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
 )
 from desugar import desugar, desugar_expr
 
@@ -242,6 +246,78 @@ def test_desugar_expr_equal_to(
     ),
 )
 def test_desugar_expr_greater_than_or_equal_to(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Unit(),
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_unit(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Cell(Unit()),
+                Cell(Unit()),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_cell(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Get(Var("x")),
+                Get(Var("x")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_get(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Set(Var("x"), Var("y")),
+                Set(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_set(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
