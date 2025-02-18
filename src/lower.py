@@ -22,7 +22,7 @@ from cps import (
     Assign,
     Set,
     Tail,
-    Seq,
+    Do,
     Return,
     Jump,
     If,
@@ -69,7 +69,7 @@ def lower_tail(
 ) -> None:
     recur = partial(lower_tail, env=env, builder=builder)
     match tail:
-        case Seq(stmt, next):
+        case Do(stmt, next):
             recur(next, env=lower_stmt(stmt, env, builder))
 
         case Return(value):

@@ -16,7 +16,7 @@ from monadic import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
 )
 
 type Atom = Union[
@@ -46,7 +46,7 @@ type Statement = Union[
 ]
 
 type Tail = Union[
-    Seq[Statement, Tail],
+    Do[Statement, Tail],
     Return,
     Jump,
     If[Atom, Jump, Jump],

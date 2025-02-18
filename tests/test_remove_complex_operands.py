@@ -18,7 +18,7 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from monadic import Atom
@@ -337,9 +337,9 @@ def test_rco_expr_set(
     list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
                 SequentialNameGenerator(),
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -677,9 +677,9 @@ def test_rco_atom_set(
     list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
                 SequentialNameGenerator(),
-                (Var("_t0"), [("_t0", Seq(Var("x"), Var("y")))]),
+                (Var("_t0"), [("_t0", Do(Var("x"), Var("y")))]),
             ),
         ]
     ),

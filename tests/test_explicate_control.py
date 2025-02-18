@@ -18,7 +18,7 @@ from monadic import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from cps import Block, Assign, Return, Jump
@@ -139,7 +139,7 @@ def test_explicate_control_tail_multiply(
             (
                 Let("x", Int(0), Int(1)),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Int(0)), Return(Int(1))),
+                Do(Assign("x", Int(0)), Return(Int(1))),
             ),
         ]
     ),
@@ -199,9 +199,9 @@ def test_explicate_control_tail_bool(
             (
                 If(Var("c"), Var("x"), Var("y")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_then0", Block(Return(Var("x")))),
-                    Seq(
+                    Do(
                         Assign("_else0", Block(Return(Var("y")))),
                         If(Var("c"), Jump("_then0"), Jump("_else0")),
                     ),
@@ -345,7 +345,7 @@ def test_explicate_control_tail_get(
             (
                 Set(Var("x"), Var("y")),
                 SequentialNameGenerator(),
-                Seq(Set(Var("x"), Var("y")), Return(Unit())),
+                Do(Set(Var("x"), Var("y")), Return(Unit())),
             ),
         ]
     ),
@@ -363,7 +363,7 @@ def test_explicate_control_tail_set(
     list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
         [
             (
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
                 SequentialNameGenerator(),
                 Return(Var("y")),
             ),
@@ -385,13 +385,13 @@ def test_explicate_control_tail_seq(
             (
                 While(Var("x"), Var("y")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign(
                         "_loop0",
                         Block(
-                            Seq(
+                            Do(
                                 Assign("_then0", Block(Jump("_loop0"))),
-                                Seq(
+                                Do(
                                     Assign("_else0", Block(Return(Unit()))),
                                     If(Var("x"), Jump("_then0"), Jump("_else0")),
                                 ),
@@ -421,7 +421,7 @@ def test_explicate_control_tail_while(
                 Int(0),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Int(0)), Return(Unit())),
+                Do(Assign("x", Int(0)), Return(Unit())),
             ),
         ]
     ),
@@ -445,7 +445,7 @@ def test_explicate_control_assign_int(
                 Add(Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Add(Int(0), Int(0))), Return(Unit())),
+                Do(Assign("x", Add(Int(0), Int(0))), Return(Unit())),
             ),
         ]
     ),
@@ -469,7 +469,7 @@ def test_explicate_control_assign_add(
                 Subtract(Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Subtract(Int(0), Int(0))), Return(Unit())),
+                Do(Assign("x", Subtract(Int(0), Int(0))), Return(Unit())),
             ),
         ]
     ),
@@ -493,7 +493,7 @@ def test_explicate_control_assign_subtract(
                 Multiply(Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Multiply(Int(0), Int(0))), Return(Unit())),
+                Do(Assign("x", Multiply(Int(0), Int(0))), Return(Unit())),
             ),
         ]
     ),
@@ -517,7 +517,7 @@ def test_explicate_control_assign_multiply(
                 Let("y", Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("y", Int(0)), Seq(Assign("x", Int(0)), Return(Unit()))),
+                Do(Assign("y", Int(0)), Do(Assign("x", Int(0)), Return(Unit()))),
             ),
         ]
     ),
@@ -541,7 +541,7 @@ def test_explicate_control_assign_let(
                 Var("y"),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Var("y")), Return(Unit())),
+                Do(Assign("x", Var("y")), Return(Unit())),
             ),
         ]
     ),
@@ -565,7 +565,7 @@ def test_explicate_control_assign_var(
                 Bool(True),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Bool(True)), Return(Unit())),
+                Do(Assign("x", Bool(True)), Return(Unit())),
             ),
         ]
     ),
@@ -589,10 +589,10 @@ def test_explicate_control_assign_bool(
                 If(Var("c"), Var("y"), Var("z")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(
-                    Assign("_then0", Block(Seq(Assign("x", Var("y")), Return(Unit())))),
-                    Seq(
-                        Assign("_else0", Block(Seq(Assign("x", Var("z")), Return(Unit())))),
+                Do(
+                    Assign("_then0", Block(Do(Assign("x", Var("y")), Return(Unit())))),
+                    Do(
+                        Assign("_else0", Block(Do(Assign("x", Var("z")), Return(Unit())))),
                         If(Var("c"), Jump("_then0"), Jump("_else0")),
                     ),
                 ),
@@ -619,7 +619,7 @@ def test_explicate_control_assign_if(
                 LessThan(Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", LessThan(Int(0), Int(0))), Return(Unit())),
+                Do(Assign("x", LessThan(Int(0), Int(0))), Return(Unit())),
             ),
         ]
     ),
@@ -643,7 +643,7 @@ def test_explicate_control_assign_less_than(
                 EqualTo(Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", EqualTo(Int(0), Int(0))), Return(Unit())),
+                Do(Assign("x", EqualTo(Int(0), Int(0))), Return(Unit())),
             ),
         ]
     ),
@@ -667,7 +667,7 @@ def test_explicate_control_assign_equal_to(
                 GreaterThanOrEqualTo(Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", GreaterThanOrEqualTo(Int(0), Int(0))), Return(Unit())),
+                Do(Assign("x", GreaterThanOrEqualTo(Int(0), Int(0))), Return(Unit())),
             ),
         ]
     ),
@@ -691,7 +691,7 @@ def test_explicate_control_assign_greater_than_or_equal_to(
                 Unit(),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Unit()), Return(Unit())),
+                Do(Assign("x", Unit()), Return(Unit())),
             ),
         ]
     ),
@@ -715,7 +715,7 @@ def test_explicate_control_assign_unit(
                 Cell(Unit()),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Cell(Unit())), Return(Unit())),
+                Do(Assign("x", Cell(Unit())), Return(Unit())),
             ),
         ]
     ),
@@ -739,7 +739,7 @@ def test_explicate_control_assign_cell(
                 Get(Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Get(Var("y"))), Return(Unit())),
+                Do(Assign("x", Get(Var("y"))), Return(Unit())),
             ),
         ]
     ),
@@ -763,7 +763,7 @@ def test_explicate_control_assign_get(
                 Set(Var("x"), Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Set(Var("x"), Var("y")), Seq(Assign("x", Unit()), Return(Unit()))),
+                Do(Set(Var("x"), Var("y")), Do(Assign("x", Unit()), Return(Unit()))),
             ),
         ]
     ),
@@ -784,10 +784,10 @@ def test_explicate_control_assign_set(
         [
             (
                 "x",
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("x", Var("y")), Return(Unit())),
+                Do(Assign("x", Var("y")), Return(Unit())),
             ),
         ]
     ),
@@ -811,14 +811,14 @@ def test_explicate_control_assign_seq(
                 While(Var("x"), Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign(
                         "_loop0",
                         Block(
-                            Seq(
+                            Do(
                                 Assign("_then0", Block(Jump("_loop0"))),
-                                Seq(
-                                    Assign("_else0", Block(Seq(Assign("x", Unit()), Return(Unit())))),
+                                Do(
+                                    Assign("_else0", Block(Do(Assign("x", Unit()), Return(Unit())))),
                                     If(Var("x"), Jump("_then0"), Jump("_else0")),
                                 ),
                             )
@@ -941,11 +941,11 @@ def test_explicate_control_predicate_multiply(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("x", Int(0)),
-                    Seq(
+                    Do(
                         Assign("_then0", Block(Return(Var("then")))),
-                        Seq(
+                        Do(
                             Assign("_else0", Block(Return(Var("otherwise")))),
                             If(Var("y"), Jump("_then0"), Jump("_else0")),
                         ),
@@ -974,9 +974,9 @@ def test_explicate_control_predicate_let(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_then0", Block(Return(Var("then")))),
-                    Seq(
+                    Do(
                         Assign("_else0", Block(Return(Var("otherwise")))),
                         If(Var("x"), Jump("_then0"), Jump("_else0")),
                     ),
@@ -1035,26 +1035,26 @@ def test_explicate_control_predicate_bool(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign(
                         "_then2",
                         Block(
-                            Seq(
+                            Do(
                                 Assign("_then0", Block(Return(Var("then")))),
-                                Seq(
+                                Do(
                                     Assign("_else0", Block(Return(Var("otherwise")))),
                                     If(Var("x"), Jump("_then0"), Jump("_else0")),
                                 ),
                             )
                         ),
                     ),
-                    Seq(
+                    Do(
                         Assign(
                             "_else2",
                             Block(
-                                Seq(
+                                Do(
                                     Assign("_then1", Block(Return(Var("then")))),
-                                    Seq(
+                                    Do(
                                         Assign("_else1", Block(Return(Var("otherwise")))),
                                         If(Var("y"), Jump("_then1"), Jump("_else1")),
                                     ),
@@ -1087,11 +1087,11 @@ def test_explicate_control_predicate_if(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_t0", LessThan(x=Int(0), y=Int(0))),
-                    Seq(
+                    Do(
                         Assign("_then0", Block(Return(Var("then")))),
-                        Seq(
+                        Do(
                             Assign("_else0", Block(Return(Var("otherwise")))),
                             If(Var("_t0"), Jump("_then0"), Jump("_else0")),
                         ),
@@ -1120,11 +1120,11 @@ def test_explicate_control_predicate_less_than(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_t0", EqualTo(x=Int(0), y=Int(0))),
-                    Seq(
+                    Do(
                         Assign("_then0", Block(Return(Var("then")))),
-                        Seq(
+                        Do(
                             Assign("_else0", Block(Return(Var("otherwise")))),
                             If(Var("_t0"), Jump("_then0"), Jump("_else0")),
                         ),
@@ -1153,11 +1153,11 @@ def test_explicate_control_predicate_equal_to(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_t0", GreaterThanOrEqualTo(x=Int(0), y=Int(0))),
-                    Seq(
+                    Do(
                         Assign("_then0", Block(Return(Var("then")))),
-                        Seq(
+                        Do(
                             Assign("_else0", Block(Return(Var("otherwise")))),
                             If(Var("_t0"), Jump("_then0"), Jump("_else0")),
                         ),
@@ -1232,11 +1232,11 @@ def test_explicate_control_predicate_cell(
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_t0", Get(Var("x"))),
-                    Seq(
+                    Do(
                         Assign("_then0", Block(Return(Var("then")))),
-                        Seq(
+                        Do(
                             Assign("_else0", Block(Return(Var("otherwise")))),
                             If(Var("_t0"), Jump("_then0"), Jump("_else0")),
                         ),
@@ -1284,13 +1284,13 @@ def test_explicate_control_predicate_set(
     list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
         [
             (
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign("_then0", Block(Return(Var("then")))),
-                    Seq(
+                    Do(
                         Assign("_else0", Block(Return(Var("otherwise")))),
                         If(Var("y"), Jump("_then0"), Jump("_else0")),
                     ),
@@ -1428,7 +1428,7 @@ def test_explicate_control_effect_multiply(
                 Let("y", Int(0), Int(0)),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Assign("y", Int(0)), Return(Unit())),
+                Do(Assign("y", Int(0)), Return(Unit())),
             ),
         ]
     ),
@@ -1494,9 +1494,9 @@ def test_explicate_control_effect_bool(
                 If(Var("c"), Var("y"), Var("z")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq[cps.Statement, cps.Tail](
+                Do[cps.Statement, cps.Tail](
                     Assign("_then0", Block(Return(Unit()))),
-                    Seq(
+                    Do(
                         Assign("_else0", Block(Return(Unit()))),
                         If(Var("c"), Jump("_then0"), Jump("_else0")),
                     ),
@@ -1654,7 +1654,7 @@ def test_explicate_control_effect_get(
                 Set(Var("x"), Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(Set(Var("x"), Var("y")), Return(Unit())),
+                Do(Set(Var("x"), Var("y")), Return(Unit())),
             ),
         ]
     ),
@@ -1673,7 +1673,7 @@ def test_explicate_control_effect_set(
     list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
         [
             (
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
                 Return(Unit()),
@@ -1698,13 +1698,13 @@ def test_explicate_control_effect_seq(
                 While(Var("x"), Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Seq(
+                Do(
                     Assign(
                         "_loop0",
                         Block(
-                            Seq(
+                            Do(
                                 Assign("_then0", Block(Jump("_loop0"))),
-                                Seq(
+                                Do(
                                     Assign("_else0", Block(Return(Unit()))),
                                     If(Var("x"), Jump("_then0"), Jump("_else0")),
                                 ),

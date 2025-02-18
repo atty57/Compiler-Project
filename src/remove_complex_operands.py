@@ -17,7 +17,7 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 import monadic
@@ -109,10 +109,10 @@ def rco_expr(
             a2, b2 = to_atom(e2)
             return wrap(b1, wrap(b1, Set(a1, a2)))
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
-            return Seq(e1, e2)
+            return Do(e1, e2)
 
         case While(e1, e2):  # pragma: no branch
             e1 = to_expr(e1)
@@ -203,11 +203,11 @@ def rco_atom(
             tmp = fresh("t")
             return Var(tmp), [*b1, *b2, (tmp, Set(a1, a2))]
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             tmp = fresh("t")
-            return Var(tmp), [(tmp, Seq(e1, e2))]
+            return Var(tmp), [(tmp, Do(e1, e2))]
 
         case While(e1, e2):  # pragma: no branch
             e1 = to_expr(e1)

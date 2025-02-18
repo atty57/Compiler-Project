@@ -17,7 +17,7 @@ from monadic import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 import cps
@@ -74,7 +74,7 @@ def explicate_control_tail(
         case Set():
             return effect(expr, Return(Unit()))
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             return effect(e1, tail(e2))
 
         case While():  # pragma: no branch
@@ -93,39 +93,39 @@ def explicate_control_assign(
 
     match value:
         case Int():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Add() | Subtract() | Multiply():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Let(x, e1, e2):
             return assign(x, e1, assign(dest, e2, next))
 
         case Var():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Bool():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case If(e1, e2, e3):
             return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
 
         case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Unit():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Cell():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Get():
-            return Seq(Assign(dest, value), next)
+            return Do(Assign(dest, value), next)
 
         case Set():
             return effect(value, assign(dest, Unit(), next))
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             return effect(e1, assign(dest, e2, next))
 
         case While():  # pragma: no branch
@@ -152,9 +152,9 @@ def explicate_control_predicate(
         case Var():
             ifTrue = fresh("then")
             ifFalse = fresh("else")
-            return Seq(
+            return Do(
                 Assign(ifTrue, Block(then)),
-                Seq(
+                Do(
                     Assign(ifFalse, Block(otherwise)),
                     If(expr, Jump(ifTrue), Jump(ifFalse)),
                 ),
@@ -187,7 +187,7 @@ def explicate_control_predicate(
         case Set():
             raise ValueError(f"non-boolean predicate: {expr}")
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             return effect(e1, predicate(e2, then, otherwise))
 
         case While():  # pragma: no branch
@@ -232,14 +232,14 @@ def explicate_control_effect(
             return next
 
         case Set():
-            return Seq(expr, next)
+            return Do(expr, next)
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             return effect(e1, effect(e2, next))
 
         case While(e1, e2):  # pragma: no branch
             loop = fresh("loop")
-            return Seq(
+            return Do(
                 Assign(loop, Block(predicate(e1, effect(e2, Jump(loop)), next))),
                 Jump(loop),
             )
