@@ -17,6 +17,7 @@ from sucrose import (
     Get,
     Set,
     Do,
+    While,
     Assign,
 )
 import glucose
@@ -380,6 +381,26 @@ def test_convert_assign_expr_do(
     list[tuple[sucrose.Expression, set[str], glucose.Expression]](
         [
             (
+                While(Var("x"), Var("y")),
+                set(),
+                While(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_convert_assign_expr_while(
+    expr: sucrose.Expression,
+    vars: set[str],
+    expected: glucose.Expression,
+) -> None:
+    assert convert_assign_expr(expr, vars) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, vars, expected",
+    list[tuple[sucrose.Expression, set[str], glucose.Expression]](
+        [
+            (
                 Assign("x", Var("y")),
                 set(),
                 Set(Var("x"), 0, Var("y")),
@@ -415,6 +436,7 @@ def test_convert_assign_expr_assign(
             (Get(Var("x"), 0), set()),
             (Set(Var("x"), 0, Var("y")), set()),
             (Do(Var("x"), Var("y")), set()),
+            (While(Var("x"), Var("y")), set()),
             (Assign("x", Var("y")), {"x"}),
         ]
     ),
