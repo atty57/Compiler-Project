@@ -1,6 +1,29 @@
 from functools import partial
 import sugar
-from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Tuple, Get, Set, While
+from sugar import (
+    Int,
+    Let,
+    Var,
+    LetStar,
+    Bool,
+    Not,
+    All,
+    Any,
+    If,
+    Cond,
+    Unit,
+    Tuple,
+    Get,
+    Set,
+    While,
+    Cell,
+    CellGet,
+    CellSet,
+    Vector,
+    VectorLength,
+    VectorGet,
+    VectorSet,
+)
 import kernel
 
 
@@ -201,5 +224,26 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case While(e1, e2):  # pragma: no branch
+        case While(e1, e2):
             return While(recur(e1), recur(e2))
+
+        case Cell(e1):
+            return Tuple([recur(e1)])
+
+        case CellGet(e1):
+            return Get(recur(e1), 0)
+
+        case CellSet(e1, e2):
+            return Set(recur(e1), 0, recur(e2))
+
+        case Vector(es):
+            return Tuple([Int(len(es)), *[recur(e) for e in es]])
+
+        case VectorLength(e1):
+            return Get(recur(e1), 0)
+
+        case VectorGet(e1, i):
+            return Get(recur(e1), i + 1)
+
+        case VectorSet(e1, i, e2):  # pragma: no branch
+            return Set(recur(e1), i + 1, recur(e2))
