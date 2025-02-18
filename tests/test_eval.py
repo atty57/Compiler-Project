@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+import typing
 import pytest
 from kernel import (
     Program,
@@ -15,10 +15,10 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from eval import Location, Store, Value, Environment, eval, eval_expr
@@ -26,7 +26,7 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 
 @pytest.mark.parametrize(
     "program, arguments, expected",
-    list[tuple[Program, Sequence[Value], Value]](
+    list[tuple[Program, typing.Sequence[Value], Value]](
         [
             (
                 Program([], Int(0)),
@@ -43,7 +43,7 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 )
 def test_eval(
     program: Program,
-    arguments: Sequence[Value],
+    arguments: typing.Sequence[Value],
     expected: Value,
 ) -> None:
     assert eval(program, arguments) == expected
@@ -336,7 +336,7 @@ def test_eval_expr_unit(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Cell(Unit()),
+                Tuple([]),
                 {},
                 Store(),
                 Location(0),
@@ -358,7 +358,7 @@ def test_eval_expr_cell(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Get(Cell[Expression](Int(0))),
+                Get(Tuple[Expression]([Int(0)]), 0),
                 {},
                 Store(),
                 Int(0),
@@ -380,7 +380,7 @@ def test_eval_expr_get(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Set(Cell[Expression](Int(0)), Int(0)),
+                Set(Tuple[Expression]([Int(0)]), 0, Int(0)),
                 {},
                 Store(),
                 Unit(),
@@ -402,7 +402,7 @@ def test_eval_expr_set(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Seq(Unit(), Int(1)),
+                Do(Unit(), Int(1)),
                 {},
                 Store(),
                 Int(1),
@@ -432,10 +432,10 @@ def test_eval_expr_seq(
             (
                 Let(
                     "x",
-                    Cell(Bool(True)),
+                    Tuple([Bool(True)]),
                     While(
-                        Get(Var("x")),
-                        Set(Var("x"), Bool(False)),
+                        Get(Var("x"), 0),
+                        Set(Var("x"), 0, Bool(False)),
                     ),
                 ),
                 {},

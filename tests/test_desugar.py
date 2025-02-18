@@ -1,41 +1,8 @@
 import pytest
 import sugar
-from sugar import (
-    Sum,
-    Difference,
-    Product,
-    LetStar,
-    Not,
-    All,
-    Any,
-    Cond,
-    Ascending,
-    NonDescending,
-    Same,
-    NonAscending,
-    Descending,
-    Begin,
-)
+from sugar import LetStar, Not, All, Any, Cond
 import kernel
-from kernel import (
-    Int,
-    Add,
-    Subtract,
-    Multiply,
-    Let,
-    Var,
-    Bool,
-    If,
-    LessThan,
-    EqualTo,
-    GreaterThanOrEqualTo,
-    Unit,
-    Cell,
-    Get,
-    Set,
-    Seq,
-    While,
-)
+from kernel import Int, Let, Var, Bool, If, Unit, Tuple, Get, Set, While
 from desugar import desugar, desugar_expr
 
 
@@ -80,8 +47,8 @@ def test_desugar_expr_int(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Add(Int(0), Int(0)),
-                Add(Int(0), Int(0)),
+                kernel.Add(Int(0), Int(0)),
+                kernel.Add(Int(0), Int(0)),
             ),
         ]
     ),
@@ -98,8 +65,8 @@ def test_desugar_expr_add(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Subtract(Int(0), Int(0)),
-                Subtract(Int(0), Int(0)),
+                kernel.Subtract(kernel.Int(0), kernel.Int(0)),
+                kernel.Subtract(kernel.Int(0), kernel.Int(0)),
             ),
         ]
     ),
@@ -116,8 +83,8 @@ def test_desugar_expr_subtract(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Multiply(Int(0), Int(0)),
-                Multiply(Int(0), Int(0)),
+                kernel.Multiply(kernel.Int(0), kernel.Int(0)),
+                kernel.Multiply(kernel.Int(0), kernel.Int(0)),
             ),
         ]
     ),
@@ -134,8 +101,8 @@ def test_desugar_expr_multiply(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Let("x", Int(0), Var("x")),
-                Let("x", Int(0), Var("x")),
+                kernel.Let("x", kernel.Int(0), kernel.Var("x")),
+                kernel.Let("x", kernel.Int(0), kernel.Var("x")),
             ),
         ]
     ),
@@ -152,8 +119,8 @@ def test_desugar_expr_let(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Var("x"),
-                Var("x"),
+                kernel.Var("x"),
+                kernel.Var("x"),
             ),
         ]
     ),
@@ -170,8 +137,8 @@ def test_desugar_expr_var(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Bool(True),
-                Bool(True),
+                kernel.Bool(True),
+                kernel.Bool(True),
             ),
         ]
     ),
@@ -188,8 +155,8 @@ def test_desugar_expr_bool(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                If(Bool(True), Var("x"), Var("y")),
-                If(Bool(True), Var("x"), Var("y")),
+                kernel.If(kernel.Bool(True), kernel.Var("x"), kernel.Var("y")),
+                kernel.If(kernel.Bool(True), kernel.Var("x"), kernel.Var("y")),
             ),
         ]
     ),
@@ -206,8 +173,8 @@ def test_desugar_expr_if(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                LessThan(Int(1), Int(2)),
-                LessThan(Int(1), Int(2)),
+                kernel.LessThan(Int(1), Int(2)),
+                kernel.LessThan(Int(1), Int(2)),
             ),
         ]
     ),
@@ -224,8 +191,8 @@ def test_desugar_expr_less_than(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                EqualTo(Int(1), Int(2)),
-                EqualTo(Int(1), Int(2)),
+                kernel.EqualTo(Int(1), Int(2)),
+                kernel.EqualTo(Int(1), Int(2)),
             ),
         ]
     ),
@@ -242,8 +209,8 @@ def test_desugar_expr_equal_to(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                GreaterThanOrEqualTo(Int(1), Int(2)),
-                GreaterThanOrEqualTo(Int(1), Int(2)),
+                kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
+                kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
             ),
         ]
     ),
@@ -260,8 +227,8 @@ def test_desugar_expr_greater_than_or_equal_to(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Unit(),
-                Unit(),
+                kernel.Unit(),
+                kernel.Unit(),
             ),
         ]
     ),
@@ -278,8 +245,8 @@ def test_desugar_expr_unit(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Cell(Unit()),
-                Cell(Unit()),
+                Tuple([Unit()]),
+                Tuple([Unit()]),
             ),
         ]
     ),
@@ -296,8 +263,8 @@ def test_desugar_expr_cell(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Get(Var("x")),
-                Get(Var("x")),
+                Get(Var("x"), 0),
+                Get(Var("x"), 0),
             ),
         ]
     ),
@@ -314,8 +281,8 @@ def test_desugar_expr_get(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Set(Var("x"), Var("y")),
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
+                Set(Var("x"), 0, Var("y")),
             ),
         ]
     ),
@@ -332,8 +299,8 @@ def test_dxesugar_expr_set(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Seq(Var("x"), Var("y")),
-                Seq(Var("x"), Var("y")),
+                kernel.Do(Var("x"), Var("y")),
+                kernel.Do(Var("x"), Var("y")),
             ),
         ]
     ),
@@ -368,16 +335,16 @@ def test_desugar_expr_while(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Sum([]),
+                sugar.Add([]),
                 Int(0),
             ),
             (
-                Sum([Int(1)]),
-                Add(Int(1), Int(0)),
+                sugar.Add([Int(1)]),
+                kernel.Add(Int(1), Int(0)),
             ),
             (
-                Sum([Int(1), Int(1)]),
-                Add(Int(1), Add(Int(1), Int(0))),
+                sugar.Add([Int(1), Int(1)]),
+                kernel.Add(Int(1), kernel.Add(Int(1), Int(0))),
             ),
         ]
     ),
@@ -394,16 +361,16 @@ def test_desugar_expr_sum(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Difference([Int(1)]),
-                Subtract(Int(0), Int(1)),
+                sugar.Subtract([Int(1)]),
+                kernel.Subtract(Int(0), Int(1)),
             ),
             (
-                Difference([Int(2), Int(1)]),
-                Subtract(Int(2), Int(1)),
+                sugar.Subtract([Int(2), Int(1)]),
+                kernel.Subtract(Int(2), Int(1)),
             ),
             (
-                Difference([Int(3), Int(2), Int(1)]),
-                Subtract(Int(3), Subtract(Int(2), Int(1))),
+                sugar.Subtract([Int(3), Int(2), Int(1)]),
+                kernel.Subtract(Int(3), kernel.Subtract(Int(2), Int(1))),
             ),
         ]
     ),
@@ -420,16 +387,16 @@ def test_desugar_expr_difference(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Product([]),
+                sugar.Multiply([]),
                 Int(1),
             ),
             (
-                Product([Int(1)]),
-                Multiply(Int(1), Int(1)),
+                sugar.Multiply([Int(1)]),
+                kernel.Multiply(Int(1), Int(1)),
             ),
             (
-                Product([Int(2), Int(2)]),
-                Multiply(Int(2), Multiply(Int(2), Int(1))),
+                sugar.Multiply([Int(2), Int(2)]),
+                kernel.Multiply(Int(2), kernel.Multiply(Int(2), Int(1))),
             ),
         ]
     ),
@@ -477,7 +444,7 @@ def test_desugar_expr_letstar(
         [
             (
                 Not(Var("x")),
-                If(EqualTo(Var("x"), Bool(True)), Bool(False), Bool(True)),
+                If(kernel.EqualTo(Var("x"), Bool(True)), Bool(False), Bool(True)),
             ),
         ]
     ),
@@ -568,22 +535,22 @@ def test_desugar_expr_cond(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                NonDescending([]),
+                sugar.LessThanOrEqualTo([]),
                 Bool(True),
             ),
             (
-                NonDescending([Int(0)]),
+                sugar.LessThanOrEqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                NonDescending([Int(1), Int(2)]),
-                GreaterThanOrEqualTo(Int(2), Int(1)),
+                sugar.LessThanOrEqualTo([Int(1), Int(2)]),
+                kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
             ),
             (
-                NonDescending([Int(1), Int(2), Int(3)]),
+                sugar.LessThanOrEqualTo([Int(1), Int(2), Int(3)]),
                 If(
-                    GreaterThanOrEqualTo(Int(2), Int(1)),
-                    If(GreaterThanOrEqualTo(Int(3), Int(2)), Bool(True), Bool(False)),
+                    kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
+                    If(kernel.GreaterThanOrEqualTo(Int(3), Int(2)), Bool(True), Bool(False)),
                     Bool(False),
                 ),
             ),
@@ -602,22 +569,22 @@ def test_desugar_expr_non_descending(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Ascending([]),
+                sugar.LessThan([]),
                 Bool(True),
             ),
             (
-                Ascending([Int(0)]),
+                sugar.LessThan([Int(0)]),
                 Bool(True),
             ),
             (
-                Ascending([Int(1), Int(2)]),
-                LessThan(Int(1), Int(2)),
+                sugar.LessThan([Int(1), Int(2)]),
+                kernel.LessThan(Int(1), Int(2)),
             ),
             (
-                Ascending([Int(1), Int(2), Int(3)]),
+                sugar.LessThan([Int(1), Int(2), Int(3)]),
                 If(
-                    LessThan(Int(1), Int(2)),
-                    If(LessThan(Int(2), Int(3)), Bool(True), Bool(False)),
+                    kernel.LessThan(Int(1), Int(2)),
+                    If(kernel.LessThan(Int(2), Int(3)), Bool(True), Bool(False)),
                     Bool(False),
                 ),
             ),
@@ -636,22 +603,22 @@ def test_desugar_expr_ascending(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Same([]),
+                sugar.EqualTo([]),
                 Bool(True),
             ),
             (
-                Same([Int(0)]),
+                sugar.EqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                Same([Int(1), Int(2)]),
-                EqualTo(Int(1), Int(2)),
+                sugar.EqualTo([Int(1), Int(2)]),
+                kernel.EqualTo(Int(1), Int(2)),
             ),
             (
-                Same([Int(1), Int(2), Int(3)]),
+                sugar.EqualTo([Int(1), Int(2), Int(3)]),
                 If(
-                    EqualTo(Int(1), Int(2)),
-                    If(EqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
+                    kernel.EqualTo(Int(1), Int(2)),
+                    If(kernel.EqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
                     Bool(False),
                 ),
             ),
@@ -670,22 +637,22 @@ def test_desugar_expr_same(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Descending([]),
+                sugar.GreaterThan([]),
                 Bool(True),
             ),
             (
-                Descending([Int(0)]),
+                sugar.GreaterThan([Int(0)]),
                 Bool(True),
             ),
             (
-                Descending([Int(1), Int(2)]),
-                LessThan(Int(2), Int(1)),
+                sugar.GreaterThan([Int(1), Int(2)]),
+                kernel.LessThan(Int(2), Int(1)),
             ),
             (
-                Descending([Int(1), Int(2), Int(3)]),
+                sugar.GreaterThan([Int(1), Int(2), Int(3)]),
                 If(
-                    LessThan(Int(2), Int(1)),
-                    If(LessThan(Int(3), Int(2)), Bool(True), Bool(False)),
+                    kernel.LessThan(Int(2), Int(1)),
+                    If(kernel.LessThan(Int(3), Int(2)), Bool(True), Bool(False)),
                     Bool(False),
                 ),
             ),
@@ -704,22 +671,22 @@ def test_desugar_expr_descending(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                NonAscending([]),
+                sugar.GreaterThanOrEqualTo([]),
                 Bool(True),
             ),
             (
-                NonAscending([Int(0)]),
+                sugar.GreaterThanOrEqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                NonAscending([Int(1), Int(2)]),
-                GreaterThanOrEqualTo(Int(1), Int(2)),
+                sugar.GreaterThanOrEqualTo([Int(1), Int(2)]),
+                kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
             ),
             (
-                NonAscending([Int(1), Int(2), Int(3)]),
+                sugar.GreaterThanOrEqualTo([Int(1), Int(2), Int(3)]),
                 If(
-                    GreaterThanOrEqualTo(Int(1), Int(2)),
-                    If(GreaterThanOrEqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
+                    kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
+                    If(kernel.GreaterThanOrEqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
                     Bool(False),
                 ),
             ),
@@ -738,16 +705,16 @@ def test_desugar_expr_non_ascending(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Begin([]),
+                sugar.Do([]),
                 Unit(),
             ),
             (
-                Begin([Int(0)]),
+                sugar.Do([Int(0)]),
                 Int(0),
             ),
             (
-                Begin([Unit(), Int(0)]),
-                Seq(Unit(), Int(0)),
+                sugar.Do([Unit(), Int(0)]),
+                kernel.Do(Unit(), Int(0)),
             ),
         ]
     ),

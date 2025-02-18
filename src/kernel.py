@@ -1,9 +1,8 @@
-from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Union
+import typing
 
 
-type Expression = Union[
+type Expression = typing.Union[
     # Int
     Int,
     Add[Expression],
@@ -20,10 +19,10 @@ type Expression = Union[
     GreaterThanOrEqualTo[Expression],
     # Store
     Unit,
-    Cell[Expression],
+    Tuple[Expression],
     Get[Expression],
     Set[Expression],
-    Seq[Expression, Expression],
+    Do[Expression, Expression],
     # While
     While[Expression, Expression],
 ]
@@ -100,25 +99,27 @@ class Unit:
 
 
 @dataclass(frozen=True)
-class Cell[Operand]:
-    value: Operand
+class Tuple[Operand]:
+    components: typing.Sequence[Operand]
 
 
 @dataclass(frozen=True)
 class Get[Operand]:
-    cell: Operand
+    tuple: Operand
+    index: int
 
 
 @dataclass(frozen=True)
 class Set[Operand]:
-    cell: Operand
+    tuple: Operand
+    index: int
     value: Operand
 
 
 @dataclass(frozen=True)
-class Seq[First, Second]:
-    first: First
-    second: Second
+class Do[Effect, Value]:
+    effect: Effect
+    second: Value
 
 
 @dataclass(frozen=True)
@@ -129,5 +130,5 @@ class While[Condition, Body]:
 
 @dataclass(frozen=True)
 class Program:
-    parameters: Sequence[str]
+    parameters: typing.Sequence[str]
     body: Expression

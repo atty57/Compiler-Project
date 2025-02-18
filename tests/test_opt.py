@@ -14,10 +14,10 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from opt import opt, opt_expr
@@ -378,8 +378,8 @@ def test_opt_expr_unit(
     list[tuple[Expression, Expression]](
         [
             (
-                Cell(Unit()),
-                Cell(Unit()),
+                Tuple([]),
+                Tuple([]),
             ),
         ]
     ),
@@ -396,12 +396,12 @@ def test_opt_expr_cell(
     list[tuple[Expression, Expression]](
         [
             (
-                Get(Cell[Expression](Unit())),
+                Get(Tuple[Expression]([Unit()]), 0),
                 Unit(),
             ),
             (
-                Get(Var("x")),
-                Get(Var("x")),
+                Get(Var("x"), 0),
+                Get(Var("x"), 0),
             ),
         ]
     ),
@@ -418,8 +418,8 @@ def test_opt_expr_get(
     list[tuple[Expression, Expression]](
         [
             (
-                Set(Var("x"), Var("y")),
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
+                Set(Var("x"), 0, Var("y")),
             ),
         ]
     ),
@@ -436,8 +436,8 @@ def test_opt_expr_set(
     list[tuple[Expression, Expression]](
         [
             (
-                Seq(Var("x"), Var("y")),
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
             ),
         ]
     ),

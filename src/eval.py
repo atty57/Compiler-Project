@@ -1,7 +1,6 @@
-from collections.abc import Sequence, Mapping
 from dataclasses import dataclass
 from functools import partial
-from typing import Union
+import typing
 from kernel import (
     Program,
     Expression,
@@ -17,10 +16,10 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from store import Store
@@ -31,14 +30,14 @@ class Location:
     value: int
 
 
-type Value = Union[Int, Bool, Unit, Location]
+type Value = typing.Union[Int, Bool, Unit, Location]
 
-type Environment = Mapping[str, Value]
+type Environment = typing.Mapping[str, Value]
 
 
 def eval(
     program: Program,
-    arguments: Sequence[Value],
+    arguments: typing.Sequence[Value],
 ) -> Value:
     return eval_expr(
         expr=program.body,
@@ -122,27 +121,28 @@ def eval_expr(
         case Unit():
             return expr
 
-        case Cell(e1):
+        case Tuple(es):
             base = store.malloc(1)
-            store[base, 0] = recur(e1)
+            for i, e in enumerate(es):
+                store[base, i] = recur(e)
             return Location(base)
 
-        case Get(e1):
+        case Get(e1, i):
             match recur(e1):
                 case Location(base):
-                    return store[base, 0]
+                    return store[base, i]
                 case _:  # pragma: no cover
                     raise ValueError()
 
-        case Set(e1, e2):
+        case Set(e1, i, e2):
             match recur(e1):
                 case Location(base):
-                    store[base, 0] = recur(e2)
+                    store[base, i] = recur(e2)
                     return Unit()
                 case _:  # pragma: no cover
                     raise ValueError()
 
-        case Seq(e1, e2):
+        case Do(e1, e2):
             recur(e1)
             return recur(e2)
 

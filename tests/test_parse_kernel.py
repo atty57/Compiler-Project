@@ -14,10 +14,10 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from parse_kernel import parse, parse_expr
@@ -266,8 +266,12 @@ def test_parse_expr_unit(
     list[tuple[str, Expression]](
         [
             (
-                "(cell #u)",
-                Cell(Unit()),
+                "(tuple)",
+                Tuple([]),
+            ),
+            (
+                "(tuple #u)",
+                Tuple([Unit()]),
             ),
         ]
     ),
@@ -284,8 +288,8 @@ def test_parse_expr_cell(
     list[tuple[str, Expression]](
         [
             (
-                "(get x)",
-                Get(Var("x")),
+                "(get x 0)",
+                Get(Var("x"), 0),
             ),
         ]
     ),
@@ -302,8 +306,8 @@ def test_parse_expr_get(
     list[tuple[str, Expression]](
         [
             (
-                "(set x #u)",
-                Set(Var("x"), Unit()),
+                "(set x 0 #u)",
+                Set(Var("x"), 0, Unit()),
             ),
         ]
     ),
@@ -320,8 +324,8 @@ def test_parse_expr_set(
     list[tuple[str, Expression]](
         [
             (
-                "(seq x #u)",
-                Seq(Var("x"), Unit()),
+                "(do x #u)",
+                Do(Var("x"), Unit()),
             ),
         ]
     ),
