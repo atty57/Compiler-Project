@@ -86,7 +86,7 @@ def eval_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):  # pragma: no branch
+        case If(e1, e2, e3):
             match recur(e1):
                 case Bool(True):
                     return recur(e2)
