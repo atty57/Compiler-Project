@@ -17,7 +17,7 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
 )
 from parse_kernel import parse, parse_expr
 
@@ -319,8 +319,8 @@ def test_parse_expr_set(
     list[tuple[str, Expression]](
         [
             (
-                "(seq x #u)",
-                Seq(Var("x"), Unit()),
+                "(do x #u)",
+                Do(Var("x"), Unit()),
             ),
         ]
     ),

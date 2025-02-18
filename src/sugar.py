@@ -1,56 +1,48 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Annotated, Union
-import kernel
+from kernel import Int, Let, Var, Bool, If, Unit, Cell, Get, Set
 
 
 type Expression = Union[
-    kernel.Int,
-    kernel.Add[Expression],
-    kernel.Subtract[Expression],
-    kernel.Multiply[Expression],
-    kernel.Let[Expression, Expression],
-    kernel.Var,
-    kernel.Bool,
-    kernel.If[Expression, Expression, Expression],
-    kernel.LessThan[Expression],
-    kernel.EqualTo[Expression],
-    kernel.GreaterThanOrEqualTo[Expression],
-    kernel.Unit,
-    kernel.Cell[Expression],
-    kernel.Get[Expression],
-    kernel.Set[Expression],
-    kernel.Seq[Expression, Expression],
-    #
-    Sum[Expression],
-    Difference[Expression],
-    Product[Expression],
+    Int,
+    Add[Expression],
+    Subtract[Expression],
+    Multiply[Expression],
+    Let[Expression, Expression],
+    Var,
     LetStar[Expression, Expression],
     Not[Expression],
     All[Expression],
     Any[Expression],
+    Bool,
+    If[Expression, Expression, Expression],
     Cond[Expression, Expression, Expression],
-    NonDescending[Expression],
-    Ascending[Expression],
-    Same[Expression],
-    Descending[Expression],
-    NonAscending[Expression],
-    Begin[Expression],
+    LessThanOrEqualTo[Expression],
+    LessThan[Expression],
+    EqualTo[Expression],
+    GreaterThan[Expression],
+    GreaterThanOrEqualTo[Expression],
+    Unit,
+    Cell[Expression],
+    Get[Expression],
+    Set[Expression],
+    Do[Expression],
 ]
 
 
 @dataclass(frozen=True)
-class Sum[Operand]:
+class Add[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Difference[Operand]:
+class Subtract[Operand]:
     operands: Annotated[Sequence[Operand], "non-empty"]
 
 
 @dataclass(frozen=True)
-class Product[Operand]:
+class Multiply[Operand]:
     operands: Sequence[Operand]
 
 
@@ -82,32 +74,32 @@ class Cond[Condition, Consequent, Default]:
 
 
 @dataclass(frozen=True)
-class NonDescending[Operand]:
+class LessThanOrEqualTo[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Ascending[Operand]:
+class LessThan[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Same[Operand]:
+class EqualTo[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Descending[Operand]:
+class GreaterThan[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class NonAscending[Operand]:
+class GreaterThanOrEqualTo[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Begin[Operand]:
+class Do[Operand]:
     operands: Sequence[Operand]
 
 

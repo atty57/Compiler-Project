@@ -23,7 +23,7 @@ type Expression = Union[
     Cell[Expression],
     Get[Expression],
     Set[Expression],
-    Seq[Expression, Expression],
+    Do[Expression, Expression],
 ]
 
 
@@ -114,9 +114,9 @@ class Set[Operand]:
 
 
 @dataclass(frozen=True)
-class Seq[First, Second]:
-    first: First
-    second: Second
+class Do[Effect, Value]:
+    first: Effect
+    second: Value
 
 
 @dataclass(frozen=True)
