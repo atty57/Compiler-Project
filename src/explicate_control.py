@@ -20,7 +20,7 @@ from monadic import (
     While,
 )
 import cps
-from cps import Block, Assign, Seq, Return, Jump, Branch
+from cps import Block, Return, Jump
 
 
 def explicate_control(
@@ -36,7 +36,7 @@ def explicate_control(
 def explicate_control_tail(
     expr: monadic.Expression,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> cps.Statement:
     tail = partial(explicate_control_tail, fresh=fresh)
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
@@ -80,25 +80,25 @@ def explicate_control_tail(
 def explicate_control_assign(
     dest: str,
     value: monadic.Expression,
-    next: cps.Tail,
+    next: cps.Statement,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> cps.Statement:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
 
     match value:
         case Int():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Add() | Subtract() | Multiply():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Var():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Bool():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Let(x, e1, e2):
             return assign(x, e1, assign(dest, e2, next))
@@ -107,16 +107,16 @@ def explicate_control_assign(
             return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
 
         case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Unit():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Cell():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Get():
-            return Seq(Assign(dest, value), next)
+            return Let(dest, value, next)
 
         case Set():
             return effect(value, assign(dest, Unit(), next))
@@ -127,10 +127,10 @@ def explicate_control_assign(
 
 def explicate_control_predicate(
     expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    then: cps.Statement,
+    otherwise: cps.Statement,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> cps.Statement:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
 
@@ -144,11 +144,13 @@ def explicate_control_predicate(
         case Var():
             ifTrue = fresh("then")
             ifFalse = fresh("else")
-            return Seq(
-                Assign(ifTrue, Block(then)),
-                Seq(
-                    Assign(ifFalse, Block(otherwise)),
-                    Branch(expr, Jump(ifTrue), Jump(ifFalse)),
+            return Let(
+                ifTrue,
+                Block(then),
+                Let(
+                    ifFalse,
+                    Block(otherwise),
+                    If(expr, Jump(ifTrue), Jump(ifFalse)),
                 ),
             )
 
@@ -185,9 +187,9 @@ def explicate_control_predicate(
 
 def explicate_control_effect(
     expr: monadic.Expression,
-    next: cps.Tail,
+    next: cps.Statement,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> cps.Statement:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
@@ -221,11 +223,13 @@ def explicate_control_effect(
             return next
 
         case Set():
-            return Seq(expr, next)
+            tmp = fresh("t")
+            return Let(tmp, expr, next)
 
         case While(e1, e2):  # pragma: no cover
             loop = fresh("loop")
-            return Seq(
-                Assign(loop, Block(predicate(e1, effect(e2, Jump(loop)), next))),
+            return Let(
+                loop,
+                Block(predicate(e1, effect(e2, Jump(loop)), next)),
                 Jump(loop),
             )

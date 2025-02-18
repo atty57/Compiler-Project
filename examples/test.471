@@ -1,6 +1,3 @@
 (program ()
     (let ([i (cell 5)])
-        
-        (get i)
-        
-        ))
+        (set i 0)))

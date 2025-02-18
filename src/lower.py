@@ -17,15 +17,13 @@ from cps import (
     Unit,
     Cell,
     Get,
+    Set,
     Block,
     Statement,
-    Assign,
-    Set,
-    Tail,
-    Seq,
+    Let,
     Return,
     Jump,
-    Branch,
+    If,
 )
 
 
@@ -57,20 +55,20 @@ def lower(
         for i, p in enumerate(program.parameters)
     }
 
-    lower_tail(program.body, env, builder)
+    lower_stmt(program.body, env, builder)
 
     return module
 
 
-def lower_tail(
-    tail: Tail,
+def lower_stmt(
+    tail: Statement,
     env: Environment,
     builder: ir.IRBuilder,
 ) -> None:
-    recur = partial(lower_tail, builder=builder)
+    recur = partial(lower_stmt, env=env, builder=builder)
     match tail:
-        case Seq(stmt, next):
-            recur(next, env=lower_stmt(stmt, env, builder))
+        case Let(name, value, next):
+            recur(next, env={**env, name: lower_expr(value, env, builder)})
 
         case Return(value):
             builder.ret(lower_expr(value, env, builder))  # type: ignore
@@ -78,26 +76,12 @@ def lower_tail(
         case Jump(target):
             builder.branch(env[target])  # type: ignore
 
-        case Branch(condition, Jump(then), Jump(otherwise)):
+        case If(condition, Jump(then), Jump(otherwise)):
             builder.cbranch(  # type: ignore
                 builder.trunc(lower_expr(condition, env, builder), i1),  # type: ignore
                 env[then],
                 env[otherwise],
             )
-
-
-def lower_stmt(
-    stmt: Statement,
-    env: Environment,
-    builder: ir.IRBuilder,
-) -> Environment:
-    match stmt:
-        case Assign(name, value):
-            return {**env, name: lower_expr(value, env, builder)}
-
-        case Set(a1, a2):
-            builder.store(value=lower_expr(a2), ptr=lower_expr(a1))  # type: ignore
-            return env
 
 
 def lower_expr(
@@ -146,7 +130,12 @@ def lower_expr(
         case Get(a1):
             return builder.load(ptr=recur(a1))  # type: ignore
 
+        case Set(a1, a2):
+            insn = builder.store(value=recur(a2), ptr=recur(a1))  # type: ignore
+            print(insn)
+            return insn
+
         case Block(body):
             block: ir.Block = cast(ir.Block, builder.append_basic_block())
-            lower_tail(body, env, ir.IRBuilder(block))
+            lower_stmt(body, env, ir.IRBuilder(block))
             return block
