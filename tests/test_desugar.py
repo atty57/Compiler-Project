@@ -1,8 +1,7 @@
 import pytest
 import sugar
-from sugar import LetStar, Not, All, Any, Cond
+from sugar import Int, Let, Var, Bool, If, LetStar, Not, All, Any, Cond
 import kernel
-from kernel import Int, Let, Var, Bool, If
 from desugar import desugar, desugar_expr
 
 
