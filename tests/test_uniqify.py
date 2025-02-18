@@ -18,7 +18,7 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from uniqify import Environment, uniqify, uniqify_expr
@@ -391,10 +391,10 @@ def test_uniqify_expr_set(
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
         [
             (
-                Seq(Int(0), Unit()),
+                Do(Int(0), Unit()),
                 {},
                 SequentialNameGenerator(),
-                Seq(Int(0), Unit()),
+                Do(Int(0), Unit()),
             ),
         ]
     ),
