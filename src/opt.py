@@ -136,7 +136,7 @@ def opt_expr(
         case Cell(e1):
             return Cell(recur(e1))
 
-        case Get(e1):  # pragma: no branch
+        case Get(e1):
             match recur(e1):
                 case Cell(e1):
                     return e1
