@@ -23,7 +23,7 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -129,24 +129,27 @@ class AstTransformer(Transformer[Token, Any]):
     ) -> Unit:
         return value
 
-    def cell_expr(
+    @v_args(inline=False)
+    def tuple_expr(
         self,
-        value: Expression,
-    ) -> Cell[Expression]:
-        return Cell(value)
+        components: Sequence[Expression],
+    ) -> Tuple[Expression]:
+        return Tuple(components)
 
     def get_expr(
         self,
-        cell: Expression,
+        tuple: Expression,
+        index: int,
     ) -> Get[Expression]:
-        return Get(cell)
+        return Get(tuple, index)
 
     def set_expr(
         self,
-        cell: Expression,
+        tuple: Expression,
+        index: int,
         value: Expression,
     ) -> Set[Expression]:
-        return Set(cell, value)
+        return Set(tuple, index, value)
 
     def do_expr(
         self,

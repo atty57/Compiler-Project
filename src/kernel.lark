@@ -12,9 +12,9 @@ expr: int                                                           -> int_expr
     | "(" "==" expr expr ")"                                        -> equal_to_expr
     | "(" ">=" expr expr ")"                                        -> greater_than_or_equal_to_expr
     | unit                                                          -> unit_expr
-    | "(" "cell" expr ")"                                           -> cell_expr
-    | "(" "get" expr ")"                                            -> get_expr
-    | "(" "set" expr expr ")"                                       -> set_expr
+    | "(" "tuple" expr* ")"                                         -> tuple_expr
+    | "(" "get" expr int ")"                                        -> get_expr
+    | "(" "set" expr int expr ")"                                   -> set_expr
     | "(" "do" expr expr ")"                                        -> do_expr
     | "(" "while" expr expr ")"                                     -> while_expr
     

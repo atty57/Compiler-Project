@@ -1,6 +1,6 @@
 import pytest
 import sugar
-from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Cell, Get, Set, While
+from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Tuple, Get, Set, While
 import kernel
 from desugar import desugar, desugar_expr
 
@@ -124,8 +124,8 @@ def test_desugar_expr_multiply(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Let("x", Int(0), Var("x")),
-                Let("x", Int(0), Var("x")),
+                kernel.Let("x", kernel.Int(0), kernel.Var("x")),
+                kernel.Let("x", kernel.Int(0), kernel.Var("x")),
             ),
         ]
     ),
@@ -142,8 +142,8 @@ def test_desugar_expr_let(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Var("x"),
-                Var("x"),
+                kernel.Var("x"),
+                kernel.Var("x"),
             ),
         ]
     ),
@@ -489,8 +489,8 @@ def test_desugar_expr_greater_than_or_equal_to(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                kernel.Unit(),
-                kernel.Unit(),
+                Unit(),
+                Unit(),
             ),
         ]
     ),
@@ -507,8 +507,8 @@ def test_desugar_expr_unit(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Cell(Unit()),
-                Cell(Unit()),
+                Tuple([Unit()]),
+                Tuple([Unit()]),
             ),
         ]
     ),
@@ -525,8 +525,8 @@ def test_desugar_expr_cell(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Get(Var("x")),
-                Get(Var("x")),
+                Get(Var("x"), 0),
+                Get(Var("x"), 0),
             ),
         ]
     ),
@@ -543,8 +543,8 @@ def test_desugar_expr_get(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Set(Var("x"), Var("y")),
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
+                Set(Var("x"), 0, Var("y")),
             ),
         ]
     ),

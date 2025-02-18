@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Annotated, Union
-from kernel import Int, Let, Var, Bool, If, Unit, Cell, Get, Set, While
+from kernel import Int, Let, Var, Bool, If, Unit, Tuple, Get, Set, While
 
 
 type Expression = Union[
@@ -24,7 +24,7 @@ type Expression = Union[
     GreaterThan[Expression],
     GreaterThanOrEqualTo[Expression],
     Unit,
-    Cell[Expression],
+    Tuple[Expression],
     Get[Expression],
     Set[Expression],
     Do[Expression],

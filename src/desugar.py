@@ -1,6 +1,6 @@
 from functools import partial
 import sugar
-from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Cell, Get, Set, While
+from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Tuple, Get, Set, While
 import kernel
 
 
@@ -19,7 +19,7 @@ def desugar_expr(
     recur = partial(desugar_expr)
 
     match expr:
-        case Int():
+        case kernel.Int():
             return expr
 
         case sugar.Add(es):
@@ -52,7 +52,7 @@ def desugar_expr(
                     raise NotImplementedError()
 
         case Let(x, e1, e2):
-            return Let(x, recur(e1), recur(e2))
+            return kernel.Let(x, recur(e1), recur(e2))
 
         case Var():
             return expr
@@ -181,19 +181,19 @@ def desugar_expr(
         case Unit():
             return expr
 
-        case Cell(e1):
-            return Cell(recur(e1))
+        case Tuple(es):
+            return Tuple([recur(e) for e in es])
 
-        case Get(e1):
-            return Get(recur(e1))
+        case Get(e1, i):
+            return Get(recur(e1), i)
 
-        case Set(e1, e2):
-            return Set(recur(e1), recur(e2))
+        case Set(e1, i, e2):
+            return Set(recur(e1), i, recur(e2))
 
         case sugar.Do(es):
             match es:
                 case []:
-                    return Unit()
+                    return kernel.Unit()
                 case [first]:
                     return recur(first)
                 case [first, *rest]:

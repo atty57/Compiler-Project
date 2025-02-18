@@ -15,7 +15,7 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -325,10 +325,10 @@ def test_uniqify_expr_unit(
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
         [
             (
-                Cell(Unit()),
+                Tuple([Unit()]),
                 {},
                 SequentialNameGenerator(),
-                Cell(Unit()),
+                Tuple([Unit()]),
             ),
         ]
     ),
@@ -347,10 +347,10 @@ def test_uniqify_expr_cell(
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
         [
             (
-                Get(Var("x")),
+                Get(Var("x"), 0),
                 {"x": "x"},
                 SequentialNameGenerator(),
-                Get(Var("x")),
+                Get(Var("x"), 0),
             ),
         ]
     ),
@@ -369,10 +369,10 @@ def test_uniqify_expr_get(
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
         [
             (
-                Set(Var("x"), Unit()),
+                Set(Var("x"), 0, Unit()),
                 {"x": "x"},
                 SequentialNameGenerator(),
-                Set(Var("x"), Unit()),
+                Set(Var("x"), 0, Unit()),
             ),
         ]
     ),

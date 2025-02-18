@@ -15,7 +15,7 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -82,14 +82,14 @@ def uniqify_expr(
         case Unit():
             return expr
 
-        case Cell(e1):
-            return Cell(recur(e1))
+        case Tuple(es):
+            return Tuple([recur(e) for e in es])
 
-        case Get(e1):
-            return Get(recur(e1))
+        case Get(e1, i):
+            return Get(recur(e1), i)
 
-        case Set(e1, e2):
-            return Set(recur(e1), recur(e2))
+        case Set(e1, i, e2):
+            return Set(recur(e1), i, recur(e2))
 
         case Do(e1, e2):
             return Do(recur(e1), recur(e2))
