@@ -1,8 +1,8 @@
 from collections.abc import Callable, Sequence
 from functools import partial
 from itertools import chain
-import kernel
-from kernel import (
+import glucose
+from glucose import (
     Int,
     Add,
     Subtract,
@@ -26,7 +26,7 @@ from monadic import Atom
 
 
 def remove_complex_operands(
-    program: kernel.Program,
+    program: glucose.Program,
     fresh: Callable[[str], str],
 ) -> monadic.Program:
     return monadic.Program(
@@ -39,7 +39,7 @@ type Binding = tuple[str, monadic.Expression]
 
 
 def rco_expr(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
 ) -> monadic.Expression:
     to_expr = partial(rco_expr, fresh=fresh)
@@ -124,7 +124,7 @@ def rco_expr(
 
 
 def rco_atom(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
 ) -> tuple[Atom, Sequence[Binding]]:
     to_expr = partial(rco_expr, fresh=fresh)

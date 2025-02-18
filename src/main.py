@@ -1,5 +1,5 @@
 from llvmlite import ir  # type: ignore
-from parse_kernel import parse
+from parse_glucose import parse
 from uniqify import uniqify
 from opt import opt
 from remove_complex_operands import remove_complex_operands

@@ -1,8 +1,8 @@
 from collections.abc import Callable, Sequence
 import pytest
-import kernel
+import glucose
 import monadic
-from kernel import (
+from glucose import (
     Int,
     Add,
     Subtract,
@@ -34,10 +34,10 @@ from util import SequentialNameGenerator
 
 @pytest.mark.parametrize(
     "program, fresh, expected",
-    list[tuple[kernel.Program, Callable[[str], str], monadic.Program]](
+    list[tuple[glucose.Program, Callable[[str], str], monadic.Program]](
         [
             (
-                kernel.Program([], Int(0)),
+                glucose.Program([], Int(0)),
                 SequentialNameGenerator(),
                 monadic.Program([], Int(0)),
             ),
@@ -45,7 +45,7 @@ from util import SequentialNameGenerator
     ),
 )
 def test_remove_complex_operands(
-    program: kernel.Program,
+    program: glucose.Program,
     fresh: Callable[[str], str],
     expected: monadic.Program,
 ) -> None:
@@ -54,7 +54,7 @@ def test_remove_complex_operands(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Int(0),
@@ -65,7 +65,7 @@ def test_remove_complex_operands(
     ),
 )
 def test_rco_expr_int(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -74,7 +74,7 @@ def test_rco_expr_int(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Add(Var("x"), Var("y")),
@@ -85,7 +85,7 @@ def test_rco_expr_int(
     ),
 )
 def test_rco_expr_add(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -94,7 +94,7 @@ def test_rco_expr_add(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Subtract(Var("x"), Var("y")),
@@ -105,7 +105,7 @@ def test_rco_expr_add(
     ),
 )
 def test_rco_expr_subtract(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -114,7 +114,7 @@ def test_rco_expr_subtract(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Multiply(Var("x"), Var("y")),
@@ -125,7 +125,7 @@ def test_rco_expr_subtract(
     ),
 )
 def test_rco_expr_multiply(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -134,7 +134,7 @@ def test_rco_expr_multiply(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Let("x", Int(0), Var("x")),
@@ -145,7 +145,7 @@ def test_rco_expr_multiply(
     ),
 )
 def test_rco_expr_let(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -154,7 +154,7 @@ def test_rco_expr_let(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Bool(True),
@@ -165,7 +165,7 @@ def test_rco_expr_let(
     ),
 )
 def test_rco_expr_bool(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -174,7 +174,7 @@ def test_rco_expr_bool(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 If(Var("c"), Var("x"), Var("y")),
@@ -185,7 +185,7 @@ def test_rco_expr_bool(
     ),
 )
 def test_rco_expr_if(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -194,7 +194,7 @@ def test_rco_expr_if(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 LessThan(Var("x"), Var("y")),
@@ -205,7 +205,7 @@ def test_rco_expr_if(
     ),
 )
 def test_rco_expr_less_than(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -214,7 +214,7 @@ def test_rco_expr_less_than(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 EqualTo(Var("x"), Var("y")),
@@ -225,7 +225,7 @@ def test_rco_expr_less_than(
     ),
 )
 def test_rco_expr_equal_to(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -234,7 +234,7 @@ def test_rco_expr_equal_to(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 GreaterThanOrEqualTo(Var("x"), Var("y")),
@@ -245,7 +245,7 @@ def test_rco_expr_equal_to(
     ),
 )
 def test_rco_expr_greater_than_or_equal_to(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -254,7 +254,7 @@ def test_rco_expr_greater_than_or_equal_to(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Unit(),
@@ -265,7 +265,7 @@ def test_rco_expr_greater_than_or_equal_to(
     ),
 )
 def test_rco_expr_unit(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -274,7 +274,7 @@ def test_rco_expr_unit(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Tuple([Unit()]),
@@ -285,7 +285,7 @@ def test_rco_expr_unit(
     ),
 )
 def test_rco_expr_cell(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -294,7 +294,7 @@ def test_rco_expr_cell(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Get(Var("x"), 0),
@@ -305,7 +305,7 @@ def test_rco_expr_cell(
     ),
 )
 def test_rco_expr_get(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -314,7 +314,7 @@ def test_rco_expr_get(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Set(Var("x"), 0, Var("y")),
@@ -325,7 +325,7 @@ def test_rco_expr_get(
     ),
 )
 def test_rco_expr_set(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -334,7 +334,7 @@ def test_rco_expr_set(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 Do(Var("x"), Var("y")),
@@ -345,7 +345,7 @@ def test_rco_expr_set(
     ),
 )
 def test_rco_expr_seq(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -354,7 +354,7 @@ def test_rco_expr_seq(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
+    list[tuple[glucose.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
                 While(Var("x"), Var("y")),
@@ -365,7 +365,7 @@ def test_rco_expr_seq(
     ),
 )
 def test_rco_expr_while(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: monadic.Expression,
 ) -> None:
@@ -374,7 +374,7 @@ def test_rco_expr_while(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Int(0),
@@ -385,7 +385,7 @@ def test_rco_expr_while(
     ),
 )
 def test_rco_atom_int(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -394,7 +394,7 @@ def test_rco_atom_int(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Add(Var("x"), Var("y")),
@@ -405,7 +405,7 @@ def test_rco_atom_int(
     ),
 )
 def test_rco_atom_add(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -414,7 +414,7 @@ def test_rco_atom_add(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Subtract(Var("x"), Var("y")),
@@ -425,7 +425,7 @@ def test_rco_atom_add(
     ),
 )
 def test_rco_atom_subtract(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -434,7 +434,7 @@ def test_rco_atom_subtract(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Multiply(Var("x"), Var("y")),
@@ -445,7 +445,7 @@ def test_rco_atom_subtract(
     ),
 )
 def test_rco_atom_multiply(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -454,7 +454,7 @@ def test_rco_atom_multiply(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Let("x", Int(0), Var("y")),
@@ -465,7 +465,7 @@ def test_rco_atom_multiply(
     ),
 )
 def test_rco_atom_let(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -474,7 +474,7 @@ def test_rco_atom_let(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Var("x"),
@@ -485,7 +485,7 @@ def test_rco_atom_let(
     ),
 )
 def test_rco_atom_var(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -494,7 +494,7 @@ def test_rco_atom_var(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Bool(True),
@@ -505,7 +505,7 @@ def test_rco_atom_var(
     ),
 )
 def test_rco_atom_bool(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -514,7 +514,7 @@ def test_rco_atom_bool(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 If(Var("c"), Var("x"), Var("y")),
@@ -525,7 +525,7 @@ def test_rco_atom_bool(
     ),
 )
 def test_rco_atom_if(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -534,7 +534,7 @@ def test_rco_atom_if(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 LessThan(Var("x"), Var("y")),
@@ -545,7 +545,7 @@ def test_rco_atom_if(
     ),
 )
 def test_rco_atom_less_then(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -554,7 +554,7 @@ def test_rco_atom_less_then(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 EqualTo(Var("x"), Var("y")),
@@ -565,7 +565,7 @@ def test_rco_atom_less_then(
     ),
 )
 def test_rco_atom_equal_to(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -574,7 +574,7 @@ def test_rco_atom_equal_to(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 GreaterThanOrEqualTo(Var("x"), Var("y")),
@@ -585,7 +585,7 @@ def test_rco_atom_equal_to(
     ),
 )
 def test_rco_atom_greater_than_or_equal_to(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -594,7 +594,7 @@ def test_rco_atom_greater_than_or_equal_to(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Unit(),
@@ -605,7 +605,7 @@ def test_rco_atom_greater_than_or_equal_to(
     ),
 )
 def test_rco_atom_unit(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -614,7 +614,7 @@ def test_rco_atom_unit(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Tuple([Var("x")]),
@@ -625,7 +625,7 @@ def test_rco_atom_unit(
     ),
 )
 def test_rco_atom_cell(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -634,7 +634,7 @@ def test_rco_atom_cell(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Get(Var("x"), 0),
@@ -645,7 +645,7 @@ def test_rco_atom_cell(
     ),
 )
 def test_rco_atom_get(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -654,7 +654,7 @@ def test_rco_atom_get(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Set(Var("x"), 0, Var("y")),
@@ -665,7 +665,7 @@ def test_rco_atom_get(
     ),
 )
 def test_rco_atom_set(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -674,7 +674,7 @@ def test_rco_atom_set(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 Do(Var("x"), Var("y")),
@@ -685,7 +685,7 @@ def test_rco_atom_set(
     ),
 )
 def test_rco_atom_seq(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:
@@ -694,7 +694,7 @@ def test_rco_atom_seq(
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
+    list[tuple[glucose.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
                 While(Var("x"), Var("y")),
@@ -705,7 +705,7 @@ def test_rco_atom_seq(
     ),
 )
 def test_rco_atom_while(
-    expr: kernel.Expression,
+    expr: glucose.Expression,
     fresh: Callable[[str], str],
     expected: tuple[monadic.Expression, Sequence[Binding]],
 ) -> None:

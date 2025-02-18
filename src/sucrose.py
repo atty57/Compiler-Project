@@ -21,29 +21,33 @@ from glucose import (
     While,
 )
 
-type Atom = Union[
-    Int,
-    Var,
-    Bool,
-    Unit,
-]
 
 type Expression = Union[
-    Atom,
-    Add[Atom],
-    Subtract[Atom],
-    Multiply[Atom],
+    Int,
+    Add[Expression],
+    Subtract[Expression],
+    Multiply[Expression],
     Let[Expression, Expression],
+    Var,
+    Bool,
     If[Expression, Expression, Expression],
-    LessThan[Atom],
-    EqualTo[Atom],
-    GreaterThanOrEqualTo[Atom],
-    Tuple[Atom],
-    Get[Atom],
-    Set[Atom],
+    LessThan[Expression],
+    EqualTo[Expression],
+    GreaterThanOrEqualTo[Expression],
+    Unit,
+    Tuple[Expression],
+    Get[Expression],
+    Set[Expression],
     Do[Expression, Expression],
     While[Expression, Expression],
+    Assign[Expression],
 ]
+
+
+@dataclass(frozen=True)
+class Assign[Value]:
+    name: str
+    value: Value
 
 
 @dataclass(frozen=True)

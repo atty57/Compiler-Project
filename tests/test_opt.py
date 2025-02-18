@@ -1,5 +1,5 @@
 import pytest
-from kernel import (
+from glucose import (
     Program,
     Expression,
     Int,
