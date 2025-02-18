@@ -81,24 +81,24 @@ class AstTransformer(Transformer[Token, Expression]):
 
     def less_than_expr(
         self,
-        e1: Expression,
-        e2: Expression,
+        x: Expression,
+        y: Expression,
     ) -> LessThan[Expression]:
-        return LessThan(e1, e2)
+        return LessThan(x, y)
 
     def equal_to_expr(
         self,
-        e1: Expression,
-        e2: Expression,
+        x: Expression,
+        y: Expression,
     ) -> EqualTo[Expression]:
-        return EqualTo(e1, e2)
+        return EqualTo(x, y)
 
     def greater_than_or_equal_to_expr(
         self,
-        e1: Expression,
-        e2: Expression,
+        x: Expression,
+        y: Expression,
     ) -> GreaterThanOrEqualTo[Expression]:
-        return GreaterThanOrEqualTo(e1, e2)
+        return GreaterThanOrEqualTo(x, y)
 
     def int(
         self,
