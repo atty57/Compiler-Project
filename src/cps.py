@@ -1,12 +1,27 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
-from monadic import Int, Add, Subtract, Multiply, Var, Bool, LessThan, EqualTo, GreaterThanOrEqualTo
+from monadic import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Var,
+    Bool,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+)
 
 type Atom = Union[
     Int,
     Var,
     Bool,
+    Unit,
 ]
 
 type Expression = Union[
@@ -17,10 +32,15 @@ type Expression = Union[
     LessThan[Atom],
     EqualTo[Atom],
     GreaterThanOrEqualTo[Atom],
+    Cell[Atom],
+    Get[Atom],
     Block,
 ]
 
-type Statement = Assign
+type Statement = Union[
+    Assign,
+    Set[Atom],
+]
 
 
 type Tail = Union[

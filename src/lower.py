@@ -14,9 +14,13 @@ from cps import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
     Block,
     Statement,
     Assign,
+    Set,
     Tail,
     Seq,
     Return,
@@ -66,38 +70,42 @@ def lower_tail(
     recur = partial(lower_tail, builder=builder)
     match tail:
         case Seq(stmt, next):
-            recur(next, env=lower_statement(stmt, env, builder))
+            recur(next, env=lower_stmt(stmt, env, builder))
 
         case Return(value):
-            builder.ret(lower_expression(value, env, builder))  # type: ignore
+            builder.ret(lower_expr(value, env, builder))  # type: ignore
 
         case Jump(target):
             builder.branch(env[target])  # type: ignore
 
         case Branch(condition, Jump(then), Jump(otherwise)):
             builder.cbranch(  # type: ignore
-                builder.trunc(lower_expression(condition, env, builder), i1),  # type: ignore
+                builder.trunc(lower_expr(condition, env, builder), i1),  # type: ignore
                 env[then],
                 env[otherwise],
             )
 
 
-def lower_statement(
+def lower_stmt(
     stmt: Statement,
     env: Environment,
     builder: ir.IRBuilder,
 ) -> Environment:
     match stmt:
         case Assign(name, value):
-            return {**env, name: lower_expression(value, env, builder)}
+            return {**env, name: lower_expr(value, env, builder)}
+
+        case Set(a1, a2):
+            builder.store(value=lower_expr(a2), ptr=lower_expr(a1))  # type: ignore
+            return env
 
 
-def lower_expression(
+def lower_expr(
     expr: Expression,
     env: Environment,
     builder: ir.IRBuilder,
 ) -> ir.Value:
-    recur = partial(lower_expression, env=env, builder=builder)
+    recur = partial(lower_expr, env=env, builder=builder)
 
     match expr:
         case Int(i):
@@ -116,11 +124,7 @@ def lower_expression(
             return env[x]
 
         case Bool(b):
-            match b:
-                case True:
-                    return ir.Constant(i1, 1)
-                case False:
-                    return ir.Constant(i1, 0)
+            return builder.zext(ir.Constant(i1, b), i64)  # type: ignore
 
         case LessThan(a1, a2):
             return builder.zext(builder.icmp_signed("<", recur(a1), recur(a2)), i64)  # type: ignore
@@ -130,6 +134,17 @@ def lower_expression(
 
         case GreaterThanOrEqualTo(a1, a2):
             return builder.zext(builder.icmp_signed(">=", recur(a1), recur(a2)), i64)  # type: ignore
+
+        case Unit():
+            return ir.Constant(i64, 0)
+
+        case Cell(a1):
+            cell = builder.alloca(i64)  # type: ignore
+            builder.store(recur(a1), ptr=cell)  # type: ignore
+            return cell
+
+        case Get(a1):
+            return builder.load(ptr=recur(a1))  # type: ignore
 
         case Block(body):
             block: ir.Block = cast(ir.Block, builder.append_basic_block())

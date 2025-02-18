@@ -4,17 +4,27 @@ from typing import Union
 
 
 type Expression = Union[
+    # Int
     Int,
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    # Var
     Let[Expression, Expression],
     Var,
+    # If
     Bool,
     If[Expression, Expression, Expression],
     LessThan[Expression],
     EqualTo[Expression],
     GreaterThanOrEqualTo[Expression],
+    # Store
+    Unit,
+    Cell[Expression],
+    Get[Expression],
+    Set[Expression],
+    # While
+    While[Expression, Expression],
 ]
 
 
@@ -89,25 +99,25 @@ class Unit:
 
 
 @dataclass(frozen=True)
-class Cell:
-    value: Expression
+class Cell[Operand]:
+    x: Operand
 
 
 @dataclass(frozen=True)
-class CellGet:
-    cell: Expression
+class Get[Operand]:
+    x: Operand
 
 
 @dataclass(frozen=True)
-class CellSet:
-    cell: Expression
-    value: Expression
+class Set[Operand]:
+    x: Operand
+    y: Operand
 
 
 @dataclass(frozen=True)
-class While:
-    condition: Expression
-    body: Expression
+class While[Condition, Body]:
+    condition: Condition
+    body: Body
 
 
 @dataclass(frozen=True)

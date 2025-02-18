@@ -13,6 +13,11 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    While,
 )
 
 
@@ -117,9 +122,32 @@ def opt_expr(
                 case [e1, e2]:  # pragma: no branch
                     return EqualTo(e1, e2)
 
-        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+        case GreaterThanOrEqualTo(e1, e2):
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
                     return Bool(i1 >= i2)
                 case [e1, e2]:  # pragma: no branch
                     return GreaterThanOrEqualTo(e1, e2)
+
+        case Unit():
+            return expr
+
+        case Cell(e1):
+            return Cell(recur(e1))
+
+        case Get(e1):  # pragma: no branch
+            match recur(e1):
+                case Cell(e1):
+                    return e1
+                case e1:  # pragma: no branch
+                    return Get(e1)
+
+        case Set(e1, e2):
+            return Set(recur(e1), recur(e2))
+
+        case While(e1, e2):  # pragma no branch
+            match recur(e1):
+                case Bool(False):
+                    return Unit()
+                case e1:
+                    return While(e1, recur(e2))

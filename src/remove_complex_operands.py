@@ -1,7 +1,24 @@
 from collections.abc import Callable, Sequence
 from functools import partial
 import kernel
-from kernel import Int, Add, Subtract, Multiply, Let, Var, Bool, If, LessThan, EqualTo, GreaterThanOrEqualTo
+from kernel import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    While,
+)
 import monadic
 from monadic import Atom
 
@@ -70,10 +87,31 @@ def rco_expr(
             a2, b2 = to_atom(e2)
             return wrap(b1, wrap(b2, EqualTo(a1, a2)))
 
-        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+        case GreaterThanOrEqualTo(e1, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
             return wrap(b1, wrap(b2, GreaterThanOrEqualTo(a1, a2)))
+
+        case Unit():
+            return expr
+
+        case Cell(e1):
+            a1, b1 = to_atom(e1)
+            return wrap(b1, Cell(a1))
+
+        case Get(e1):
+            a1, b1 = to_atom(e1)
+            return wrap(b1, Get(a1))
+
+        case Set(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            return wrap(b1, wrap(b1, Set(a1, a2)))
+
+        case While(e1, e2):  # pragma: no branch
+            e1 = to_expr(e1)
+            e2 = to_expr(e2)
+            return While(e1, e2)
 
 
 def rco_atom(
@@ -139,6 +177,31 @@ def rco_atom(
             a2, b2 = to_atom(e2)
             tmp = fresh("t")
             return Var(tmp), [*b1, *b2, (tmp, GreaterThanOrEqualTo(a1, a2))]
+
+        case Unit():
+            return expr, []
+
+        case Cell(e1):
+            a1, b1 = to_atom(e1)
+            tmp = fresh("t")
+            return Var(tmp), [*b1, (tmp, Cell(a1))]
+
+        case Get(e1):
+            a1, b1 = to_atom(e1)
+            tmp = fresh("t")
+            return Var(tmp), [*b1, (tmp, Get(a1))]
+
+        case Set(e1, e2):
+            a1, b1 = to_atom(e1)
+            a2, b2 = to_atom(e2)
+            tmp = fresh("t")
+            return Var(tmp), [*b1, *b2, (tmp, Set(a1, a2))]
+
+        case While(e1, e2):  # pragma: no branch
+            e1 = to_expr(e1)
+            e2 = to_expr(e2)
+            tmp = fresh("t")
+            return Var(tmp), [(tmp, While(e1, e2))]
 
 
 def wrap(

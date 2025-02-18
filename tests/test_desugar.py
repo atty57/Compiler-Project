@@ -28,6 +28,11 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    While,
 )
 from desugar import desugar, desugar_expr
 
@@ -253,6 +258,96 @@ def test_desugar_expr_greater_than_or_equal_to(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
+                Unit(),
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_unit(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Cell(Unit()),
+                Cell(Unit()),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_cell(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Get(Var("x")),
+                Get(Var("x")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_get(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Set(Var("x"), Var("y")),
+                Set(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_dxesugar_expr_set(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                While(Var("x"), Var("y")),
+                While(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_while(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
                 Sum([]),
                 Int(0),
             ),
@@ -384,11 +479,11 @@ def test_desugar_expr_not(
             ),
             (
                 All([Bool(True)]),
-                If(Bool(True), Bool(True), Bool(True)),
+                If(Bool(True), Bool(True), Bool(False)),
             ),
             (
                 All([Bool(True), Bool(False)]),
-                If(Bool(True), If(Bool(False), Bool(True), Bool(True)), Bool(True)),
+                If(Bool(True), If(Bool(False), Bool(True), Bool(False)), Bool(False)),
             ),
         ]
     ),
@@ -468,8 +563,8 @@ def test_desugar_expr_cond(
                 NonDescending([Int(1), Int(2), Int(3)]),
                 If(
                     GreaterThanOrEqualTo(Int(2), Int(1)),
-                    If(GreaterThanOrEqualTo(Int(3), Int(2)), Bool(True), Bool(True)),
-                    Bool(True),
+                    If(GreaterThanOrEqualTo(Int(3), Int(2)), Bool(True), Bool(False)),
+                    Bool(False),
                 ),
             ),
         ]
@@ -502,8 +597,8 @@ def test_desugar_expr_non_descending(
                 Ascending([Int(1), Int(2), Int(3)]),
                 If(
                     LessThan(Int(1), Int(2)),
-                    If(LessThan(Int(2), Int(3)), Bool(True), Bool(True)),
-                    Bool(True),
+                    If(LessThan(Int(2), Int(3)), Bool(True), Bool(False)),
+                    Bool(False),
                 ),
             ),
         ]
@@ -536,8 +631,8 @@ def test_desugar_expr_ascending(
                 Same([Int(1), Int(2), Int(3)]),
                 If(
                     EqualTo(Int(1), Int(2)),
-                    If(EqualTo(Int(2), Int(3)), Bool(True), Bool(True)),
-                    Bool(True),
+                    If(EqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
+                    Bool(False),
                 ),
             ),
         ]
@@ -570,8 +665,8 @@ def test_desugar_expr_same(
                 Descending([Int(1), Int(2), Int(3)]),
                 If(
                     LessThan(Int(2), Int(1)),
-                    If(LessThan(Int(3), Int(2)), Bool(True), Bool(True)),
-                    Bool(True),
+                    If(LessThan(Int(3), Int(2)), Bool(True), Bool(False)),
+                    Bool(False),
                 ),
             ),
         ]
@@ -604,8 +699,8 @@ def test_desugar_expr_descending(
                 NonAscending([Int(1), Int(2), Int(3)]),
                 If(
                     GreaterThanOrEqualTo(Int(1), Int(2)),
-                    If(GreaterThanOrEqualTo(Int(2), Int(3)), Bool(True), Bool(True)),
-                    Bool(True),
+                    If(GreaterThanOrEqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
+                    Bool(False),
                 ),
             ),
         ]

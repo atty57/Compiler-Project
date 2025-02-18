@@ -1,12 +1,30 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
-from kernel import Int, Add, Subtract, Multiply, Let, Var, Bool, If, LessThan, EqualTo, GreaterThanOrEqualTo
+from kernel import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    While,
+)
 
 type Atom = Union[
     Int,
     Var,
     Bool,
+    Unit,
 ]
 
 type Expression = Union[
@@ -19,6 +37,10 @@ type Expression = Union[
     LessThan[Atom],
     EqualTo[Atom],
     GreaterThanOrEqualTo[Atom],
+    Cell[Atom],
+    Get[Atom],
+    Set[Atom],
+    While[Expression, Expression],
 ]
 
 
