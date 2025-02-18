@@ -1,42 +1,34 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-import typing
-import kernel
+from typing import Annotated, Union
+from kernel import Int, Let, Var, Bool, If, Unit, Tuple, Get, Set, While
 
 
-type Expression = typing.Union[
-    kernel.Int,
-    kernel.Add[Expression],
-    kernel.Subtract[Expression],
-    kernel.Multiply[Expression],
-    kernel.Let[Expression, Expression],
-    kernel.Var,
-    kernel.Bool,
-    kernel.If[Expression, Expression, Expression],
-    kernel.LessThan[Expression],
-    kernel.EqualTo[Expression],
-    kernel.GreaterThanOrEqualTo[Expression],
-    kernel.Unit,
-    kernel.Tuple[Expression],
-    kernel.Get[Expression],
-    kernel.Set[Expression],
-    kernel.Do[Expression, Expression],
-    kernel.While[Expression, Expression],
-    #
+type Expression = Union[
+    Int,
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    Let[Expression, Expression],
+    Var,
     LetStar[Expression, Expression],
     Not[Expression],
     All[Expression],
     Any[Expression],
+    Bool,
+    If[Expression, Expression, Expression],
     Cond[Expression, Expression, Expression],
     LessThanOrEqualTo[Expression],
     LessThan[Expression],
     EqualTo[Expression],
     GreaterThan[Expression],
     GreaterThanOrEqualTo[Expression],
+    Unit,
+    Tuple[Expression],
+    Get[Expression],
+    Set[Expression],
     Do[Expression],
+    While[Expression, Expression],
 ]
 
 
@@ -47,7 +39,7 @@ class Add[Operand]:
 
 @dataclass(frozen=True)
 class Subtract[Operand]:
-    operands: typing.Annotated[Sequence[Operand], "non-empty"]
+    operands: Annotated[Sequence[Operand], "non-empty"]
 
 
 @dataclass(frozen=True)

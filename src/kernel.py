@@ -119,7 +119,7 @@ class Set[Operand]:
 @dataclass(frozen=True)
 class Do[Effect, Value]:
     effect: Effect
-    second: Value
+    value: Value
 
 
 @dataclass(frozen=True)

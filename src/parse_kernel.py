@@ -153,10 +153,10 @@ class AstTransformer(Transformer[Token, Any]):
 
     def do_expr(
         self,
-        effect: Expression,
-        value: Expression,
+        first: Expression,
+        second: Expression,
     ) -> Do[Expression, Expression]:
-        return Do(effect, value)
+        return Do(first, second)
 
     def while_expr(
         self,
