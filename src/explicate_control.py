@@ -21,7 +21,7 @@ from monadic import (
     While,
 )
 import cps
-from cps import Block, Assign, Seq, Return, Jump
+from cps import Block, Assign, Return, Jump
 
 
 def explicate_control(
@@ -98,14 +98,14 @@ def explicate_control_assign(
         case Add() | Subtract() | Multiply():
             return Seq(Assign(dest, value), next)
 
+        case Let(x, e1, e2):
+            return assign(x, e1, assign(dest, e2, next))
+
         case Var():
             return Seq(Assign(dest, value), next)
 
         case Bool():
             return Seq(Assign(dest, value), next)
-
-        case Let(x, e1, e2):
-            return assign(x, e1, assign(dest, e2, next))
 
         case If(e1, e2, e3):
             return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
@@ -143,7 +143,7 @@ def explicate_control_predicate(
     effect = partial(explicate_control_effect, fresh=fresh)
 
     match expr:
-        case Int() | Add() | Subtract() | Multiply():  # pragma: no cover
+        case Int() | Add() | Subtract() | Multiply():
             raise ValueError(f"non-boolean predicate: {expr}")
 
         case Let(x, e1, e2):
@@ -164,7 +164,7 @@ def explicate_control_predicate(
             match b:
                 case True:
                     return then
-                case False:
+                case False:  # pragma: no branch
                     return otherwise
 
         case If(e1, e2, e3):
@@ -174,23 +174,23 @@ def explicate_control_predicate(
             tmp = fresh("t")
             return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
 
-        case Unit():  # pragma: no cover
+        case Unit():
             raise ValueError(f"non-boolean predicate: {expr}")
 
-        case Cell():  # pragma: no cover
+        case Cell():
             raise ValueError(f"non-boolean predicate: {expr}")
 
         case Get():
             tmp = fresh("t")
             return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
 
-        case Set():  # pragma: no cover
+        case Set():
             raise ValueError(f"non-boolean predicate: {expr}")
 
         case Seq(e1, e2):
             return effect(e1, predicate(e2, then, otherwise))
 
-        case While():  # pragma: no cover
+        case While():  # pragma: no branch
             raise ValueError(f"non-boolean predicate: {expr}")
 
 
@@ -204,7 +204,7 @@ def explicate_control_effect(
     effect = partial(explicate_control_effect, fresh=fresh)
 
     match expr:
-        case Int() | Add() | Subtract() | Multiply():  # pragma: no cover
+        case Int() | Add() | Subtract() | Multiply():
             return next
 
         case Let(x, e1, e2):
@@ -237,7 +237,7 @@ def explicate_control_effect(
         case Seq(e1, e2):
             return effect(e1, effect(e2, next))
 
-        case While(e1, e2):  # pragma: no cover
+        case While(e1, e2):  # pragma: no branch
             loop = fresh("loop")
             return Seq(
                 Assign(loop, Block(predicate(e1, effect(e2, Jump(loop)), next))),
