@@ -15,7 +15,7 @@ from monadic import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -303,9 +303,9 @@ def test_explicate_control_tail_unit(
     list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
         [
             (
-                Cell(Unit()),
+                Tuple([Unit()]),
                 SequentialNameGenerator(),
-                Return(Cell(Unit())),
+                Return(Tuple([Unit()])),
             ),
         ]
     ),
@@ -323,9 +323,9 @@ def test_explicate_control_tail_cell(
     list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
         [
             (
-                Get(Var("x")),
+                Get(Var("x"), 0),
                 SequentialNameGenerator(),
-                Return(Get(Var("x"))),
+                Return(Get(Var("x"), 0)),
             ),
         ]
     ),
@@ -343,9 +343,9 @@ def test_explicate_control_tail_get(
     list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
         [
             (
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
                 SequentialNameGenerator(),
-                Do(Set(Var("x"), Var("y")), Return(Unit())),
+                Do(Set(Var("x"), 0, Var("y")), Return(Unit())),
             ),
         ]
     ),
@@ -712,10 +712,10 @@ def test_explicate_control_assign_unit(
         [
             (
                 "x",
-                Cell(Unit()),
+                Tuple([Unit()]),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Do(Assign("x", Cell(Unit())), Return(Unit())),
+                Do(Assign("x", Tuple([Unit()])), Return(Unit())),
             ),
         ]
     ),
@@ -736,10 +736,10 @@ def test_explicate_control_assign_cell(
         [
             (
                 "x",
-                Get(Var("y")),
+                Get(Var("y"), 0),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Do(Assign("x", Get(Var("y"))), Return(Unit())),
+                Do(Assign("x", Get(Var("y"), 0)), Return(Unit())),
             ),
         ]
     ),
@@ -760,10 +760,10 @@ def test_explicate_control_assign_get(
         [
             (
                 "x",
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Do(Set(Var("x"), Var("y")), Do(Assign("x", Unit()), Return(Unit()))),
+                Do(Set(Var("x"), 0, Var("y")), Do(Assign("x", Unit()), Return(Unit()))),
             ),
         ]
     ),
@@ -1205,7 +1205,7 @@ def test_explicate_control_predicate_unit(
     list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
         [
             (
-                Cell(Unit()),
+                Tuple([Unit()]),
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
@@ -1228,12 +1228,12 @@ def test_explicate_control_predicate_cell(
     list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
         [
             (
-                Get(Var("x")),
+                Get(Var("x"), 0),
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
                 Do(
-                    Assign("_t0", Get(Var("x"))),
+                    Assign("_t0", Get(Var("x"), 0)),
                     Do(
                         Assign("_then0", Block(Return(Var("then")))),
                         Do(
@@ -1261,7 +1261,7 @@ def test_explicate_control_predicate_get(
     list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
         [
             (
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
                 Return(Var("then")),
                 Return(Var("otherwise")),
                 SequentialNameGenerator(),
@@ -1607,7 +1607,7 @@ def test_explicate_control_effect_unit(
     list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
         [
             (
-                Cell(Unit()),
+                Tuple([Unit()]),
                 Return(Unit()),
                 SequentialNameGenerator(),
                 Return(Unit()),
@@ -1629,7 +1629,7 @@ def test_explicate_control_effect_cell(
     list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
         [
             (
-                Get(Var("y")),
+                Get(Var("y"), 0),
                 Return(Unit()),
                 SequentialNameGenerator(),
                 Return(Unit()),
@@ -1651,10 +1651,10 @@ def test_explicate_control_effect_get(
     list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
         [
             (
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Do(Set(Var("x"), Var("y")), Return(Unit())),
+                Do(Set(Var("x"), 0, Var("y")), Return(Unit())),
             ),
         ]
     ),

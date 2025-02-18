@@ -15,7 +15,7 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -277,9 +277,9 @@ def test_rco_expr_unit(
     list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
-                Cell(Unit()),
+                Tuple([Unit()]),
                 SequentialNameGenerator(),
-                Cell(Unit()),
+                Tuple([Unit()]),
             ),
         ]
     ),
@@ -297,9 +297,9 @@ def test_rco_expr_cell(
     list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
-                Get(Var("x")),
+                Get(Var("x"), 0),
                 SequentialNameGenerator(),
-                Get(Var("x")),
+                Get(Var("x"), 0),
             ),
         ]
     ),
@@ -317,9 +317,9 @@ def test_rco_expr_get(
     list[tuple[kernel.Expression, Callable[[str], str], monadic.Expression]](
         [
             (
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
                 SequentialNameGenerator(),
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
             ),
         ]
     ),
@@ -617,9 +617,9 @@ def test_rco_atom_unit(
     list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
-                Cell(Var("x")),
+                Tuple([Var("x")]),
                 SequentialNameGenerator(),
-                (Var("_t0"), [("_t0", Cell(Var("x")))]),
+                (Var("_t0"), [("_t0", Tuple([Var("x")]))]),
             ),
         ]
     ),
@@ -637,9 +637,9 @@ def test_rco_atom_cell(
     list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
-                Get(Var("x")),
+                Get(Var("x"), 0),
                 SequentialNameGenerator(),
-                (Var("_t0"), [("_t0", Get(Var("x")))]),
+                (Var("_t0"), [("_t0", Get(Var("x"), 0))]),
             ),
         ]
     ),
@@ -657,9 +657,9 @@ def test_rco_atom_get(
     list[tuple[kernel.Expression, Callable[[str], str], tuple[Atom, Sequence[Binding]]]](
         [
             (
-                Set(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
                 SequentialNameGenerator(),
-                (Var("_t0"), [("_t0", Set(Var("x"), Var("y")))]),
+                (Var("_t0"), [("_t0", Set(Var("x"), 0, Var("y")))]),
             ),
         ]
     ),

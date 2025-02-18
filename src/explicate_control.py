@@ -14,7 +14,7 @@ from monadic import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -65,7 +65,7 @@ def explicate_control_tail(
         case Unit():
             return Return(expr)
 
-        case Cell():
+        case Tuple():
             return Return(expr)
 
         case Get():
@@ -116,7 +116,7 @@ def explicate_control_assign(
         case Unit():
             return Do(Assign(dest, value), next)
 
-        case Cell():
+        case Tuple():
             return Do(Assign(dest, value), next)
 
         case Get():
@@ -177,7 +177,7 @@ def explicate_control_predicate(
         case Unit():
             raise ValueError(f"non-boolean predicate: {expr}")
 
-        case Cell():
+        case Tuple():
             raise ValueError(f"non-boolean predicate: {expr}")
 
         case Get():
@@ -225,7 +225,7 @@ def explicate_control_effect(
         case Unit():
             return next
 
-        case Cell():
+        case Tuple():
             return next
 
         case Get():

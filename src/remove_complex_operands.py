@@ -1,5 +1,6 @@
 from collections.abc import Callable, Sequence
 from functools import partial
+from itertools import chain
 import kernel
 from kernel import (
     Int,
@@ -14,7 +15,7 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -96,18 +97,20 @@ def rco_expr(
         case Unit():
             return expr
 
-        case Cell(e1):
-            a1, b1 = to_atom(e1)
-            return wrap(b1, Cell(a1))
+        case Tuple(es):
+            results = [to_atom(e) for e in es]
+            as_ = [a for a, _ in results]
+            bs = list(chain.from_iterable(bs for _, bs in results))
+            return wrap(bs, Tuple(as_))
 
-        case Get(e1):
+        case Get(e1, i):
             a1, b1 = to_atom(e1)
-            return wrap(b1, Get(a1))
+            return wrap(b1, Get(a1, i))
 
-        case Set(e1, e2):
+        case Set(e1, i, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
-            return wrap(b1, wrap(b1, Set(a1, a2)))
+            return wrap(b1, wrap(b1, Set(a1, i, a2)))
 
         case Do(e1, e2):
             e1 = to_expr(e1)
@@ -187,21 +190,23 @@ def rco_atom(
         case Unit():
             return expr, []
 
-        case Cell(e1):
+        case Tuple(es):
+            results = [to_atom(e) for e in es]
+            as_ = [a for a, _ in results]
+            bs = list(chain.from_iterable(bs for _, bs in results))
+            tmp = fresh("t")
+            return Var(tmp), [*bs, (tmp, Tuple(as_))]
+
+        case Get(e1, i):
             a1, b1 = to_atom(e1)
             tmp = fresh("t")
-            return Var(tmp), [*b1, (tmp, Cell(a1))]
+            return Var(tmp), [*b1, (tmp, Get(a1, i))]
 
-        case Get(e1):
-            a1, b1 = to_atom(e1)
-            tmp = fresh("t")
-            return Var(tmp), [*b1, (tmp, Get(a1))]
-
-        case Set(e1, e2):
+        case Set(e1, i, e2):
             a1, b1 = to_atom(e1)
             a2, b2 = to_atom(e2)
             tmp = fresh("t")
-            return Var(tmp), [*b1, *b2, (tmp, Set(a1, a2))]
+            return Var(tmp), [*b1, *b2, (tmp, Set(a1, i, a2))]
 
         case Do(e1, e2):
             e1 = to_expr(e1)

@@ -13,7 +13,7 @@ from monadic import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
     Do,
@@ -34,7 +34,7 @@ type Expression = Union[
     LessThan[Atom],
     EqualTo[Atom],
     GreaterThanOrEqualTo[Atom],
-    Cell[Atom],
+    Tuple[Atom],
     Get[Atom],
     Block,
 ]

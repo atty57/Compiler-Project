@@ -15,7 +15,7 @@ from cps import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Block,
     Statement,
@@ -94,10 +94,11 @@ def lower_stmt(
     expr = partial(lower_expr, env=env, builder=builder)
     match stmt:
         case Assign(x, e1):
-            return {**env, x: expr(e1, env, builder)}
+            return {**env, x: expr(e1)}
 
-        case Set(a1, a2):
-            builder.store(value=expr(a2), ptr=expr(a1))  # type: ignore
+        case Set(a1, i, a2):
+            base = builder.inttoptr(expr(a1), i64.as_pointer())  # type: ignore
+            builder.store(expr(a2), ptr=builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
             return env
 
 
@@ -140,13 +141,15 @@ def lower_expr(
         case Unit():
             return ir.Constant(i64, 0)
 
-        case Cell(a1):
-            cell = builder.alloca(i64)  # type: ignore
-            builder.store(recur(a1), ptr=cell)  # type: ignore
-            return cell
+        case Tuple(as_):
+            base = builder.alloca(i64, len(as_))  # type: ignore
+            for i, a in enumerate(as_):
+                builder.store(recur(a), builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
+            return builder.ptrtoint(base, i64)  # type: ignore
 
-        case Get(a1):
-            return builder.load(ptr=recur(a1))  # type: ignore
+        case Get(a1, i):
+            base = builder.inttoptr(recur(a1), i64.as_pointer())  # type: ignore
+            return builder.load(builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
 
         case Block(body):
             block: ir.Block = cast(ir.Block, builder.append_basic_block())
