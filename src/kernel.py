@@ -4,12 +4,15 @@ from typing import Union
 
 
 type Expression = Union[
+    # Int
     Int,
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    # Var
     Let[Expression, Expression],
     Var,
+    # If
     Bool,
     If[Expression, Expression, Expression],
     LessThan[Expression],
