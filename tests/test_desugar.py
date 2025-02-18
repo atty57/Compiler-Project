@@ -334,7 +334,7 @@ def test_desugar_expr_cond(
                 sugar.LessThanOrEqualTo([Int(1), Int(2), Int(3)]),
                 If(
                     kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
-                    If(kernel.GreaterThanOrEqualTo(Int(3), Int(2)), Bool(True), Bool(False)),
+                    kernel.GreaterThanOrEqualTo(Int(3), Int(2)),
                     Bool(False),
                 ),
             ),
@@ -345,6 +345,7 @@ def test_desugar_expr_less_than_or_equal_to(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
+    print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
 
 
@@ -368,7 +369,7 @@ def test_desugar_expr_less_than_or_equal_to(
                 sugar.LessThan([Int(1), Int(2), Int(3)]),
                 If(
                     kernel.LessThan(Int(1), Int(2)),
-                    If(kernel.LessThan(Int(2), Int(3)), Bool(True), Bool(False)),
+                    kernel.LessThan(Int(2), Int(3)),
                     Bool(False),
                 ),
             ),
@@ -402,7 +403,7 @@ def test_desugar_expr_less_than(
                 sugar.EqualTo([Int(1), Int(2), Int(3)]),
                 If(
                     kernel.EqualTo(Int(1), Int(2)),
-                    If(kernel.EqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
+                    kernel.EqualTo(Int(2), Int(3)),
                     Bool(False),
                 ),
             ),
@@ -436,7 +437,7 @@ def test_desugar_expr_equal_to(
                 sugar.GreaterThan([Int(1), Int(2), Int(3)]),
                 If(
                     kernel.LessThan(Int(2), Int(1)),
-                    If(kernel.LessThan(Int(3), Int(2)), Bool(True), Bool(False)),
+                    kernel.LessThan(Int(3), Int(2)),
                     Bool(False),
                 ),
             ),
@@ -470,7 +471,7 @@ def test_desugar_expr_greater_than(
                 sugar.GreaterThanOrEqualTo([Int(1), Int(2), Int(3)]),
                 If(
                     kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
-                    If(kernel.GreaterThanOrEqualTo(Int(2), Int(3)), Bool(True), Bool(False)),
+                    kernel.GreaterThanOrEqualTo(Int(2), Int(3)),
                     Bool(False),
                 ),
             ),
