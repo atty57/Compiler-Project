@@ -33,6 +33,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
     While,
 )
 from desugar import desugar, desugar_expr
@@ -320,6 +321,24 @@ def test_desugar_expr_get(
     ),
 )
 def test_dxesugar_expr_set(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Seq(Var("x"), Var("y")),
+                Seq(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_dxesugar_expr_seq(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
@@ -719,12 +738,16 @@ def test_desugar_expr_non_ascending(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Begin([], Unit()),
+                Begin([]),
                 Unit(),
             ),
             (
-                Begin([Int(0)], Unit()),
-                Let("_", Int(0), Unit()),
+                Begin([Int(0)]),
+                Int(0),
+            ),
+            (
+                Begin([Unit(), Int(0)]),
+                Seq(Unit(), Int(0)),
             ),
         ]
     ),

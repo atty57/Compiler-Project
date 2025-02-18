@@ -17,6 +17,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
     While,
 )
 from parse_kernel import parse, parse_expr
@@ -308,6 +309,24 @@ def test_parse_expr_get(
     ),
 )
 def test_parse_expr_set(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(seq x #u)",
+                Seq(Var("x"), Unit()),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_seq(
     source: str,
     expected: Expression,
 ) -> None:

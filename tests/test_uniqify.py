@@ -18,6 +18,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
     While,
 )
 from uniqify import Environment, uniqify, uniqify_expr
@@ -390,6 +391,29 @@ def test_uniqify_expr_set(
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
         [
             (
+                Seq(Int(0), Unit()),
+                {},
+                SequentialNameGenerator(),
+                Seq(Int(0), Unit()),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_seq(
+    expr: Int,
+    env: Environment,
+    fresh: Callable[[str], str],
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, fresh, expected",
+    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+        [
+            (
                 While(Bool(True), Int(1)),
                 {},
                 SequentialNameGenerator(),
@@ -399,7 +423,7 @@ def test_uniqify_expr_set(
     ),
 )
 def test_uniqify_expr_while(
-    expr: Expression,
+    expr: Int,
     env: Environment,
     fresh: Callable[[str], str],
     expected: Expression,
