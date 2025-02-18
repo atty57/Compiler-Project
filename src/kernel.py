@@ -23,6 +23,7 @@ type Expression = Union[
     Cell[Expression],
     Get[Expression],
     Set[Expression],
+    Seq[Expression, Expression],
     # While
     While[Expression, Expression],
 ]
@@ -100,18 +101,24 @@ class Unit:
 
 @dataclass(frozen=True)
 class Cell[Operand]:
-    x: Operand
+    value: Operand
 
 
 @dataclass(frozen=True)
 class Get[Operand]:
-    x: Operand
+    cell: Operand
 
 
 @dataclass(frozen=True)
 class Set[Operand]:
-    x: Operand
-    y: Operand
+    cell: Operand
+    value: Operand
+
+
+@dataclass(frozen=True)
+class Seq[First, Second]:
+    first: First
+    second: Second
 
 
 @dataclass(frozen=True)

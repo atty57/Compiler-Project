@@ -26,6 +26,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
     While,
 )
 
@@ -146,6 +147,13 @@ class AstTransformer(Transformer[Token, Any]):
         value: Expression,
     ) -> Set[Expression]:
         return Set(cell, value)
+
+    def seq_expr(
+        self,
+        first: Expression,
+        second: Expression,
+    ) -> Seq[Expression, Expression]:
+        return Seq(first, second)
 
     def while_expr(
         self,

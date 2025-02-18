@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Annotated, Union
 import kernel
 
+
 type Expression = Union[
     kernel.Int,
     kernel.Add[Expression],
@@ -20,6 +21,7 @@ type Expression = Union[
     kernel.Get[Expression],
     kernel.Set[Expression],
     kernel.While[Expression, Expression],
+    kernel.Seq[Expression, Expression],
     #
     Sum[Expression],
     Difference[Expression],
@@ -34,6 +36,7 @@ type Expression = Union[
     Same[Expression],
     Descending[Expression],
     NonAscending[Expression],
+    Begin[Expression],
 ]
 
 
@@ -101,6 +104,11 @@ class Descending[Operand]:
 
 @dataclass(frozen=True)
 class NonAscending[Operand]:
+    operands: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class Begin[Operand]:
     operands: Sequence[Operand]
 
 

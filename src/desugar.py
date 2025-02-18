@@ -14,6 +14,7 @@ from sugar import (
     Same,
     Ascending,
     NonDescending,
+    Begin,
 )
 import kernel
 from kernel import (
@@ -32,6 +33,7 @@ from kernel import (
     Cell,
     Set,
     Get,
+    Seq,
     While,
 )
 
@@ -95,6 +97,9 @@ def desugar_expr(
 
         case Set(e1, e2):
             return Set(recur(e1), recur(e2))
+
+        case Seq(e1, e2):
+            return Seq(recur(e1), recur(e2))
 
         case While(e1, e2):
             return While(recur(e1), recur(e2))
@@ -167,7 +172,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # >
         case Descending(es):
             match es:
                 case [] | [_]:
@@ -179,7 +183,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # >=
         case NonAscending(es):
             match es:
                 case [] | [_]:
@@ -191,7 +194,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # =
         case Same(es):
             match es:
                 case [] | [_]:
@@ -203,12 +205,10 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # <=
         case NonDescending(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
-
                 case [first, second]:
                     return GreaterThanOrEqualTo(recur(second), recur(first))
                 case [first, second, *rest]:
@@ -216,8 +216,7 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # <
-        case Ascending(es):  # pragma: no branch
+        case Ascending(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
@@ -225,5 +224,16 @@ def desugar_expr(
                     return LessThan(recur(first), recur(second))
                 case [first, second, *rest]:
                     return recur(All([Ascending([first, second]), Ascending([second, *rest])]))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case Begin(es):  # pragma: no branch
+            match es:
+                case []:
+                    return Unit()
+                case [first]:
+                    return recur(first)
+                case [first, *rest]:
+                    return Seq(recur(first), recur(Begin(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()

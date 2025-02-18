@@ -17,6 +17,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
     While,
 )
 
@@ -144,6 +145,9 @@ def opt_expr(
 
         case Set(e1, e2):
             return Set(recur(e1), recur(e2))
+
+        case Seq(e1, e2):
+            return Seq(recur(e1), recur(e2))
 
         case While(e1, e2):  # pragma no branch
             match recur(e1):
