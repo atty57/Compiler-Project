@@ -18,6 +18,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
 )
 
 
@@ -86,5 +87,8 @@ def uniqify_expr(
         case Get(e1):
             return Get(recur(e1))
 
-        case Set(e1, e2):  # pragma: no branch
+        case Set(e1, e2):
             return Set(recur(e1), recur(e2))
+
+        case Seq(e1, e2):  # pragma: no branch
+            return Seq(recur(e1), recur(e2))

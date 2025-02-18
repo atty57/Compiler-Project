@@ -18,6 +18,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
 )
 from eval import Location, Store, Value, Environment, eval, eval_expr
 
@@ -387,6 +388,28 @@ def test_eval_expr_get(
     ),
 )
 def test_eval_expr_set(
+    expr: Expression,
+    env: Environment,
+    store: Store[Value],
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env, store) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, store, expected",
+    list[tuple[Expression, Environment, Store[Value], Value]](
+        [
+            (
+                Seq(Unit(), Int(1)),
+                {},
+                Store(),
+                Int(1),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_seq(
     expr: Expression,
     env: Environment,
     store: Store[Value],

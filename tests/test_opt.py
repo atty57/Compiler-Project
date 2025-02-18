@@ -17,6 +17,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
 )
 from opt import opt, opt_expr
 
@@ -423,6 +424,24 @@ def test_opt_expr_get(
     ),
 )
 def test_opt_expr_set(
+    expr: Expression,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Expression, Expression]](
+        [
+            (
+                Seq(Var("x"), Var("y")),
+                Seq(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_seq(
     expr: Expression,
     expected: Expression,
 ) -> None:

@@ -15,6 +15,7 @@ expr: int                                                           -> int_expr
     | "(" "cell" expr ")"                                           -> cell_expr
     | "(" "get" expr ")"                                            -> get_expr
     | "(" "set" expr expr ")"                                       -> set_expr
+    | "(" "seq" expr expr ")"                                       -> seq_expr
 
 parameters: identifier*
 

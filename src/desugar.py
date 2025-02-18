@@ -33,6 +33,7 @@ from kernel import (
     Cell,
     Set,
     Get,
+    Seq,
 )
 
 
@@ -95,6 +96,9 @@ def desugar_expr(
 
         case Set(e1, e2):
             return Set(recur(e1), recur(e2))
+
+        case Seq(e1, e2):
+            return Seq(recur(e1), recur(e2))
 
         case Sum(es):
             match es:
@@ -164,7 +168,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # >
         case Descending(es):
             match es:
                 case [] | [_]:
@@ -176,7 +179,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # >=
         case NonAscending(es):
             match es:
                 case [] | [_]:
@@ -188,7 +190,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # =
         case Same(es):
             match es:
                 case [] | [_]:
@@ -200,7 +201,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # <=
         case NonDescending(es):
             match es:
                 case [] | [_]:
@@ -212,7 +212,6 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        # <
         case Ascending(es):
             match es:
                 case [] | [_]:
@@ -224,11 +223,13 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case Begin(effects, value):  # pragma: no branch
-            match effects:
+        case Begin(es):  # pragma: no branch
+            match es:
                 case []:
-                    return recur(value)
+                    return Unit()
+                case [first]:
+                    return recur(first)
                 case [first, *rest]:
-                    return Let("_", recur(first), recur(Begin(rest, value)))
+                    return Seq(recur(first), recur(Begin(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()

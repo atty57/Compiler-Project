@@ -20,6 +20,7 @@ from kernel import (
     Cell,
     Get,
     Set,
+    Seq,
 )
 from store import Store
 
@@ -132,10 +133,14 @@ def eval_expr(
                 case _:  # pragma: no cover
                     raise ValueError()
 
-        case Set(e1, e2):  # pragma: no branch
+        case Set(e1, e2):
             match recur(e1):
                 case Location(base):
                     store[base, 0] = recur(e2)
                     return Unit()
                 case _:  # pragma: no cover
                     raise ValueError()
+
+        case Seq(e1, e2):  # pragma: no branch
+            recur(e1)
+            return recur(e2)
