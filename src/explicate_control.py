@@ -20,7 +20,7 @@ from monadic import (
     While,
 )
 import cps
-from cps import Block, Assign, Seq, Return, Jump
+from cps import Block, Assign, Seq, Return, Jump, Branch
 
 
 def explicate_control(
@@ -148,7 +148,7 @@ def explicate_control_predicate(
                 Assign(ifTrue, Block(then)),
                 Seq(
                     Assign(ifFalse, Block(otherwise)),
-                    If(expr, Jump(ifTrue), Jump(ifFalse)),
+                    Branch(expr, Jump(ifTrue), Jump(ifFalse)),
                 ),
             )
 

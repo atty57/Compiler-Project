@@ -8,7 +8,6 @@ from monadic import (
     Multiply,
     Var,
     Bool,
-    If,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
@@ -16,7 +15,6 @@ from monadic import (
     Cell,
     Get,
     Set,
-    Seq,
 )
 
 type Atom = Union[
@@ -46,9 +44,9 @@ type Statement = Union[
 
 
 type Tail = Union[
-    Seq[Statement, Tail],
+    Seq,
     Jump,
-    If[Atom, Jump, Jump],
+    Branch,
     Return,
 ]
 
@@ -65,8 +63,21 @@ class Assign:
 
 
 @dataclass(frozen=True)
+class Seq:
+    statement: Statement
+    next: Tail
+
+
+@dataclass(frozen=True)
 class Jump:
     target: str
+
+
+@dataclass(frozen=True)
+class Branch:
+    condition: Atom
+    then: Jump
+    otherwise: Jump
 
 
 @dataclass(frozen=True)

@@ -25,7 +25,7 @@ from cps import (
     Seq,
     Return,
     Jump,
-    If,
+    Branch,
 )
 
 
@@ -78,7 +78,7 @@ def lower_tail(
         case Jump(target):
             builder.branch(env[target])  # type: ignore
 
-        case If(condition, Jump(then), Jump(otherwise)):
+        case Branch(condition, Jump(then), Jump(otherwise)):
             builder.cbranch(  # type: ignore
                 builder.trunc(lower_expr(condition, env, builder), i1),  # type: ignore
                 env[then],

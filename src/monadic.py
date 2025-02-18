@@ -17,7 +17,6 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
     While,
 )
 
@@ -41,7 +40,6 @@ type Expression = Union[
     Cell[Atom],
     Get[Atom],
     Set[Atom],
-    Seq[Expression, Expression],
     While[Expression, Expression],
 ]
 

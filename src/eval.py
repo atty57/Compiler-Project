@@ -20,7 +20,6 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
     While,
 )
 from store import Store
@@ -141,10 +140,6 @@ def eval_expr(
                     return Unit()
                 case _:  # pragma: no cover
                     raise ValueError()
-
-        case Seq(e1, e2):
-            recur(e1)
-            return recur(e2)
 
         case While(e1, e2):  # pragma: no branch
             while True:
