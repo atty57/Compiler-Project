@@ -14,6 +14,7 @@ from sugar import (
     Same,
     NonAscending,
     Descending,
+    Begin,
 )
 import kernel
 from kernel import (
@@ -688,6 +689,28 @@ def test_desugar_expr_descending(
     ),
 )
 def test_desugar_expr_non_ascending(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Begin([], Unit()),
+                Unit(),
+            ),
+            (
+                Begin([Int(0)], Unit()),
+                Let("_", Int(0), Unit()),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_begin(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
