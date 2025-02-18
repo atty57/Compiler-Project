@@ -24,7 +24,7 @@ type Environment = Mapping[str, Value]
 
 def eval(
     program: Program,
-    arguments: Sequence[Value],
+    arguments: Sequence[Int],
 ) -> Value:
     env: Environment = {p: a for p, a in zip(program.parameters, arguments, strict=True)}
     return eval_expr(program.body, env)
