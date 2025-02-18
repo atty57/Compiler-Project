@@ -30,6 +30,14 @@ type Expression = Union[
     Do[Expression],
     While[Expression, Expression],
     Assign[Expression],
+    #
+    Cell[Expression],
+    CellGet[Expression],
+    CellSet[Expression],
+    Vector[Expression],
+    VectorLength[Expression],
+    VectorGet[Expression],
+    VectorSet[Expression],
 ]
 
 
@@ -101,11 +109,50 @@ class GreaterThanOrEqualTo[Operand]:
 
 
 @dataclass(frozen=True)
-class Do[Operand]:
-    operands: Sequence[Operand]
+class Cell[Operand]:
+    value: Operand
+
+
+@dataclass(frozen=True)
+class CellGet[Operand]:
+    cell: Operand
+
+
+@dataclass(frozen=True)
+class CellSet[Operand]:
+    cell: Operand
+    value: Operand
+
+
+@dataclass(frozen=True)
+class Vector[Operand]:
+    elements: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class VectorLength[Operand]:
+    vector: Operand
+
+
+@dataclass(frozen=True)
+class VectorGet[Operand]:
+    vector: Operand
+    index: int
+
+
+@dataclass(frozen=True)
+class VectorSet[Operand]:
+    vector: Operand
+    index: int
+    value: Operand
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
     body: Expression
+
+
+@dataclass(frozen=True)
+class Do[Operand]:
+    operands: Sequence[Operand]

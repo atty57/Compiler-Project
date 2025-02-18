@@ -17,6 +17,13 @@ from fructose import (
     Set,
     While,
     Assign,
+    Cell,
+    CellGet,
+    CellSet,
+    Vector,
+    VectorLength,
+    VectorGet,
+    VectorSet,
 )
 import sucrose
 from desugar import desugar, desugar_expr
@@ -530,7 +537,7 @@ def test_desugar_expr_unit(
         ]
     ),
 )
-def test_desugar_expr_cell(
+def test_desugar_expr_tuple(
     expr: fructose.Expression,
     expected: sucrose.Expression,
 ) -> None:
@@ -629,6 +636,136 @@ def test_desugar_expr_while(
     ),
 )
 def test_desugar_expr_assign(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                Cell(Unit()),
+                Tuple([Unit()]),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_cell(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                CellGet[fructose.Expression](Var("x")),
+                Get(Var("x"), 0),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_cell_get(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                CellSet(Var("x"), Var("y")),
+                Set(Var("x"), 0, Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_cell_set(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                Vector([]),
+                Tuple([Int(0)]),
+            ),
+            (
+                Vector([Unit()]),
+                Tuple([Int(1), Unit()]),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_vector(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                VectorLength(Var("x")),
+                Get(Var("x"), 0),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_vector_length(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                VectorGet[fructose.Expression](Var("x"), 0),
+                Get(Var("x"), 1),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_vector_get(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                VectorSet(Var("x"), 0, Var("y")),
+                Set(Var("x"), 1, Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_vector_set(
     expr: fructose.Expression,
     expected: sucrose.Expression,
 ) -> None:

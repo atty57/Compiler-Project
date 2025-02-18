@@ -17,6 +17,13 @@ from fructose import (
     Set,
     While,
     Assign,
+    Cell,
+    CellGet,
+    CellSet,
+    Vector,
+    VectorLength,
+    VectorGet,
+    VectorSet,
 )
 import sucrose
 
@@ -221,5 +228,26 @@ def desugar_expr(
         case While(e1, e2):
             return While(recur(e1), recur(e2))
 
-        case Assign(x, e1):  # pragma: no branch
+        case Assign(x, e1):
             return Assign(x, recur(e1))
+
+        case Cell(e1):
+            return Tuple([recur(e1)])
+
+        case CellGet(e1):
+            return Get(recur(e1), 0)
+
+        case CellSet(e1, e2):
+            return Set(recur(e1), 0, recur(e2))
+
+        case Vector(es):
+            return Tuple([Int(len(es)), *[recur(e) for e in es]])
+
+        case VectorLength(e1):
+            return Get(recur(e1), 0)
+
+        case VectorGet(e1, i):
+            return Get(recur(e1), i + 1)
+
+        case VectorSet(e1, i, e2):  # pragma: no branch
+            return Set(recur(e1), i + 1, recur(e2))
