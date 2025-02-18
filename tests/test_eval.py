@@ -18,7 +18,7 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from eval import Location, Store, Value, Environment, eval, eval_expr
@@ -402,7 +402,7 @@ def test_eval_expr_set(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Seq(Unit(), Int(1)),
+                Do(Unit(), Int(1)),
                 {},
                 Store(),
                 Int(1),

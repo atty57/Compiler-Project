@@ -17,7 +17,7 @@ from kernel import (
     Cell,
     Get,
     Set,
-    Seq,
+    Do,
     While,
 )
 from opt import opt, opt_expr
@@ -436,8 +436,8 @@ def test_opt_expr_set(
     list[tuple[Expression, Expression]](
         [
             (
-                Seq(Var("x"), Var("y")),
-                Seq(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
+                Do(Var("x"), Var("y")),
             ),
         ]
     ),
