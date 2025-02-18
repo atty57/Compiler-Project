@@ -1,31 +1,31 @@
 import pytest
-import fructose
-from fructose import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Cell, Get, Set, Assign
-import sucrose
+import sugar
+from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Cell, Get, Set
+import kernel
 from desugar import desugar, desugar_expr
 
 
 @pytest.mark.parametrize(
     "program, expected",
-    list[tuple[fructose.Program, sucrose.Program]](
+    list[tuple[sugar.Program, kernel.Program]](
         [
             (
-                fructose.Program([], Int(0)),
-                sucrose.Program([], Int(0)),
+                sugar.Program([], Int(0)),
+                kernel.Program([], Int(0)),
             ),
         ]
     ),
 )
 def test_desugar(
-    program: fructose.Program,
-    expected: sucrose.Expression,
+    program: sugar.Program,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar(program) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Int(0),
@@ -35,93 +35,93 @@ def test_desugar(
     ),
 )
 def test_desugar_expr_int(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.Add([]),
+                sugar.Add([]),
                 Int(0),
             ),
             (
-                fructose.Add([Int(1)]),
-                sucrose.Add(Int(1), Int(0)),
+                sugar.Add([Int(1)]),
+                kernel.Add(Int(1), Int(0)),
             ),
             (
-                fructose.Add([Int(1), Int(1)]),
-                sucrose.Add(Int(1), sucrose.Add(Int(1), Int(0))),
+                sugar.Add([Int(1), Int(1)]),
+                kernel.Add(Int(1), kernel.Add(Int(1), Int(0))),
             ),
         ]
     ),
 )
 def test_desugar_expr_add(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.Subtract([Int(1)]),
-                sucrose.Subtract(Int(0), Int(1)),
+                sugar.Subtract([Int(1)]),
+                kernel.Subtract(Int(0), Int(1)),
             ),
             (
-                fructose.Subtract([Int(2), Int(1)]),
-                sucrose.Subtract(Int(2), Int(1)),
+                sugar.Subtract([Int(2), Int(1)]),
+                kernel.Subtract(Int(2), Int(1)),
             ),
             (
-                fructose.Subtract([Int(3), Int(2), Int(1)]),
-                sucrose.Subtract(Int(3), sucrose.Subtract(Int(2), Int(1))),
+                sugar.Subtract([Int(3), Int(2), Int(1)]),
+                kernel.Subtract(Int(3), kernel.Subtract(Int(2), Int(1))),
             ),
         ]
     ),
 )
 def test_desugar_expr_subtract(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.Multiply([]),
+                sugar.Multiply([]),
                 Int(1),
             ),
             (
-                fructose.Multiply([Int(1)]),
-                sucrose.Multiply(Int(1), Int(1)),
+                sugar.Multiply([Int(1)]),
+                kernel.Multiply(Int(1), Int(1)),
             ),
             (
-                fructose.Multiply([Int(2), Int(2)]),
-                sucrose.Multiply(Int(2), sucrose.Multiply(Int(2), Int(1))),
+                sugar.Multiply([Int(2), Int(2)]),
+                kernel.Multiply(Int(2), kernel.Multiply(Int(2), Int(1))),
             ),
         ]
     ),
 )
 def test_desugar_expr_multiply(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Let("x", Int(0), Var("x")),
@@ -131,15 +131,15 @@ def test_desugar_expr_multiply(
     ),
 )
 def test_desugar_expr_let(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Var("x"),
@@ -149,15 +149,15 @@ def test_desugar_expr_let(
     ),
 )
 def test_desugar_expr_var(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 LetStar([], Var("x")),
@@ -179,15 +179,15 @@ def test_desugar_expr_var(
     ),
 )
 def test_desugar_expr_letstar(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Bool(True),
@@ -197,33 +197,33 @@ def test_desugar_expr_letstar(
     ),
 )
 def test_desugar_expr_bool(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Not(Var("x")),
-                If(sucrose.EqualTo(Var("x"), Bool(True)), Bool(False), Bool(True)),
+                If(kernel.EqualTo(Var("x"), Bool(True)), Bool(False), Bool(True)),
             ),
         ]
     ),
 )
 def test_desugar_expr_not(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 All([]),
@@ -241,15 +241,15 @@ def test_desugar_expr_not(
     ),
 )
 def test_desugar_expr_all(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Any([]),
@@ -267,15 +267,15 @@ def test_desugar_expr_all(
     ),
 )
 def test_desugar_expr_any(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 If(Bool(True), Var("x"), Var("y")),
@@ -285,15 +285,15 @@ def test_desugar_expr_any(
     ),
 )
 def test_desugar_expr_if(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Cond([], Int(0)),
@@ -307,33 +307,33 @@ def test_desugar_expr_if(
     ),
 )
 def test_desugar_expr_cond(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.LessThanOrEqualTo([]),
+                sugar.LessThanOrEqualTo([]),
                 Bool(True),
             ),
             (
-                fructose.LessThanOrEqualTo([Int(0)]),
+                sugar.LessThanOrEqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                fructose.LessThanOrEqualTo([Int(1), Int(2)]),
-                sucrose.GreaterThanOrEqualTo(Int(2), Int(1)),
+                sugar.LessThanOrEqualTo([Int(1), Int(2)]),
+                kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
             ),
             (
-                fructose.LessThanOrEqualTo([Int(1), Int(2), Int(3)]),
+                sugar.LessThanOrEqualTo([Int(1), Int(2), Int(3)]),
                 If(
-                    sucrose.GreaterThanOrEqualTo(Int(2), Int(1)),
-                    sucrose.GreaterThanOrEqualTo(Int(3), Int(2)),
+                    kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
+                    kernel.GreaterThanOrEqualTo(Int(3), Int(2)),
                     Bool(False),
                 ),
             ),
@@ -341,8 +341,8 @@ def test_desugar_expr_cond(
     ),
 )
 def test_desugar_expr_less_than_or_equal_to(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
@@ -350,25 +350,25 @@ def test_desugar_expr_less_than_or_equal_to(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.LessThan([]),
+                sugar.LessThan([]),
                 Bool(True),
             ),
             (
-                fructose.LessThan([Int(0)]),
+                sugar.LessThan([Int(0)]),
                 Bool(True),
             ),
             (
-                fructose.LessThan([Int(1), Int(2)]),
-                sucrose.LessThan(Int(1), Int(2)),
+                sugar.LessThan([Int(1), Int(2)]),
+                kernel.LessThan(Int(1), Int(2)),
             ),
             (
-                fructose.LessThan([Int(1), Int(2), Int(3)]),
+                sugar.LessThan([Int(1), Int(2), Int(3)]),
                 If(
-                    sucrose.LessThan(Int(1), Int(2)),
-                    sucrose.LessThan(Int(2), Int(3)),
+                    kernel.LessThan(Int(1), Int(2)),
+                    kernel.LessThan(Int(2), Int(3)),
                     Bool(False),
                 ),
             ),
@@ -376,33 +376,33 @@ def test_desugar_expr_less_than_or_equal_to(
     ),
 )
 def test_desugar_expr_less_than(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.EqualTo([]),
+                sugar.EqualTo([]),
                 Bool(True),
             ),
             (
-                fructose.EqualTo([Int(0)]),
+                sugar.EqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                fructose.EqualTo([Int(1), Int(2)]),
-                sucrose.EqualTo(Int(1), Int(2)),
+                sugar.EqualTo([Int(1), Int(2)]),
+                kernel.EqualTo(Int(1), Int(2)),
             ),
             (
-                fructose.EqualTo([Int(1), Int(2), Int(3)]),
+                sugar.EqualTo([Int(1), Int(2), Int(3)]),
                 If(
-                    sucrose.EqualTo(Int(1), Int(2)),
-                    sucrose.EqualTo(Int(2), Int(3)),
+                    kernel.EqualTo(Int(1), Int(2)),
+                    kernel.EqualTo(Int(2), Int(3)),
                     Bool(False),
                 ),
             ),
@@ -410,33 +410,33 @@ def test_desugar_expr_less_than(
     ),
 )
 def test_desugar_expr_equal_to(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.GreaterThan([]),
+                sugar.GreaterThan([]),
                 Bool(True),
             ),
             (
-                fructose.GreaterThan([Int(0)]),
+                sugar.GreaterThan([Int(0)]),
                 Bool(True),
             ),
             (
-                fructose.GreaterThan([Int(1), Int(2)]),
-                sucrose.LessThan(Int(2), Int(1)),
+                sugar.GreaterThan([Int(1), Int(2)]),
+                kernel.LessThan(Int(2), Int(1)),
             ),
             (
-                fructose.GreaterThan([Int(1), Int(2), Int(3)]),
+                sugar.GreaterThan([Int(1), Int(2), Int(3)]),
                 If(
-                    sucrose.LessThan(Int(2), Int(1)),
-                    sucrose.LessThan(Int(3), Int(2)),
+                    kernel.LessThan(Int(2), Int(1)),
+                    kernel.LessThan(Int(3), Int(2)),
                     Bool(False),
                 ),
             ),
@@ -444,33 +444,33 @@ def test_desugar_expr_equal_to(
     ),
 )
 def test_desugar_expr_greater_than(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.GreaterThanOrEqualTo([]),
+                sugar.GreaterThanOrEqualTo([]),
                 Bool(True),
             ),
             (
-                fructose.GreaterThanOrEqualTo([Int(0)]),
+                sugar.GreaterThanOrEqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                fructose.GreaterThanOrEqualTo([Int(1), Int(2)]),
-                sucrose.GreaterThanOrEqualTo(Int(1), Int(2)),
+                sugar.GreaterThanOrEqualTo([Int(1), Int(2)]),
+                kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
             ),
             (
-                fructose.GreaterThanOrEqualTo([Int(1), Int(2), Int(3)]),
+                sugar.GreaterThanOrEqualTo([Int(1), Int(2), Int(3)]),
                 If(
-                    sucrose.GreaterThanOrEqualTo(Int(1), Int(2)),
-                    sucrose.GreaterThanOrEqualTo(Int(2), Int(3)),
+                    kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
+                    kernel.GreaterThanOrEqualTo(Int(2), Int(3)),
                     Bool(False),
                 ),
             ),
@@ -478,33 +478,33 @@ def test_desugar_expr_greater_than(
     ),
 )
 def test_desugar_expr_greater_than_or_equal_to(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                sucrose.Unit(),
-                sucrose.Unit(),
+                kernel.Unit(),
+                kernel.Unit(),
             ),
         ]
     ),
 )
 def test_desugar_expr_unit(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Cell(Unit()),
@@ -514,15 +514,15 @@ def test_desugar_expr_unit(
     ),
 )
 def test_desugar_expr_cell(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Get(Var("x")),
@@ -532,15 +532,15 @@ def test_desugar_expr_cell(
     ),
 )
 def test_desugar_expr_get(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Set(Var("x"), Var("y")),
@@ -550,51 +550,33 @@ def test_desugar_expr_get(
     ),
 )
 def test_desugar_expr_set(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
+    list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                fructose.Do([]),
+                sugar.Do([]),
                 Unit(),
             ),
             (
-                fructose.Do([Int(0)]),
+                sugar.Do([Int(0)]),
                 Int(0),
             ),
             (
-                fructose.Do([Unit(), Int(0)]),
-                sucrose.Do(Unit(), Int(0)),
+                sugar.Do([Unit(), Int(0)]),
+                kernel.Do(Unit(), Int(0)),
             ),
         ]
     ),
 )
 def test_desugar_expr_begin(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[fructose.Expression, sucrose.Expression]](
-        [
-            (
-                Assign("x", Int(0)),
-                Assign("x", Int(0)),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_assign(
-    expr: fructose.Expression,
-    expected: sucrose.Expression,
+    expr: sugar.Expression,
+    expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected

@@ -1,5 +1,5 @@
 import pytest
-from glucose import (
+from kernel import (
     Program,
     Expression,
     Int,
@@ -19,7 +19,7 @@ from glucose import (
     Set,
     Do,
 )
-from parse_glucose import parse, parse_expr
+from parse_kernel import parse, parse_expr
 
 
 @pytest.mark.parametrize(

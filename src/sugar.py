@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Annotated, Union
-from sucrose import Int, Let, Var, Bool, If, Unit, Cell, Get, Set, Assign
+from kernel import Int, Let, Var, Bool, If, Unit, Cell, Get, Set
 
 
 type Expression = Union[
@@ -28,7 +28,6 @@ type Expression = Union[
     Get[Expression],
     Set[Expression],
     Do[Expression],
-    Assign[Expression],
 ]
 
 

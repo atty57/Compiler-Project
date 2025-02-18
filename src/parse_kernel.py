@@ -8,7 +8,7 @@ from lark import (
     Transformer,
     v_args,  # type: ignore
 )
-from glucose import (
+from kernel import (
     Program,
     Expression,
     Int,
@@ -191,7 +191,7 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 def parse(
     source: str,
 ) -> Program:
-    with open(os.path.join(__location__, "./glucose.lark"), "r") as f:
+    with open(os.path.join(__location__, "./kernel.lark"), "r") as f:
         parser = Lark(f, start="program")
         tree: ParseTree = parser.parse(source)
         return AstTransformer().transform(tree)  # type: ignore
@@ -200,7 +200,7 @@ def parse(
 def parse_expr(
     source: str,
 ) -> Expression:
-    with open(os.path.join(__location__, "./glucose.lark"), "r") as f:
+    with open(os.path.join(__location__, "./kernel.lark"), "r") as f:
         parser = Lark(f, start="expr")
         tree: ParseTree = parser.parse(source)
         return AstTransformer().transform(tree)  # type: ignore

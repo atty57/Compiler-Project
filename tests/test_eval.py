@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 import pytest
-from glucose import (
+from kernel import (
     Program,
     Expression,
     Int,
