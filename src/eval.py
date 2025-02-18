@@ -38,7 +38,7 @@ type Environment = Mapping[str, Value]
 
 def eval(
     program: Program,
-    arguments: Sequence[Value],
+    arguments: Sequence[Int],
 ) -> Value:
     return eval_expr(
         expr=program.body,
