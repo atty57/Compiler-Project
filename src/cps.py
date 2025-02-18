@@ -6,7 +6,6 @@ from monadic import (
     Add,
     Subtract,
     Multiply,
-    Let,
     Var,
     Bool,
     If,
@@ -17,6 +16,7 @@ from monadic import (
     Cell,
     Get,
     Set,
+    Seq,
 )
 
 type Atom = Union[
@@ -36,12 +36,17 @@ type Expression = Union[
     GreaterThanOrEqualTo[Atom],
     Cell[Atom],
     Get[Atom],
-    Set[Atom],
     Block,
 ]
 
+
 type Statement = Union[
-    Let[Expression, Statement],
+    Assign,
+    Set[Atom],
+]
+
+type Tail = Union[
+    Seq[Statement, Tail],
     Return,
     Jump,
     If[Atom, Jump, Jump],
@@ -50,7 +55,7 @@ type Statement = Union[
 
 @dataclass(frozen=True)
 class Block:
-    body: Statement
+    body: Tail
 
 
 @dataclass(frozen=True)
@@ -72,4 +77,4 @@ class Return:
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
-    body: Statement
+    body: Tail

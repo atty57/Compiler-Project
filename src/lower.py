@@ -17,10 +17,12 @@ from cps import (
     Unit,
     Cell,
     Get,
-    Set,
     Block,
     Statement,
-    Let,
+    Assign,
+    Set,
+    Tail,
+    Seq,
     Return,
     Jump,
     If,
@@ -55,20 +57,20 @@ def lower(
         for i, p in enumerate(program.parameters)
     }
 
-    lower_stmt(program.body, env, builder)
+    lower_tail(program.body, env, builder)
 
     return module
 
 
-def lower_stmt(
-    tail: Statement,
+def lower_tail(
+    tail: Tail,
     env: Environment,
     builder: ir.IRBuilder,
 ) -> None:
-    recur = partial(lower_stmt, env=env, builder=builder)
+    recur = partial(lower_tail, env=env, builder=builder)
     match tail:
-        case Let(name, value, next):
-            recur(next, env={**env, name: lower_expr(value, env, builder)})
+        case Seq(stmt, next):
+            recur(next, env=lower_stmt(stmt, env, builder))
 
         case Return(value):
             builder.ret(lower_expr(value, env, builder))  # type: ignore
@@ -84,11 +86,27 @@ def lower_stmt(
             )
 
 
+def lower_stmt(
+    stmt: Statement,
+    env: Environment,
+    builder: ir.IRBuilder,
+) -> Environment:
+    expr = partial(lower_expr, env=env, builder=builder)
+    match stmt:
+        case Assign(x, e1):
+            return {**env, x: expr(e1, env, builder)}
+
+        case Set(a1, a2):
+            builder.store(value=expr(a2), ptr=expr(a1))  # type: ignore
+            return env
+
+
 def lower_expr(
     expr: Expression,
     env: Environment,
     builder: ir.IRBuilder,
 ) -> ir.Value:
+    tail = partial(lower_tail, env=env, builder=builder)
     recur = partial(lower_expr, env=env, builder=builder)
 
     match expr:
@@ -130,12 +148,7 @@ def lower_expr(
         case Get(a1):
             return builder.load(ptr=recur(a1))  # type: ignore
 
-        case Set(a1, a2):
-            insn = builder.store(value=recur(a2), ptr=recur(a1))  # type: ignore
-            print(insn)
-            return insn
-
         case Block(body):
             block: ir.Block = cast(ir.Block, builder.append_basic_block())
-            lower_stmt(body, env, ir.IRBuilder(block))
+            tail(body, builder=ir.IRBuilder(block))
             return block

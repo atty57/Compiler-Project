@@ -17,10 +17,11 @@ from monadic import (
     Cell,
     Get,
     Set,
+    Seq,
     While,
 )
 import cps
-from cps import Block, Return, Jump
+from cps import Block, Assign, Seq, Return, Jump
 
 
 def explicate_control(
@@ -36,7 +37,7 @@ def explicate_control(
 def explicate_control_tail(
     expr: monadic.Expression,
     fresh: Callable[[str], str],
-) -> cps.Statement:
+) -> cps.Tail:
     tail = partial(explicate_control_tail, fresh=fresh)
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
@@ -73,6 +74,9 @@ def explicate_control_tail(
         case Set():
             return effect(expr, Return(Unit()))
 
+        case Seq(e1, e2):
+            return effect(e1, tail(e2))
+
         case While():  # pragma: no branch
             return effect(expr, Return(Unit()))
 
@@ -80,25 +84,25 @@ def explicate_control_tail(
 def explicate_control_assign(
     dest: str,
     value: monadic.Expression,
-    next: cps.Statement,
+    next: cps.Tail,
     fresh: Callable[[str], str],
-) -> cps.Statement:
+) -> cps.Tail:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
 
     match value:
         case Int():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Add() | Subtract() | Multiply():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Var():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Bool():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Let(x, e1, e2):
             return assign(x, e1, assign(dest, e2, next))
@@ -107,19 +111,22 @@ def explicate_control_assign(
             return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
 
         case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Unit():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Cell():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Get():
-            return Let(dest, value, next)
+            return Seq(Assign(dest, value), next)
 
         case Set():
             return effect(value, assign(dest, Unit(), next))
+
+        case Seq(e1, e2):
+            return effect(e1, assign(dest, e2, next))
 
         case While():  # pragma: no branch
             return effect(value, assign(dest, Unit(), next))
@@ -127,12 +134,13 @@ def explicate_control_assign(
 
 def explicate_control_predicate(
     expr: monadic.Expression,
-    then: cps.Statement,
-    otherwise: cps.Statement,
+    then: cps.Tail,
+    otherwise: cps.Tail,
     fresh: Callable[[str], str],
-) -> cps.Statement:
+) -> cps.Tail:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
+    effect = partial(explicate_control_effect, fresh=fresh)
 
     match expr:
         case Int() | Add() | Subtract() | Multiply():  # pragma: no cover
@@ -144,12 +152,10 @@ def explicate_control_predicate(
         case Var():
             ifTrue = fresh("then")
             ifFalse = fresh("else")
-            return Let(
-                ifTrue,
-                Block(then),
-                Let(
-                    ifFalse,
-                    Block(otherwise),
+            return Seq(
+                Assign(ifTrue, Block(then)),
+                Seq(
+                    Assign(ifFalse, Block(otherwise)),
                     If(expr, Jump(ifTrue), Jump(ifFalse)),
                 ),
             )
@@ -181,15 +187,18 @@ def explicate_control_predicate(
         case Set():  # pragma: no cover
             raise ValueError(f"non-boolean predicate: {expr}")
 
+        case Seq(e1, e2):
+            return effect(e1, predicate(e2, then, otherwise))
+
         case While():  # pragma: no cover
             raise ValueError(f"non-boolean predicate: {expr}")
 
 
 def explicate_control_effect(
     expr: monadic.Expression,
-    next: cps.Statement,
+    next: cps.Tail,
     fresh: Callable[[str], str],
-) -> cps.Statement:
+) -> cps.Tail:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
@@ -223,13 +232,14 @@ def explicate_control_effect(
             return next
 
         case Set():
-            tmp = fresh("t")
-            return Let(tmp, expr, next)
+            return Seq(expr, next)
+
+        case Seq(e1, e2):
+            return effect(e1, effect(e2, next))
 
         case While(e1, e2):  # pragma: no cover
             loop = fresh("loop")
-            return Let(
-                loop,
-                Block(predicate(e1, effect(e2, Jump(loop)), next)),
+            return Seq(
+                Assign(loop, Block(predicate(e1, effect(e2, Jump(loop)), next))),
                 Jump(loop),
             )
