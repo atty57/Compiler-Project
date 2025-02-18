@@ -1,6 +1,7 @@
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from functools import partial
-import typing
+from typing import Union
 from kernel import (
     Program,
     Expression,
@@ -30,14 +31,14 @@ class Location:
     value: int
 
 
-type Value = typing.Union[Int, Bool, Unit, Location]
+type Value = Union[Int, Bool, Unit, Location]
 
-type Environment = typing.Mapping[str, Value]
+type Environment = Mapping[str, Value]
 
 
 def eval(
     program: Program,
-    arguments: typing.Sequence[Value],
+    arguments: Sequence[Int],
 ) -> Value:
     return eval_expr(
         expr=program.body,
