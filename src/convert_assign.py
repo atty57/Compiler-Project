@@ -91,7 +91,7 @@ def convert_assign_expr(
             return Do(recur(e1), recur(e2))
 
         case While(e1, e2):
-            return Do(recur(e1), recur(e2))
+            return While(recur(e1), recur(e2))
 
         case Assign(x, e1):  # pragma: no branch
             return Set(Var(x), 0, recur(e1))
