@@ -25,7 +25,7 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 
 @pytest.mark.parametrize(
     "program, arguments, expected",
-    list[tuple[Program, Sequence[Value], Value]](
+    list[tuple[Program, Sequence[Int], Value]](
         [
             (
                 Program([], Int(0)),
@@ -42,7 +42,7 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 )
 def test_eval(
     program: Program,
-    arguments: Sequence[Value],
+    arguments: Sequence[Int],
     expected: Value,
 ) -> None:
     assert eval(program, arguments) == expected
