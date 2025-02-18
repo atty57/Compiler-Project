@@ -2,7 +2,7 @@ from collections.abc import Sequence, Mapping
 from dataclasses import dataclass
 from functools import partial
 from typing import Union
-from kernel import (
+from glucose import (
     Program,
     Expression,
     Int,

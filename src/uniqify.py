@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping
 from functools import partial
-from kernel import (
+from glucose import (
     Program,
     Expression,
     Int,
