@@ -1,4 +1,4 @@
-import typing
+from collections.abc import Sequence
 import pytest
 from kernel import (
     Program,
@@ -26,7 +26,7 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 
 @pytest.mark.parametrize(
     "program, arguments, expected",
-    list[tuple[Program, typing.Sequence[Value], Value]](
+    list[tuple[Program, Sequence[Int], Value]](
         [
             (
                 Program([], Int(0)),
@@ -43,7 +43,7 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 )
 def test_eval(
     program: Program,
-    arguments: typing.Sequence[Value],
+    arguments: Sequence[Int],
     expected: Value,
 ) -> None:
     assert eval(program, arguments) == expected
