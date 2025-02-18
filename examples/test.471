@@ -1,3 +1,6 @@
 (program ()
-    (let ([x (cell #f)])
-        (get x)))
+    (let ([i (cell 5)])
+        
+        (get i)
+        
+        ))
