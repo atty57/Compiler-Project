@@ -34,6 +34,7 @@ type Expression = Union[
     Same[Expression],
     Descending[Expression],
     NonAscending[Expression],
+    Begin[Expression, Expression],
 ]
 
 
@@ -102,6 +103,12 @@ class Descending[Operand]:
 @dataclass(frozen=True)
 class NonAscending[Operand]:
     operands: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class Begin[Effect, Value]:
+    effects: Sequence[Effect]
+    value: Value
 
 
 @dataclass(frozen=True)

@@ -14,6 +14,7 @@ from sugar import (
     Same,
     Ascending,
     NonDescending,
+    Begin,
 )
 import kernel
 from kernel import (
@@ -208,7 +209,6 @@ def desugar_expr(
             match es:
                 case [] | [_]:
                     return Bool(True)
-
                 case [first, second]:
                     return GreaterThanOrEqualTo(recur(second), recur(first))
                 case [first, second, *rest]:
@@ -217,7 +217,7 @@ def desugar_expr(
                     raise NotImplementedError()
 
         # <
-        case Ascending(es):  # pragma: no branch
+        case Ascending(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
@@ -225,5 +225,14 @@ def desugar_expr(
                     return LessThan(recur(first), recur(second))
                 case [first, second, *rest]:
                     return recur(All([Ascending([first, second]), Ascending([second, *rest])]))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case Begin(effects, value):  # pragma: no branch
+            match effects:
+                case []:
+                    return recur(value)
+                case [first, *rest]:
+                    return Let("_", recur(first), recur(Begin(rest, value)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
