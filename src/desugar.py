@@ -1,6 +1,6 @@
 from functools import partial
-import sugar
-from sugar import (
+import fructose
+from fructose import (
     Int,
     Let,
     Var,
@@ -16,6 +16,7 @@ from sugar import (
     Get,
     Set,
     While,
+    Assign,
     Cell,
     CellGet,
     CellSet,
@@ -24,58 +25,58 @@ from sugar import (
     VectorGet,
     VectorSet,
 )
-import kernel
+import sucrose
 
 
 def desugar(
-    program: sugar.Program,
-) -> kernel.Program:
-    return kernel.Program(
+    program: fructose.Program,
+) -> sucrose.Program:
+    return sucrose.Program(
         parameters=program.parameters,
         body=desugar_expr(program.body),
     )
 
 
 def desugar_expr(
-    expr: sugar.Expression,
-) -> kernel.Expression:
+    expr: fructose.Expression,
+) -> sucrose.Expression:
     recur = partial(desugar_expr)
 
     match expr:
-        case kernel.Int():
+        case Int():
             return expr
 
-        case sugar.Add(es):
+        case fructose.Add(es):
             match es:
                 case []:
                     return Int(0)
                 case [first, *rest]:
-                    return kernel.Add(recur(first), recur(sugar.Add(rest)))
+                    return sucrose.Add(recur(first), recur(fructose.Add(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Subtract(es):
+        case fructose.Subtract(es):
             match es:
                 case [first]:
-                    return kernel.Subtract(Int(0), recur(first))
+                    return sucrose.Subtract(Int(0), recur(first))
                 case [first, second]:
-                    return kernel.Subtract(recur(first), recur(second))
+                    return sucrose.Subtract(recur(first), recur(second))
                 case [first, *rest]:
-                    return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
+                    return sucrose.Subtract(recur(first), recur(fructose.Subtract(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.Multiply(es):
+        case fructose.Multiply(es):
             match es:
                 case []:
                     return Int(1)
                 case [first, *rest]:
-                    return kernel.Multiply(recur(first), recur(sugar.Multiply(rest)))
+                    return sucrose.Multiply(recur(first), recur(fructose.Multiply(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
         case Let(x, e1, e2):
-            return kernel.Let(x, recur(e1), recur(e2))
+            return Let(x, recur(e1), recur(e2))
 
         case Var():
             return expr
@@ -93,7 +94,7 @@ def desugar_expr(
             return expr
 
         case Not(e1):
-            return If(kernel.EqualTo(recur(e1), Bool(True)), Bool(False), Bool(True))
+            return If(sucrose.EqualTo(recur(e1), Bool(True)), Bool(False), Bool(True))
 
         case All(es):
             match es:
@@ -125,76 +126,76 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.LessThanOrEqualTo(es):
+        case fructose.LessThanOrEqualTo(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
                 case [first, second]:
-                    return kernel.GreaterThanOrEqualTo(recur(second), recur(first))
+                    return sucrose.GreaterThanOrEqualTo(recur(second), recur(first))
                 case [first, second, *rest]:
                     return If(
-                        kernel.GreaterThanOrEqualTo(recur(second), recur(first)),
-                        recur(sugar.LessThanOrEqualTo([second, *rest])),
+                        sucrose.GreaterThanOrEqualTo(recur(second), recur(first)),
+                        recur(fructose.LessThanOrEqualTo([second, *rest])),
                         Bool(False),
                     )
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.LessThan(es):
+        case fructose.LessThan(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
                 case [first, second]:
-                    return kernel.LessThan(recur(first), recur(second))
+                    return sucrose.LessThan(recur(first), recur(second))
                 case [first, second, *rest]:
                     return If(
-                        kernel.LessThan(recur(first), recur(second)),
-                        recur(sugar.LessThan([second, *rest])),
+                        sucrose.LessThan(recur(first), recur(second)),
+                        recur(fructose.LessThan([second, *rest])),
                         Bool(False),
                     )
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.EqualTo(es):
+        case fructose.EqualTo(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
                 case [first, second]:
-                    return kernel.EqualTo(recur(first), recur(second))
+                    return sucrose.EqualTo(recur(first), recur(second))
                 case [first, second, *rest]:
                     return If(
-                        kernel.EqualTo(recur(first), recur(second)),
-                        recur(sugar.EqualTo([second, *rest])),
+                        sucrose.EqualTo(recur(first), recur(second)),
+                        recur(fructose.EqualTo([second, *rest])),
                         Bool(False),
                     )
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.GreaterThan(es):
+        case fructose.GreaterThan(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
                 case [first, second]:
-                    return kernel.LessThan(recur(second), recur(first))
+                    return sucrose.LessThan(recur(second), recur(first))
                 case [first, second, *rest]:
                     return If(
-                        kernel.LessThan(recur(second), recur(first)),
-                        recur(sugar.GreaterThan([second, *rest])),
+                        sucrose.LessThan(recur(second), recur(first)),
+                        recur(fructose.GreaterThan([second, *rest])),
                         Bool(False),
                     )
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.GreaterThanOrEqualTo(es):
+        case fructose.GreaterThanOrEqualTo(es):
             match es:
                 case [] | [_]:
                     return Bool(True)
                 case [first, second]:
-                    return kernel.GreaterThanOrEqualTo(recur(first), recur(second))
+                    return sucrose.GreaterThanOrEqualTo(recur(first), recur(second))
                 case [first, second, *rest]:
                     return If(
-                        kernel.GreaterThanOrEqualTo(recur(first), recur(second)),
-                        recur(sugar.GreaterThanOrEqualTo([second, *rest])),
+                        sucrose.GreaterThanOrEqualTo(recur(first), recur(second)),
+                        recur(fructose.GreaterThanOrEqualTo([second, *rest])),
                         Bool(False),
                     )
 
@@ -213,19 +214,22 @@ def desugar_expr(
         case Set(e1, i, e2):
             return Set(recur(e1), i, recur(e2))
 
-        case sugar.Do(es):
+        case fructose.Do(es):
             match es:
                 case []:
-                    return kernel.Unit()
+                    return Unit()
                 case [first]:
                     return recur(first)
                 case [first, *rest]:
-                    return kernel.Do(recur(first), recur(sugar.Do(rest)))
+                    return sucrose.Do(recur(first), recur(fructose.Do(rest)))
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
         case While(e1, e2):
             return While(recur(e1), recur(e2))
+
+        case Assign(x, e1):
+            return Assign(x, recur(e1))
 
         case Cell(e1):
             return Tuple([recur(e1)])
