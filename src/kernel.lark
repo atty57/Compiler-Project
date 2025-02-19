@@ -1,4 +1,7 @@
-program: "(" "program" ")"
+program: "(" "program" "(" parameters* ")" expr ")"
+
+parameters: identifier*
+
 expr: int                                                           -> int_expr
     | "(" "+" expr expr ")"                                         -> add_expr
     | "(" "-" expr expr ")"                                         -> subtract_expr

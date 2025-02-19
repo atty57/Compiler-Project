@@ -162,7 +162,7 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case sugar.GreaterThanOrEqualTo(es):
+        case sugar.GreaterThanOrEqualTo(es):  # pragma: no branch
             match es:
                 case [] | [_]:
                     return Bool(True)
