@@ -88,6 +88,21 @@ def opt_expr(
 
         case Var():
             return expr
+        case Bool():
+            return expr
+            return If(recur(c), recur(t), recur(f))
+
+        case If(c, t, f):
+            return If(recur(c), recur(t), recur(f))
+
+        case LessThan(x, y):
+            return LessThan(recur(x), recur(y))
+
+        case EqualTo(x, y):
+            return EqualTo(recur(x), recur(y))
+
+        case GreaterThanOrEqualTo(x, y):
+            return GreaterThanOrEqualTo(recur(x), recur(y))
 
         case _:
             raise NotImplementedError()

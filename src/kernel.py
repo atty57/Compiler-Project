@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Union, Type
-
+from typing import Union
 
 type Expression = Union[
     Int,

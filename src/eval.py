@@ -11,10 +11,6 @@ from kernel import (
     Let,
     Var,
     Bool,
-    If,
-    LessThan,
-    EqualTo,
-    GreaterThanOrEqualTo,
 )
 
 
