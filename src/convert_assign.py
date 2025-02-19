@@ -19,6 +19,8 @@ from sucrose import (
     Do,
     While,
     Assign,
+    Lambda,
+    Apply,
 )
 import glucose
 
@@ -93,8 +95,16 @@ def convert_assign_expr(
         case While(e1, e2):
             return While(recur(e1), recur(e2))
 
-        case Assign(x, e1):  # pragma: no branch
+        case Assign(x, e1):
             return Set(Var(x), 0, recur(e1))
+
+        case Lambda(xs, e1):
+            (vars_m, vars_u) = _partition(set(xs), e1)
+            local_m = (vars | vars_m) - vars_u
+            return Lambda(xs, _wrap_vars(vars_m, recur(e1, vars=local_m)))
+
+        case Apply(e1, es):  # pragma: no branch
+            return Apply(recur(e1), [recur(e) for e in es])
 
 
 def _wrap_vars(
@@ -167,5 +177,11 @@ def mutable_variables(
         case While(e1, e2):
             return recur(e1) | recur(e2)
 
-        case Assign(x, e1):  # pragma: no branch
+        case Assign(x, e1):
             return {x} | recur(e1)
+
+        case Lambda(xs, e1):
+            return recur(e1) - set(xs)
+
+        case Apply(e1, es):  # pragma: no branch
+            return recur(e1) | {mv for e in es for mv in recur(e)}

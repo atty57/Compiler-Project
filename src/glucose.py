@@ -1,30 +1,28 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
-import typing
+from typing import Union
 
 
-type Expression = typing.Union[
-    # Int
+type Expression = Union[
     Int,
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
-    # Var
     Let[Expression, Expression],
     Var,
-    # If
     Bool,
     If[Expression, Expression, Expression],
     LessThan[Expression],
     EqualTo[Expression],
     GreaterThanOrEqualTo[Expression],
-    # Store
     Unit,
     Tuple[Expression],
     Get[Expression],
     Set[Expression],
     Do[Expression, Expression],
-    # While
     While[Expression, Expression],
+    Lambda[Expression],
+    Apply[Expression],
 ]
 
 
@@ -100,7 +98,7 @@ class Unit:
 
 @dataclass(frozen=True)
 class Tuple[Operand]:
-    components: typing.Sequence[Operand]
+    components: Sequence[Operand]
 
 
 @dataclass(frozen=True)
@@ -129,6 +127,18 @@ class While[Condition, Body]:
 
 
 @dataclass(frozen=True)
+class Lambda[Body]:
+    parameters: Sequence[str]
+    body: Body
+
+
+@dataclass(frozen=True)
+class Apply[Operand]:
+    callee: Operand
+    arguments: Sequence[Operand]
+
+
+@dataclass(frozen=True)
 class Program:
-    parameters: typing.Sequence[str]
+    parameters: Sequence[str]
     body: Expression

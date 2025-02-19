@@ -18,6 +18,8 @@ from sucrose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
     Assign,
 )
 import glucose
@@ -401,14 +403,34 @@ def test_convert_assign_expr_while(
     list[tuple[sucrose.Expression, set[str], glucose.Expression]](
         [
             (
-                Assign("x", Var("y")),
+                Lambda([], Int(0)),
                 set(),
-                Set(Var("x"), 0, Var("y")),
+                Lambda([], Int(0)),
             ),
         ]
     ),
 )
-def test_convert_assign_expr_assign(
+def test_convert_assign_expr_lambda(
+    expr: sucrose.Expression,
+    vars: set[str],
+    expected: glucose.Expression,
+) -> None:
+    assert convert_assign_expr(expr, vars) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, vars, expected",
+    list[tuple[sucrose.Expression, set[str], glucose.Expression]](
+        [
+            (
+                Apply(Var("x"), []),
+                set(),
+                Apply(Var("x"), []),
+            ),
+        ]
+    ),
+)
+def test_convert_assign_expr_apply(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
@@ -438,6 +460,8 @@ def test_convert_assign_expr_assign(
             (Do(Var("x"), Var("y")), set()),
             (While(Var("x"), Var("y")), set()),
             (Assign("x", Var("y")), {"x"}),
+            (Lambda("x", Var("y")), set()),
+            (Apply(Var("x"), []), set()),
         ]
     ),
 )

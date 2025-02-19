@@ -20,6 +20,8 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 from uniqify import Environment, uniqify, uniqify_expr
 from util import SequentialNameGenerator
@@ -414,15 +416,61 @@ def test_uniqify_expr_seq(
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
         [
             (
-                While(Bool(True), Int(1)),
+                While(Int(0), Unit()),
                 {},
                 SequentialNameGenerator(),
-                While(Bool(True), Int(1)),
+                While(Int(0), Unit()),
             ),
         ]
     ),
 )
 def test_uniqify_expr_while(
+    expr: Int,
+    env: Environment,
+    fresh: Callable[[str], str],
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, fresh, expected",
+    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+        [
+            (
+                Lambda([], Unit()),
+                {},
+                SequentialNameGenerator(),
+                Lambda([], Unit()),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_lambda(
+    expr: Int,
+    env: Environment,
+    fresh: Callable[[str], str],
+    expected: Expression,
+) -> None:
+    fresh = SequentialNameGenerator()
+    assert uniqify_expr(expr, env, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, fresh, expected",
+    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+        [
+            (
+                Apply(Int(0), []),
+                {},
+                SequentialNameGenerator(),
+                Apply(Int(0), []),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expr_apply(
     expr: Int,
     env: Environment,
     fresh: Callable[[str], str],

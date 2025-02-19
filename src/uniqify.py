@@ -20,6 +20,8 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 
 
@@ -94,5 +96,12 @@ def uniqify_expr(
         case Do(e1, e2):
             return Do(recur(e1), recur(e2))
 
-        case While(e1, e2):  # pragma: no branch
+        case While(e1, e2):
             return While(recur(e1), recur(e2))
+
+        case Lambda(xs, e1):
+            local = {x: fresh(x) for x in xs}
+            return Lambda(list(local.values()), recur(e1, env={**env, **local}))
+
+        case Apply(e1, es):  # pragma: no branch
+            return Apply(recur(e1), [recur(e) for e in es])

@@ -20,8 +20,10 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
-from eval import Location, Store, Value, Environment, eval, eval_expr
+from eval import Closure, Location, Store, Value, Environment, eval, eval_expr
 
 
 @pytest.mark.parametrize(
@@ -446,6 +448,64 @@ def test_eval_expr_seq(
     ),
 )
 def test_eval_expr_while(
+    expr: Expression,
+    env: Environment,
+    store: Store[Value],
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env, store) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, store, expected",
+    list[tuple[Expression, Environment, Store[Value], Value]](
+        [
+            (
+                Lambda([], Var("x")),
+                {},
+                Store(),
+                Closure(Lambda([], Var("x")), {}),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_lambda(
+    expr: Expression,
+    env: Environment,
+    store: Store[Value],
+    expected: Value,
+) -> None:
+    assert eval_expr(expr, env, store) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, env, store, expected",
+    list[tuple[Expression, Environment, Store[Value], Value]](
+        [
+            (
+                Apply(Lambda(["x"], Var("x")), [Int(0)]),
+                {},
+                Store(),
+                Int(0),
+            ),
+            (
+                Let(
+                    "x",
+                    Int(0),
+                    Let(
+                        "f",
+                        Lambda([], Var("x")),
+                        Apply(Var("f"), []),
+                    ),
+                ),
+                {},
+                Store(),
+                Int(0),
+            ),
+        ]
+    ),
+)
+def test_eval_expr_apply(
     expr: Expression,
     env: Environment,
     store: Store[Value],

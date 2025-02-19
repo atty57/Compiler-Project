@@ -22,8 +22,15 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 from store import Store
+
+
+type Value = Union[Int, Bool, Unit, Location, Closure]
+
+type Environment = Mapping[str, Value]
 
 
 @dataclass(frozen=True)
@@ -31,9 +38,10 @@ class Location:
     value: int
 
 
-type Value = Union[Int, Bool, Unit, Location]
-
-type Environment = Mapping[str, Value]
+@dataclass(frozen=True)
+class Closure:
+    abs: Lambda[Expression]
+    env: Environment
 
 
 def eval(
@@ -147,7 +155,7 @@ def eval_expr(
             recur(e1)
             return recur(e2)
 
-        case While(e1, e2):  # pragma: no branch
+        case While(e1, e2):
             while True:
                 match recur(e1):
                     case Bool(True):
@@ -157,3 +165,19 @@ def eval_expr(
                     case _:  # pragma: no cover
                         raise ValueError()
             return Unit()
+
+        case Lambda():
+            return Closure(expr, env)
+
+        case Apply(callee, arguments):  # pragma: no branch
+            match recur(callee):
+                case Closure(Lambda(parameters, body), env):
+                    return recur(
+                        body,
+                        env={
+                            **env,
+                            **{p: recur(a) for p, a in zip(parameters, arguments, strict=True)},
+                        },
+                    )
+                case _:  # pragma: no cover
+                    raise ValueError()

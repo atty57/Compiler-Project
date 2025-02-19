@@ -19,6 +19,8 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 
 
@@ -41,6 +43,8 @@ type Expression = Union[
     Do[Expression, Expression],
     While[Expression, Expression],
     Assign[Expression],
+    Lambda[Expression],
+    Apply[Expression],
 ]
 
 
