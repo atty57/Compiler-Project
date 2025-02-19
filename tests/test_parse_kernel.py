@@ -28,22 +28,26 @@ from parse_kernel import parse, parse_expr
     list[tuple[str, Program]](
         [
             (
-                "(program (x) 0)",
-                Program(["x"], Int(0)),
+                "(program () 0)",
+                Program([], Int(0)),
+            ),
+            (
+                "(program (x) x)",
+                Program(["x"], Var("x")),
             ),
         ]
     ),
 )
 def test_parse(
     source: str,
-    expected: Program,
+    expected: Int,
 ) -> None:
     assert parse(source) == expected
 
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Int]](
+    list[tuple[str, Expression]](
         [
             (
                 "0",
