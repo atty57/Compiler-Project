@@ -1,8 +1,8 @@
 from collections.abc import Callable
 import pytest
-import monadic
-import cps
-from monadic import (
+import maltose
+import lactose
+from maltose import (
     Int,
     Add,
     Subtract,
@@ -21,7 +21,7 @@ from monadic import (
     Do,
     While,
 )
-from cps import Block, Assign, Return, Jump
+from lactose import Block, Assign, Return, Jump
 from explicate_control import (
     explicate_control,
     explicate_control_tail,
@@ -34,27 +34,27 @@ from util import SequentialNameGenerator
 
 @pytest.mark.parametrize(
     "program, fresh, expected",
-    list[tuple[monadic.Program, Callable[[str], str], cps.Program]](
+    list[tuple[maltose.Program, Callable[[str], str], lactose.Program]](
         [
             (
-                monadic.Program([], Int(0)),
+                maltose.Program([], Int(0)),
                 SequentialNameGenerator(),
-                cps.Program([], Return(Int(0))),
+                lactose.Program([], Return(Int(0))),
             ),
         ]
     ),
 )
 def test_explicate_control(
-    program: monadic.Program,
+    program: maltose.Program,
     fresh: Callable[[str], str],
-    expected: cps.Program,
+    expected: lactose.Program,
 ) -> None:
     assert explicate_control(program, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Int(0),
@@ -65,16 +65,16 @@ def test_explicate_control(
     ),
 )
 def test_explicate_control_tail_int(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Add(Int(0), Int(1)),
@@ -85,16 +85,16 @@ def test_explicate_control_tail_int(
     ),
 )
 def test_explicate_control_tail_add(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Subtract(Int(0), Int(1)),
@@ -105,16 +105,16 @@ def test_explicate_control_tail_add(
     ),
 )
 def test_explicate_control_tail_subtract(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Multiply(Int(0), Int(1)),
@@ -125,16 +125,16 @@ def test_explicate_control_tail_subtract(
     ),
 )
 def test_explicate_control_tail_multiply(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Let("x", Int(0), Int(1)),
@@ -145,16 +145,16 @@ def test_explicate_control_tail_multiply(
     ),
 )
 def test_explicate_control_tail_let(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Var("x"),
@@ -165,16 +165,16 @@ def test_explicate_control_tail_let(
     ),
 )
 def test_explicate_control_tail_var(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Bool(True),
@@ -185,16 +185,16 @@ def test_explicate_control_tail_var(
     ),
 )
 def test_explicate_control_tail_bool(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 If(Var("c"), Var("x"), Var("y")),
@@ -211,16 +211,16 @@ def test_explicate_control_tail_bool(
     ),
 )
 def test_explicate_control_tail_if(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 LessThan(Int(0), Int(1)),
@@ -231,16 +231,16 @@ def test_explicate_control_tail_if(
     ),
 )
 def test_explicate_control_tail_less_than(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 EqualTo(Int(0), Int(1)),
@@ -251,16 +251,16 @@ def test_explicate_control_tail_less_than(
     ),
 )
 def test_explicate_control_tail_equal_to(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 GreaterThanOrEqualTo(Int(0), Int(1)),
@@ -271,16 +271,16 @@ def test_explicate_control_tail_equal_to(
     ),
 )
 def test_explicate_control_tail_greater_than_or_equal_to(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Unit(),
@@ -291,16 +291,16 @@ def test_explicate_control_tail_greater_than_or_equal_to(
     ),
 )
 def test_explicate_control_tail_unit(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Tuple([Unit()]),
@@ -311,16 +311,16 @@ def test_explicate_control_tail_unit(
     ),
 )
 def test_explicate_control_tail_cell(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Get(Var("x"), 0),
@@ -331,16 +331,16 @@ def test_explicate_control_tail_cell(
     ),
 )
 def test_explicate_control_tail_get(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Set(Var("x"), 0, Var("y")),
@@ -351,16 +351,16 @@ def test_explicate_control_tail_get(
     ),
 )
 def test_explicate_control_tail_set(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 Do(Var("x"), Var("y")),
@@ -371,16 +371,16 @@ def test_explicate_control_tail_set(
     ),
 )
 def test_explicate_control_tail_seq(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, fresh, expected",
-    list[tuple[monadic.Expression, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, Callable[[str], str], lactose.Tail]](
         [
             (
                 While(Var("x"), Var("y")),
@@ -405,16 +405,16 @@ def test_explicate_control_tail_seq(
     ),
 )
 def test_explicate_control_tail_while(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_tail(expr, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -428,17 +428,17 @@ def test_explicate_control_tail_while(
 )
 def test_explicate_control_assign_int(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -452,17 +452,17 @@ def test_explicate_control_assign_int(
 )
 def test_explicate_control_assign_add(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -476,17 +476,17 @@ def test_explicate_control_assign_add(
 )
 def test_explicate_control_assign_subtract(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -500,17 +500,17 @@ def test_explicate_control_assign_subtract(
 )
 def test_explicate_control_assign_multiply(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -524,17 +524,17 @@ def test_explicate_control_assign_multiply(
 )
 def test_explicate_control_assign_let(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -548,17 +548,17 @@ def test_explicate_control_assign_let(
 )
 def test_explicate_control_assign_var(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -572,17 +572,17 @@ def test_explicate_control_assign_var(
 )
 def test_explicate_control_assign_bool(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -602,17 +602,17 @@ def test_explicate_control_assign_bool(
 )
 def test_explicate_control_assign_if(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -626,17 +626,17 @@ def test_explicate_control_assign_if(
 )
 def test_explicate_control_assign_less_than(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -650,17 +650,17 @@ def test_explicate_control_assign_less_than(
 )
 def test_explicate_control_assign_equal_to(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -674,17 +674,17 @@ def test_explicate_control_assign_equal_to(
 )
 def test_explicate_control_assign_greater_than_or_equal_to(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -698,17 +698,17 @@ def test_explicate_control_assign_greater_than_or_equal_to(
 )
 def test_explicate_control_assign_unit(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -722,17 +722,17 @@ def test_explicate_control_assign_unit(
 )
 def test_explicate_control_assign_cell(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -746,17 +746,17 @@ def test_explicate_control_assign_cell(
 )
 def test_explicate_control_assign_get(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -770,17 +770,17 @@ def test_explicate_control_assign_get(
 )
 def test_explicate_control_assign_set(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -794,17 +794,17 @@ def test_explicate_control_assign_set(
 )
 def test_explicate_control_assign_seq(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "dest, expr, next, fresh, expected",
-    list[tuple[str, monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[str, maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 "x",
@@ -832,17 +832,17 @@ def test_explicate_control_assign_seq(
 )
 def test_explicate_control_assign_while(
     dest: str,
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_assign(dest, expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Int(0),
@@ -854,9 +854,9 @@ def test_explicate_control_assign_while(
     ),
 )
 def test_explicate_control_predicate_int(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -865,7 +865,7 @@ def test_explicate_control_predicate_int(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Add(Int(0), Int(0)),
@@ -877,9 +877,9 @@ def test_explicate_control_predicate_int(
     ),
 )
 def test_explicate_control_predicate_add(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -888,7 +888,7 @@ def test_explicate_control_predicate_add(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Subtract(Int(0), Int(0)),
@@ -900,9 +900,9 @@ def test_explicate_control_predicate_add(
     ),
 )
 def test_explicate_control_predicate_subtract(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -911,7 +911,7 @@ def test_explicate_control_predicate_subtract(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Multiply(Int(0), Int(0)),
@@ -923,9 +923,9 @@ def test_explicate_control_predicate_subtract(
     ),
 )
 def test_explicate_control_predicate_multiply(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -934,7 +934,7 @@ def test_explicate_control_predicate_multiply(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Let("x", Int(0), Var("y")),
@@ -956,18 +956,18 @@ def test_explicate_control_predicate_multiply(
     ),
 )
 def test_explicate_control_predicate_let(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Var("x"),
@@ -986,18 +986,18 @@ def test_explicate_control_predicate_let(
     ),
 )
 def test_explicate_control_predicate_var(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Bool(True),
@@ -1017,18 +1017,18 @@ def test_explicate_control_predicate_var(
     ),
 )
 def test_explicate_control_predicate_bool(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 If(Var("c"), Var("x"), Var("y")),
@@ -1069,18 +1069,18 @@ def test_explicate_control_predicate_bool(
     ),
 )
 def test_explicate_control_predicate_if(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 LessThan(Int(0), Int(0)),
@@ -1102,18 +1102,18 @@ def test_explicate_control_predicate_if(
     ),
 )
 def test_explicate_control_predicate_less_than(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 EqualTo(Int(0), Int(0)),
@@ -1135,18 +1135,18 @@ def test_explicate_control_predicate_less_than(
     ),
 )
 def test_explicate_control_predicate_equal_to(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 GreaterThanOrEqualTo(Int(0), Int(0)),
@@ -1168,18 +1168,18 @@ def test_explicate_control_predicate_equal_to(
     ),
 )
 def test_explicate_control_predicate_greater_than_or_equal_to(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Unit(),
@@ -1191,9 +1191,9 @@ def test_explicate_control_predicate_greater_than_or_equal_to(
     ),
 )
 def test_explicate_control_predicate_unit(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -1202,7 +1202,7 @@ def test_explicate_control_predicate_unit(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Tuple([Unit()]),
@@ -1214,9 +1214,9 @@ def test_explicate_control_predicate_unit(
     ),
 )
 def test_explicate_control_predicate_cell(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -1225,7 +1225,7 @@ def test_explicate_control_predicate_cell(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Get(Var("x"), 0),
@@ -1247,18 +1247,18 @@ def test_explicate_control_predicate_cell(
     ),
 )
 def test_explicate_control_predicate_get(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 Set(Var("x"), 0, Var("y")),
@@ -1270,9 +1270,9 @@ def test_explicate_control_predicate_get(
     ),
 )
 def test_explicate_control_predicate_set(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -1281,7 +1281,7 @@ def test_explicate_control_predicate_set(
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Do(Var("x"), Var("y")),
@@ -1300,18 +1300,18 @@ def test_explicate_control_predicate_set(
     ),
 )
 def test_explicate_control_predicate_seq(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: cps.Tail,
+    expected: lactose.Tail,
 ) -> None:
     assert explicate_control_predicate(expr, then, otherwise, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, then, otherwise, fresh",
-    list[tuple[monadic.Expression, cps.Tail, cps.Tail, Callable[[str], str]]](
+    list[tuple[maltose.Expression, lactose.Tail, lactose.Tail, Callable[[str], str]]](
         [
             (
                 While(Var("x"), Var("y")),
@@ -1323,9 +1323,9 @@ def test_explicate_control_predicate_seq(
     ),
 )
 def test_explicate_control_predicate_while(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> None:
     with pytest.raises(Exception):
@@ -1334,7 +1334,7 @@ def test_explicate_control_predicate_while(
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Int(0),
@@ -1346,17 +1346,17 @@ def test_explicate_control_predicate_while(
     ),
 )
 def test_explicate_control_effect_int(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Add(Int(0), Int(0)),
@@ -1368,17 +1368,17 @@ def test_explicate_control_effect_int(
     ),
 )
 def test_explicate_control_effect_add(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Subtract(Int(0), Int(0)),
@@ -1390,17 +1390,17 @@ def test_explicate_control_effect_add(
     ),
 )
 def test_explicate_control_effect_subtract(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Multiply(Int(0), Int(0)),
@@ -1412,17 +1412,17 @@ def test_explicate_control_effect_subtract(
     ),
 )
 def test_explicate_control_effect_multiply(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Let("y", Int(0), Int(0)),
@@ -1434,17 +1434,17 @@ def test_explicate_control_effect_multiply(
     ),
 )
 def test_explicate_control_effect_let(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Var("y"),
@@ -1456,17 +1456,17 @@ def test_explicate_control_effect_let(
     ),
 )
 def test_explicate_control_effect_var(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Bool(True),
@@ -1478,23 +1478,23 @@ def test_explicate_control_effect_var(
     ),
 )
 def test_explicate_control_effect_bool(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 If(Var("c"), Var("y"), Var("z")),
                 Return(Unit()),
                 SequentialNameGenerator(),
-                Do[cps.Statement, cps.Tail](
+                Do[lactose.Statement, lactose.Tail](
                     Assign("_then0", Block(Return(Unit()))),
                     Do(
                         Assign("_else0", Block(Return(Unit()))),
@@ -1506,17 +1506,17 @@ def test_explicate_control_effect_bool(
     ),
 )
 def test_explicate_control_effect_if(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 LessThan(Int(0), Int(0)),
@@ -1528,17 +1528,17 @@ def test_explicate_control_effect_if(
     ),
 )
 def test_explicate_control_effect_less_than(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 EqualTo(Int(0), Int(0)),
@@ -1550,17 +1550,17 @@ def test_explicate_control_effect_less_than(
     ),
 )
 def test_explicate_control_effect_equal_to(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 GreaterThanOrEqualTo(Int(0), Int(0)),
@@ -1572,17 +1572,17 @@ def test_explicate_control_effect_equal_to(
     ),
 )
 def test_explicate_control_effect_greater_than_or_equal_to(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Unit(),
@@ -1594,17 +1594,17 @@ def test_explicate_control_effect_greater_than_or_equal_to(
     ),
 )
 def test_explicate_control_effect_unit(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Tuple([Unit()]),
@@ -1616,17 +1616,17 @@ def test_explicate_control_effect_unit(
     ),
 )
 def test_explicate_control_effect_cell(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Get(Var("y"), 0),
@@ -1638,17 +1638,17 @@ def test_explicate_control_effect_cell(
     ),
 )
 def test_explicate_control_effect_get(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Set(Var("x"), 0, Var("y")),
@@ -1660,17 +1660,17 @@ def test_explicate_control_effect_get(
     ),
 )
 def test_explicate_control_effect_set(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 Do(Var("x"), Var("y")),
@@ -1682,17 +1682,17 @@ def test_explicate_control_effect_set(
     ),
 )
 def test_explicate_control_effect_seq(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected
 
 
 @pytest.mark.parametrize(
     "expr, next, fresh, expected",
-    list[tuple[monadic.Expression, cps.Tail, Callable[[str], str], cps.Tail]](
+    list[tuple[maltose.Expression, lactose.Tail, Callable[[str], str], lactose.Tail]](
         [
             (
                 While(Var("x"), Var("y")),
@@ -1718,9 +1718,9 @@ def test_explicate_control_effect_seq(
     ),
 )
 def test_explicate_control_effect_while(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-    expected: monadic.Expression,
+    expected: maltose.Expression,
 ) -> None:
     assert explicate_control_effect(expr, next, fresh) == expected

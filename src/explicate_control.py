@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from functools import partial
-import monadic
-from monadic import (
+import maltose
+from maltose import (
     Int,
     Add,
     Subtract,
@@ -20,24 +20,24 @@ from monadic import (
     Do,
     While,
 )
-import cps
-from cps import Block, Assign, Return, Jump
+import lactose
+from lactose import Block, Assign, Return, Jump
 
 
 def explicate_control(
-    program: monadic.Program,
+    program: maltose.Program,
     fresh: Callable[[str], str],
-) -> cps.Program:
-    return cps.Program(
+) -> lactose.Program:
+    return lactose.Program(
         program.parameters,
         explicate_control_tail(program.body, fresh),
     )
 
 
 def explicate_control_tail(
-    expr: monadic.Expression,
+    expr: maltose.Expression,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> lactose.Tail:
     tail = partial(explicate_control_tail, fresh=fresh)
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
@@ -83,10 +83,10 @@ def explicate_control_tail(
 
 def explicate_control_assign(
     dest: str,
-    value: monadic.Expression,
-    next: cps.Tail,
+    value: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> lactose.Tail:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
@@ -133,11 +133,11 @@ def explicate_control_assign(
 
 
 def explicate_control_predicate(
-    expr: monadic.Expression,
-    then: cps.Tail,
-    otherwise: cps.Tail,
+    expr: maltose.Expression,
+    then: lactose.Tail,
+    otherwise: lactose.Tail,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> lactose.Tail:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
@@ -195,10 +195,10 @@ def explicate_control_predicate(
 
 
 def explicate_control_effect(
-    expr: monadic.Expression,
-    next: cps.Tail,
+    expr: maltose.Expression,
+    next: lactose.Tail,
     fresh: Callable[[str], str],
-) -> cps.Tail:
+) -> lactose.Tail:
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)

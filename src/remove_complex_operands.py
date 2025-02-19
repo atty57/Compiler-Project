@@ -21,27 +21,27 @@ from glucose import (
     Do,
     While,
 )
-import monadic
-from monadic import Atom
+import maltose
+from maltose import Atom
 
 
 def remove_complex_operands(
     program: glucose.Program,
     fresh: Callable[[str], str],
-) -> monadic.Program:
-    return monadic.Program(
+) -> maltose.Program:
+    return maltose.Program(
         program.parameters,
         rco_expr(program.body, fresh),
     )
 
 
-type Binding = tuple[str, monadic.Expression]
+type Binding = tuple[str, maltose.Expression]
 
 
 def rco_expr(
     expr: glucose.Expression,
     fresh: Callable[[str], str],
-) -> monadic.Expression:
+) -> maltose.Expression:
     to_expr = partial(rco_expr, fresh=fresh)
     to_atom = partial(rco_atom, fresh=fresh)
 
@@ -223,8 +223,8 @@ def rco_atom(
 
 def wrap(
     bindings: Sequence[Binding],
-    expr: monadic.Expression,
-) -> monadic.Expression:
+    expr: maltose.Expression,
+) -> maltose.Expression:
     for x, e in reversed(list(bindings)):
         expr = Let(x, e, expr)
     return expr
