@@ -86,7 +86,7 @@ def opt_expr(
                 case e2:  # pragma: no branch
                     return Let(x, recur(e1), e2)
 
-        case Var(x):  # pragma: no branch
+        case Var():
             return expr
 
         case _:

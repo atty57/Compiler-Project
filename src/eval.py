@@ -1,6 +1,6 @@
 from collections.abc import Sequence, Mapping
 from functools import partial
-from typing import Union, Type
+from typing import Union
 from kernel import (
     Program,
     Expression,
@@ -17,8 +17,9 @@ from kernel import (
     GreaterThanOrEqualTo,
 )
 
-Value = Union[Int, Bool]
-Environment = Mapping[str, Value]
+
+type Value = Union[Int, Bool]
+type Environment = Mapping[str, Value]
 
 
 def eval(

@@ -1,6 +1,34 @@
 from functools import partial
 import sugar
+from sugar import (
+    Sum,
+    Difference,
+    Product,
+    LetStar,
+    Cond,
+    Not,
+    All,
+    Any,
+    NonAscending,
+    Descending,
+    Same,
+    Ascending,
+    NonDescending,
+)
 import kernel
+from kernel import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
 
 from sugar import (
     Sum,
@@ -48,8 +76,8 @@ def desugar_expr(
     recur = partial(desugar_expr)
 
     match expr:
-        case sugar.Int(i):
-            return kernel.Int(i)
+        case Int():
+            return expr
 
         case sugar.Add(es):
             match es:
