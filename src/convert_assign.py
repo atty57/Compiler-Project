@@ -20,14 +20,14 @@ from sucrose import (
     While,
     Assign,
 )
-import glucose
+import maltose
 
 
 def convert_assign(
     program: sucrose.Program,
-) -> glucose.Program:
+) -> maltose.Program:
     vars = mutable_variables(program.body)
-    return glucose.Program(
+    return maltose.Program(
         program.parameters,
         _wrap_vars(vars, convert_assign_expr(program.body, vars)),
     )
@@ -36,7 +36,7 @@ def convert_assign(
 def convert_assign_expr(
     expr: sucrose.Expression,
     vars: set[str],
-) -> glucose.Expression:
+) -> maltose.Expression:
     recur = partial(convert_assign_expr, vars=vars)
 
     match expr:
@@ -99,8 +99,8 @@ def convert_assign_expr(
 
 def _wrap_vars(
     vars: set[str],
-    expr: glucose.Expression,
-) -> glucose.Expression:
+    expr: maltose.Expression,
+) -> maltose.Expression:
     for v in vars:
         expr = Let(v, Tuple([Var(v)]), expr)
     return expr
@@ -117,8 +117,8 @@ def _partition(
 def _maybe_cell(
     name: str,
     vars: set[str],
-    expr: glucose.Expression,
-) -> glucose.Expression:
+    expr: maltose.Expression,
+) -> maltose.Expression:
     return Tuple([expr]) if name in vars else expr
 
 

@@ -1,5 +1,5 @@
 from functools import partial
-from glucose import (
+from maltose import (
     Program,
     Expression,
     Int,

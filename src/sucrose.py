@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
-from glucose import (
+from maltose import (
     Int,
     Add,
     Subtract,
