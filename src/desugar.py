@@ -17,6 +17,8 @@ from fructose import (
     Set,
     While,
     Assign,
+    Lambda,
+    Apply,
     Cell,
     CellGet,
     CellSet,
@@ -225,11 +227,17 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case While(e1, e2):  # pragma: no branch
+        case While(e1, e2):
             return While(recur(e1), recur(e2))
 
         case Assign(x, e1):
             return Assign(x, recur(e1))
+
+        case Lambda(xs, e1):
+            return Lambda(xs, recur(e1))
+
+        case Apply(e1, es):
+            return Apply(recur(e1), [recur(e) for e in es])
 
         case Cell(e1):
             return Tuple([recur(e1)])

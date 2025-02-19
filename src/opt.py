@@ -1,5 +1,5 @@
 from functools import partial
-from maltose import (
+from glucose import (
     Program,
     Expression,
     Int,
@@ -19,6 +19,8 @@ from maltose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 
 
@@ -155,3 +157,9 @@ def opt_expr(
                     return Unit()
                 case e1:
                     return While(e1, recur(e2))
+
+        case Lambda(xs, e1):
+            return Lambda(xs, recur(e1))
+
+        case Apply(e1, es):  # pragma no branch
+            return Apply(recur(e1), [recur(e) for e in es])

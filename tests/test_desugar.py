@@ -17,6 +17,8 @@ from fructose import (
     Set,
     While,
     Assign,
+    Lambda,
+    Apply,
     Cell,
     CellGet,
     CellSet,
@@ -636,6 +638,42 @@ def test_desugar_expr_while(
     ),
 )
 def test_desugar_expr_assign(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                Lambda("x", Var("y")),
+                Lambda("x", Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_lambda(
+    expr: fructose.Expression,
+    expected: sucrose.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[fructose.Expression, sucrose.Expression]](
+        [
+            (
+                Apply(Var("x"), []),
+                Apply(Var("x"), []),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_apply(
     expr: fructose.Expression,
     expected: sucrose.Expression,
 ) -> None:

@@ -1,5 +1,5 @@
 import pytest
-from maltose import (
+from glucose import (
     Program,
     Expression,
     Int,
@@ -19,6 +19,8 @@ from maltose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 from opt import opt, opt_expr
 
@@ -454,17 +456,53 @@ def test_opt_expr_seq(
     list[tuple[Expression, Expression]](
         [
             (
-                While(Bool(False), Int(0)),
+                While(Bool(False), Var("y")),
                 Unit(),
             ),
             (
-                While(Var("x"), Int(0)),
-                While(Var("x"), Int(0)),
+                While(Var("x"), Var("y")),
+                While(Var("x"), Var("y")),
             ),
         ]
     ),
 )
 def test_opt_expr_while(
+    expr: Expression,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Expression, Expression]](
+        [
+            (
+                Lambda([], Var("x")),
+                Lambda([], Var("x")),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_lambda(
+    expr: Expression,
+    expected: Expression,
+) -> None:
+    assert opt_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Expression, Expression]](
+        [
+            (
+                Apply(Var("x"), []),
+                Apply(Var("x"), []),
+            ),
+        ]
+    ),
+)
+def test_opt_expr_apply(
     expr: Expression,
     expected: Expression,
 ) -> None:

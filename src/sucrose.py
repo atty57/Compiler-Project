@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
-from maltose import (
+from glucose import (
     Int,
     Add,
     Subtract,
@@ -19,6 +19,8 @@ from maltose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 
 
@@ -41,6 +43,8 @@ type Expression = Union[
     Do[Expression, Expression],
     While[Expression, Expression],
     Assign[Expression],
+    Lambda[Expression],
+    Apply[Expression],
 ]
 
 

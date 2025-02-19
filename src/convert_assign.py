@@ -19,15 +19,17 @@ from sucrose import (
     Do,
     While,
     Assign,
+    Lambda,
+    Apply,
 )
-import maltose
+import glucose
 
 
 def convert_assign(
     program: sucrose.Program,
-) -> maltose.Program:
+) -> glucose.Program:
     vars = mutable_variables(program.body)
-    return maltose.Program(
+    return glucose.Program(
         program.parameters,
         _wrap_vars(vars, convert_assign_expr(program.body, vars)),
     )
@@ -36,7 +38,7 @@ def convert_assign(
 def convert_assign_expr(
     expr: sucrose.Expression,
     vars: set[str],
-) -> maltose.Expression:
+) -> glucose.Expression:
     recur = partial(convert_assign_expr, vars=vars)
 
     match expr:
@@ -93,14 +95,22 @@ def convert_assign_expr(
         case While(e1, e2):
             return While(recur(e1), recur(e2))
 
-        case Assign(x, e1):  # pragma: no branch
+        case Assign(x, e1):
             return Set(Var(x), 0, recur(e1))
+
+        case Lambda(xs, e1):
+            (vars_m, vars_u) = _partition(set(xs), e1)
+            local_m = (vars | vars_m) - vars_u
+            return Lambda(xs, _wrap_vars(vars_m, recur(e1, vars=local_m)))
+
+        case Apply(e1, es):  # pragma: no branch
+            return Apply(recur(e1), [recur(e) for e in es])
 
 
 def _wrap_vars(
     vars: set[str],
-    expr: maltose.Expression,
-) -> maltose.Expression:
+    expr: glucose.Expression,
+) -> glucose.Expression:
     for v in vars:
         expr = Let(v, Tuple([Var(v)]), expr)
     return expr
@@ -117,8 +127,8 @@ def _partition(
 def _maybe_cell(
     name: str,
     vars: set[str],
-    expr: maltose.Expression,
-) -> maltose.Expression:
+    expr: glucose.Expression,
+) -> glucose.Expression:
     return Tuple([expr]) if name in vars else expr
 
 
@@ -167,5 +177,11 @@ def mutable_variables(
         case While(e1, e2):
             return recur(e1) | recur(e2)
 
-        case Assign(x, e1):  # pragma: no branch
+        case Assign(x, e1):
             return {x} | recur(e1)
+
+        case Lambda(xs, e1):
+            return recur(e1) - set(xs)
+
+        case Apply(e1, es):  # pragma: no branch
+            return recur(e1) | {mv for e in es for mv in recur(e)}
