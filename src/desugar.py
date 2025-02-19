@@ -2,6 +2,36 @@ from functools import partial
 import sugar
 import kernel
 
+from sugar import (
+    Sum,
+    Difference,
+    Product,
+    LetStar,
+    Cond,
+    Not,
+    All,
+    Any,
+    NonAscending,
+    Descending,
+    Same,
+    Ascending,
+    NonDescending,
+)
+
+from kernel import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+)
+
 
 def desugar(
     program: sugar.Program,
