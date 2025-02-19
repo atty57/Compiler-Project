@@ -19,6 +19,8 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 
 type Atom = Union[
@@ -43,6 +45,8 @@ type Expression = Union[
     Set[Atom],
     Do[Expression, Expression],
     While[Expression, Expression],
+    Lambda[Expression],
+    Apply[Atom],
 ]
 
 

@@ -19,6 +19,8 @@ from maltose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 import lactose
 from lactose import Block, Assign, Return, Jump
@@ -80,6 +82,12 @@ def explicate_control_tail(
         case While():  # pragma: no branch
             return effect(expr, Return(Unit()))
 
+        case Lambda(xs, e1):
+            return Return(Lambda(xs, tail(e1)))
+
+        case Apply():
+            return Return(expr)
+
 
 def explicate_control_assign(
     dest: str,
@@ -87,6 +95,7 @@ def explicate_control_assign(
     next: lactose.Tail,
     fresh: Callable[[str], str],
 ) -> lactose.Tail:
+    tail = partial(explicate_control_tail, fresh=fresh)
     assign = partial(explicate_control_assign, fresh=fresh)
     predicate = partial(explicate_control_predicate, fresh=fresh)
     effect = partial(explicate_control_effect, fresh=fresh)
@@ -130,6 +139,12 @@ def explicate_control_assign(
 
         case While():  # pragma: no branch
             return effect(value, assign(dest, Unit(), next))
+
+        case Lambda(xs, e1):
+            return Do(Assign(dest, Lambda(xs, tail(e1))), next)
+
+        case Apply():
+            return Do(Assign(dest, value), next)
 
 
 def explicate_control_predicate(
@@ -190,8 +205,15 @@ def explicate_control_predicate(
         case Do(e1, e2):
             return effect(e1, predicate(e2, then, otherwise))
 
-        case While():  # pragma: no branch
+        case While():
             raise ValueError(f"non-boolean predicate: {expr}")
+
+        case Lambda():
+            raise ValueError(f"non-boolean predicate: {expr}")
+
+        case Apply():  # pragma: no branch
+            tmp = fresh("t")
+            return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
 
 
 def explicate_control_effect(
@@ -237,9 +259,15 @@ def explicate_control_effect(
         case Do(e1, e2):
             return effect(e1, effect(e2, next))
 
-        case While(e1, e2):  # pragma: no branch
+        case While(e1, e2):
             loop = fresh("loop")
             return Do(
                 Assign(loop, Block(predicate(e1, effect(e2, Jump(loop)), next))),
                 Jump(loop),
             )
+
+        case Lambda():
+            return next
+
+        case Apply():  # pragma: no branch
+            return Do(expr, next)

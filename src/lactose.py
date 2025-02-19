@@ -17,6 +17,8 @@ from maltose import (
     Get,
     Set,
     Do,
+    Lambda,
+    Apply,
 )
 
 type Atom = Union[
@@ -36,13 +38,16 @@ type Expression = Union[
     GreaterThanOrEqualTo[Atom],
     Tuple[Atom],
     Get[Atom],
-    Block,
+    Lambda[Tail],
+    Apply[Atom],
+    Block[Tail],
 ]
 
 
 type Statement = Union[
     Assign,
     Set[Atom],
+    Apply[Atom],
 ]
 
 type Tail = Union[
@@ -54,8 +59,8 @@ type Tail = Union[
 
 
 @dataclass(frozen=True)
-class Block:
-    body: Tail
+class Block[Body]:
+    body: Body
 
 
 @dataclass(frozen=True)

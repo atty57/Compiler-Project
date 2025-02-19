@@ -20,6 +20,8 @@ from glucose import (
     Set,
     Do,
     While,
+    Lambda,
+    Apply,
 )
 import maltose
 from maltose import Atom
@@ -117,10 +119,20 @@ def rco_expr(
             e2 = to_expr(e2)
             return Do(e1, e2)
 
-        case While(e1, e2):  # pragma: no branch
+        case While(e1, e2):
             e1 = to_expr(e1)
             e2 = to_expr(e2)
             return While(e1, e2)
+
+        case Lambda(xs, e1):
+            e1 = to_expr(e1)
+            return Lambda(xs, e1)
+
+        case Apply(e1, es):  # pragma: no branch
+            results = [to_atom(e) for e in [e1, *es]]
+            a1, *as_ = [a for a, _ in results]
+            bs = list(chain.from_iterable(bs for _, bs in results))
+            return wrap(bs, Apply(a1, as_))
 
 
 def rco_atom(
@@ -219,6 +231,18 @@ def rco_atom(
             e2 = to_expr(e2)
             tmp = fresh("t")
             return Var(tmp), [(tmp, While(e1, e2))]
+
+        case Lambda(xs, e1):
+            e1 = to_expr(e1)
+            tmp = fresh("t")
+            return Var(tmp), [(tmp, Lambda(xs, e1))]
+
+        case Apply(e1, es):
+            results = [to_atom(e) for e in [e1, *es]]
+            a1, *as_ = [a for a, _ in results]
+            bs = list(chain.from_iterable(bs for _, bs in results))
+            tmp = fresh("t")
+            return Var(tmp), [*bs, (tmp, Apply(a1, as_))]
 
 
 def wrap(
