@@ -186,7 +186,7 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case fructose.GreaterThanOrEqualTo(es):
+        case fructose.GreaterThanOrEqualTo(es):  # pragma: no branch
             match es:
                 case [] | [_]:
                     return Bool(True)
@@ -214,7 +214,7 @@ def desugar_expr(
         case Set(e1, i, e2):
             return Set(recur(e1), i, recur(e2))
 
-        case fructose.Do(es):
+        case fructose.Do(es):  # pragma: no branch
             match es:
                 case []:
                     return Unit()
@@ -225,7 +225,7 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case While(e1, e2):
+        case While(e1, e2):  # pragma: no branch
             return While(recur(e1), recur(e2))
 
         case Assign(x, e1):

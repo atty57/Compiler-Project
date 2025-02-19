@@ -629,8 +629,8 @@ def test_desugar_expr_while(
     list[tuple[fructose.Expression, sucrose.Expression]](
         [
             (
-                Assign("x", Int(0)),
-                Assign("x", Int(0)),
+                Assign("x", Var("y")),
+                Assign("x", Var("y")),
             ),
         ]
     ),

@@ -1,4 +1,6 @@
-program: "(" "program" "(" parameters ")" expr ")"
+program: "(" "program" "(" parameters* ")" expr ")"
+
+parameters: identifier*
 
 expr: int                                                           -> int_expr
     | "(" "+" expr expr ")"                                         -> add_expr
@@ -17,9 +19,6 @@ expr: int                                                           -> int_expr
     | "(" "set" expr int expr ")"                                   -> set_expr
     | "(" "do" expr expr ")"                                        -> do_expr
     | "(" "while" expr expr ")"                                     -> while_expr
-    
-
-parameters: identifier*
 
 int: INT
 true: TRUE
