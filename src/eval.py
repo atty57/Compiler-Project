@@ -11,6 +11,11 @@ from kernel import (
     Let,
     Var,
     Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+
 )
 
 
@@ -62,5 +67,37 @@ def eval_expr(
         case Var(x):
             return env[x]
 
-        case _:
+        #New cases For Bool and Conditionals :
+
+        case Bool():
+            return expr
+        case If(c, t, f):
+            cond_val = recur(c)
+            if isinstance(cond_val, Bool):
+                return recur(t) if cond_val.value else recur(f)
+            else:  # pragma: no cover
+                raise ValueError()
+        
+        case LessThan(x, y):
+            v1 = recur(x)
+            v2 = recur(y)
+            if isinstance(v1, Int) and isinstance(v2, Int):
+                return Bool(v1.value < v2.value)
+            else:  # pragma: no cover
+                raise ValueError()
+        
+        case EqualTo(x, y):
+            v1 = recur(x)
+            v2 = recur(y)
+            return Bool(v1 == v2)
+        
+        case GreaterThanOrEqualTo(x, y):
+            v1 = recur(x)
+            v2 = recur(y)
+            if isinstance(v1, Int) and isinstance(v2, Int):
+                return Bool(v1.value >= v2.value)
+            else:  # pragma: no cover
+                raise ValueError()
+            
+        case _:  
             raise NotImplementedError()

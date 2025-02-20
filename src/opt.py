@@ -93,16 +93,39 @@ def opt_expr(
             return If(recur(c), recur(t), recur(f))
 
         case If(c, t, f):
-            return If(recur(c), recur(t), recur(f))
+            new_c = recur(c)
+            new_t = recur(t)
+            new_f = recur(f)
+            if isinstance(new_c,Bool):
+                return new_t if new_c.value else new_f
+            else:
+                return If(new_c, new_t, new_f)
 
         case LessThan(x, y):
-            return LessThan(recur(x), recur(y))
-
+            new_x = recur(x)
+            new_y = recur(y)
+            if isinstance(new_x, Int) and isinstance(new_y, Int):
+                return Bool(new_x.value < new_y.value)
+            else:
+                return LessThan(new_x, new_y)
+            
         case EqualTo(x, y):
-            return EqualTo(recur(x), recur(y))
+            new_x = recur(x)
+            new_y = recur(y)
+            if isinstance(new_x, Int) and isinstance(new_y, Int):
+                return Bool(new_x.value == new_y.value)
+            elif isinstance(new_x, Bool) and isinstance(new_y, Bool):
+                return Bool(new_x.value == new_y.value)
+            else:
+                return EqualTo(new_x, new_y)
 
         case GreaterThanOrEqualTo(x, y):
-            return GreaterThanOrEqualTo(recur(x), recur(y))
+            new_x = recur(x)
+            new_y = recur(y)
+            if isinstance(new_x, Int) and isinstance(new_y, Int):
+                return Bool(new_x.value >= new_y.value)
+            else:
+                return GreaterThanOrEqualTo(new_x, new_y)
 
         case _:
             raise NotImplementedError()

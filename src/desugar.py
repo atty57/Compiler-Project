@@ -31,7 +31,6 @@ from kernel import (
     GreaterThanOrEqualTo,
 )
 
-
 def desugar(
     program: sugar.Program,
 ) -> kernel.Program:
@@ -40,41 +39,30 @@ def desugar(
         body=desugar_expr(program.body),
     )
 
-
 def desugar_expr(
     expr: sugar.Expression,
 ) -> kernel.Expression:
     recur = partial(desugar_expr)
     match expr:
-        # Basic constructs
-        case sugar.Int(i):
+        # Basic constructs – note we now match on kernel.* instead of sugar.*
+        case kernel.Int(i):
             return kernel.Int(i)
-        case sugar.Add(es):
-            match es:
-                case []:
-                    return kernel.Int(0)
-                case [first, *rest]:
-                    return kernel.Add(recur(first), recur(sugar.Add(rest)))
-        case sugar.Subtract(es):
-            match es:
-                case [first]:
-                    return kernel.Subtract(kernel.Int(0), recur(first))
-                case [first, second]:
-                    return kernel.Subtract(recur(first), recur(second))
-                case [first, *rest]:
-                    return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
-        case sugar.Multiply(es):
-            match es:
-                case []:
-                    return kernel.Int(1)
-                case [first, *rest]:
-                    return kernel.Multiply(recur(first), recur(sugar.Multiply(rest)))
-        case sugar.Let(x, e1, e2):
+        case kernel.Add(x, y):
+            return kernel.Add(recur(x), recur(y))
+        case kernel.Subtract(x, y):
+            return kernel.Subtract(recur(x), recur(y))
+        case kernel.Multiply(x, y):
+            return kernel.Multiply(recur(x), recur(y))
+        case kernel.Let(x, e1, e2):
             return kernel.Let(x, recur(e1), recur(e2))
-        case sugar.Var(x):
+        case kernel.Var(x):
             return kernel.Var(x)
-
-        # Additional sugar constructs
+        case kernel.Bool(b):
+            return kernel.Bool(b)
+        case kernel.If(c, t, f):
+            return kernel.If(recur(c), recur(t), recur(f))
+            
+        # Additional sugar constructs (unchanged)
         case sugar.Sum(operands):
             if not operands:
                 return kernel.Int(0)
