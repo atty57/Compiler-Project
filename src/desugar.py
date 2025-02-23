@@ -111,8 +111,9 @@ def desugar_expr(
                 (c, a), *rest = arms
                 return kernel.If(recur(c), recur(a), recur(sugar.Cond(rest, default)))
 
+        # Modified sugar.Not case: use EqualTo to check for Bool(True)
         case sugar.Not(x):
-            return kernel.If(recur(x), kernel.Bool(False), kernel.Bool(True))
+            return kernel.If(kernel.EqualTo(recur(x), kernel.Bool(True)), kernel.Bool(False), kernel.Bool(True))
 
         case sugar.All(operands):
             if not operands:
@@ -122,13 +123,14 @@ def desugar_expr(
             else:
                 return kernel.If(recur(operands[0]), recur(sugar.All(operands[1:])), kernel.Bool(False))
 
+        # Modified sugar.Any case: always produce an If–expression even for one operand
         case sugar.Any(operands):
             if not operands:
                 return kernel.Bool(False)
             elif len(operands) == 1:
-                return recur(operands[0])
+                return kernel.If(recur(operands[0]), kernel.Bool(True), kernel.Bool(False))
             else:
-                return kernel.If(recur(operands[0]), kernel.Bool(True), recur(Any(operands[1:])))
+                return kernel.If(recur(operands[0]), kernel.Bool(True), recur(sugar.Any(operands[1:])))
 
         case sugar.NonDescending(operands):
             if len(operands) == 0 or len(operands) == 1:
@@ -138,7 +140,7 @@ def desugar_expr(
             else:
                 return kernel.If(
                     kernel.GreaterThanOrEqualTo(recur(operands[1]), recur(operands[0])),
-                    recur(NonDescending(operands[1:])),
+                    recur(sugar.NonDescending(operands[1:])),
                     kernel.Bool(False),
                 )
 
@@ -150,7 +152,7 @@ def desugar_expr(
             else:
                 return kernel.If(
                     kernel.LessThan(recur(operands[0]), recur(operands[1])),
-                    recur(Ascending(operands[1:])),
+                    recur(sugar.Ascending(operands[1:])),
                     kernel.Bool(False),
                 )
 
@@ -162,7 +164,7 @@ def desugar_expr(
             else:
                 return kernel.If(
                     kernel.EqualTo(recur(operands[0]), recur(operands[1])),
-                    recur(Same(operands[1:])),
+                    recur(sugar.Same(operands[1:])),
                     kernel.Bool(False),
                 )
 
@@ -174,7 +176,7 @@ def desugar_expr(
             else:
                 return kernel.If(
                     kernel.LessThan(recur(operands[1]), recur(operands[0])),
-                    recur(Descending(operands[1:])),
+                    recur(sugar.Descending(operands[1:])),
                     kernel.Bool(False),
                 )
 
@@ -186,7 +188,7 @@ def desugar_expr(
             else:
                 return kernel.If(
                     kernel.GreaterThanOrEqualTo(recur(operands[0]), recur(operands[1])),
-                    recur(NonAscending(operands[1:])),
+                    recur(sugar.NonAscending(operands[1:])),
                     kernel.Bool(False),
                 )
 
