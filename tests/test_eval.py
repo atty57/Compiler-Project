@@ -202,6 +202,11 @@ def test_eval_expr_bool(
                 {},
                 Int(20),
             ),
+            (
+                If(LessThan(Int(1), Int(2)), If(Bool(False), Int(30), Int(40)), Int(50)),
+                {},
+                Int(40),
+            ),
         ]
     ),
 )
@@ -221,6 +226,16 @@ def test_eval_expr_if(
                 LessThan(Int(1), Int(2)),
                 {},
                 Bool(True),
+            ),
+            (
+                LessThan(Int(5), Int(3)),
+                {},
+                Bool(False),
+            ),
+            (
+                LessThan(Int(5), Int(5)),
+                {},
+                Bool(False),
             ),
         ]
     ),
@@ -247,6 +262,16 @@ def test_eval_expr_less_than(
                 {},
                 Bool(True),
             ),
+            (
+                EqualTo(Int(3), Int(3)),
+                {},
+                Bool(True),
+            ),
+            (
+                EqualTo(Bool(True), Bool(False)),
+                {},
+                Bool(False),
+            ),
         ]
     ),
 )
@@ -264,6 +289,16 @@ def test_eval_expr_equal_to(
         [
             (
                 GreaterThanOrEqualTo(Int(2), Int(1)),
+                {},
+                Bool(True),
+            ),
+            (
+                GreaterThanOrEqualTo(Int(3), Int(5)),
+                {},
+                Bool(False),
+            ),
+            (
+                GreaterThanOrEqualTo(Int(5), Int(5)),
                 {},
                 Bool(True),
             ),
