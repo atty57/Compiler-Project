@@ -15,7 +15,6 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
-
 )
 
 
@@ -65,9 +64,11 @@ def eval_expr(
             return recur(e2, env={**env, x: recur(e1)})
 
         case Var(x):
+            if x not in env:
+                raise KeyError(f"Undefined variable: {x}")
             return env[x]
 
-        #New cases For Bool and Conditionals :
+        # New cases For Bool and Conditionals :
 
         case Bool():
             return expr
@@ -77,7 +78,7 @@ def eval_expr(
                 return recur(t) if cond_val.value else recur(f)
             else:  # pragma: no cover
                 raise ValueError()
-        
+
         case LessThan(x, y):
             v1 = recur(x)
             v2 = recur(y)
@@ -85,12 +86,12 @@ def eval_expr(
                 return Bool(v1.value < v2.value)
             else:  # pragma: no cover
                 raise ValueError()
-        
+
         case EqualTo(x, y):
             v1 = recur(x)
             v2 = recur(y)
             return Bool(v1 == v2)
-        
+
         case GreaterThanOrEqualTo(x, y):
             v1 = recur(x)
             v2 = recur(y)
@@ -98,6 +99,6 @@ def eval_expr(
                 return Bool(v1.value >= v2.value)
             else:  # pragma: no cover
                 raise ValueError()
-            
-        case _:  
+
+        case _:
             raise NotImplementedError()

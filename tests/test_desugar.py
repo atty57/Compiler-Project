@@ -158,7 +158,6 @@ def test_desugar_expr_var(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -177,7 +176,6 @@ def test_desugar_expr_bool(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -196,7 +194,6 @@ def test_desugar_expr_if(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -215,7 +212,6 @@ def test_desugar_expr_less_than(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -234,7 +230,6 @@ def test_desugar_expr_equal_to(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -253,7 +248,6 @@ def test_desugar_expr_greater_than_or_equal_to(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -280,7 +274,6 @@ def test_desugar_expr_sum(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -307,7 +300,6 @@ def test_desugar_expr_difference(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -334,7 +326,6 @@ def test_desugar_expr_product(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -365,7 +356,6 @@ def test_desugar_expr_letstar(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -384,7 +374,6 @@ def test_desugar_expr_not(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -412,7 +401,6 @@ def test_desugar_expr_all(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -439,7 +427,6 @@ def test_desugar_expr_any(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -462,7 +449,6 @@ def test_desugar_expr_cond(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -493,7 +479,6 @@ def test_desugar_expr_non_descending(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -524,7 +509,6 @@ def test_desugar_expr_ascending(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -555,7 +539,6 @@ def test_desugar_expr_same(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -586,7 +569,6 @@ def test_desugar_expr_descending(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
