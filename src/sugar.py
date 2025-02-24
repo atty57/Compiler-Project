@@ -1,10 +1,10 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-import typing
+from typing import Annotated, Union
 from kernel import Int, Let, Var, Bool, If
 
 
-type Expression = typing.Union[
+type Expression = Union[
     Int,
     Add[Expression],
     Subtract[Expression],
@@ -12,10 +12,10 @@ type Expression = typing.Union[
     Let[Expression, Expression],
     Var,
     LetStar[Expression, Expression],
+    Bool,
     Not[Expression],
     All[Expression],
     Any[Expression],
-    Bool,
     If[Expression, Expression, Expression],
     Cond[Expression, Expression, Expression],
     LessThanOrEqualTo[Expression],
@@ -33,7 +33,7 @@ class Add[Operand]:
 
 @dataclass(frozen=True)
 class Subtract[Operand]:
-    operands: typing.Annotated[Sequence[Operand], "non-empty"]
+    operands: Annotated[Sequence[Operand], "non-empty"]
 
 
 @dataclass(frozen=True)
