@@ -1,34 +1,7 @@
 import pytest
 import sugar
-from sugar import (
-    Sum,
-    Difference,
-    Product,
-    LetStar,
-    Not,
-    All,
-    Any,
-    Cond,
-    Ascending,
-    NonDescending,
-    Same,
-    NonAscending,
-    Descending,
-)
+from sugar import Int, Let, Var, Bool, If, LetStar, Not, All, Any, Cond
 import kernel
-from kernel import (
-    Int,
-    Add,
-    Subtract,
-    Multiply,
-    Let,
-    Var,
-    Bool,
-    If,
-    LessThan,
-    EqualTo,
-    GreaterThanOrEqualTo,
-)
 from desugar import desugar, desugar_expr
 
 
@@ -73,8 +46,16 @@ def test_desugar_expr_int(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Add(Int(0), Int(0)),
-                Add(Int(0), Int(0)),
+                sugar.Add([]),
+                Int(0),
+            ),
+            (
+                sugar.Add([Int(1)]),
+                kernel.Add(Int(1), Int(0)),
+            ),
+            (
+                sugar.Add([Int(1), Int(1)]),
+                kernel.Add(Int(1), kernel.Add(Int(1), Int(0))),
             ),
         ]
     ),
@@ -91,8 +72,16 @@ def test_desugar_expr_add(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Subtract(Int(0), Int(0)),
-                Subtract(Int(0), Int(0)),
+                sugar.Subtract([Int(1)]),
+                kernel.Subtract(Int(0), Int(1)),
+            ),
+            (
+                sugar.Subtract([Int(2), Int(1)]),
+                kernel.Subtract(Int(2), Int(1)),
+            ),
+            (
+                sugar.Subtract([Int(3), Int(2), Int(1)]),
+                kernel.Subtract(Int(3), kernel.Subtract(Int(2), Int(1))),
             ),
         ]
     ),
@@ -109,8 +98,16 @@ def test_desugar_expr_subtract(
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Multiply(Int(0), Int(0)),
-                Multiply(Int(0), Int(0)),
+                sugar.Multiply([]),
+                Int(1),
+            ),
+            (
+                sugar.Multiply([Int(1)]),
+                kernel.Multiply(Int(1), Int(1)),
+            ),
+            (
+                sugar.Multiply([Int(2), Int(2)]),
+                kernel.Multiply(Int(2), kernel.Multiply(Int(2), Int(1))),
             ),
         ]
     ),
@@ -158,183 +155,6 @@ def test_desugar_expr_var(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                Bool(True),
-                Bool(True),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_bool(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                If(Bool(True), Var("x"), Var("y")),
-                If(Bool(True), Var("x"), Var("y")),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_if(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                LessThan(Int(1), Int(2)),
-                LessThan(Int(1), Int(2)),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_less_than(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                EqualTo(Int(1), Int(2)),
-                EqualTo(Int(1), Int(2)),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_equal_to(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                GreaterThanOrEqualTo(Int(1), Int(2)),
-                GreaterThanOrEqualTo(Int(1), Int(2)),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_greater_than_or_equal_to(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                Sum([]),
-                Int(0),
-            ),
-            (
-                Sum([Int(1)]),
-                Add(Int(1), Int(0)),
-            ),
-            (
-                Sum([Int(1), Int(1)]),
-                Add(Int(1), Add(Int(1), Int(0))),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_sum(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                Difference([Int(1)]),
-                Subtract(Int(0), Int(1)),
-            ),
-            (
-                Difference([Int(2), Int(1)]),
-                Subtract(Int(2), Int(1)),
-            ),
-            (
-                Difference([Int(3), Int(2), Int(1)]),
-                Subtract(Int(3), Subtract(Int(2), Int(1))),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_difference(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                Product([]),
-                Int(1),
-            ),
-            (
-                Product([Int(1)]),
-                Multiply(Int(1), Int(1)),
-            ),
-            (
-                Product([Int(2), Int(2)]),
-                Multiply(Int(2), Multiply(Int(2), Int(1))),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_product(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -365,14 +185,31 @@ def test_desugar_expr_letstar(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Bool(True),
+                Bool(True),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_bool(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
                 Not(Var("x")),
-                If(EqualTo(Var("x"), Bool(True)), Bool(False), Bool(True)),
+                If(kernel.EqualTo(Var("x"), Bool(True)), Bool(False), Bool(True)),
             ),
         ]
     ),
@@ -384,7 +221,6 @@ def test_desugar_expr_not(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -408,11 +244,9 @@ def test_desugar_expr_all(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
-    print(desugar_expr(expr))
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -439,7 +273,24 @@ def test_desugar_expr_any(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                If(Bool(True), Var("x"), Var("y")),
+                If(Bool(True), Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_if(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
@@ -462,155 +313,171 @@ def test_desugar_expr_cond(
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                NonDescending([]),
+                sugar.LessThanOrEqualTo([]),
                 Bool(True),
             ),
             (
-                NonDescending([Int(0)]),
+                sugar.LessThanOrEqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                NonDescending([Int(1), Int(2)]),
-                GreaterThanOrEqualTo(Int(2), Int(1)),
+                sugar.LessThanOrEqualTo([Int(1), Int(2)]),
+                kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
             ),
             (
-                NonDescending([Int(1), Int(2), Int(3)]),
-                If(GreaterThanOrEqualTo(Int(2), Int(1)), GreaterThanOrEqualTo(Int(3), Int(2)), Bool(False)),
+                sugar.LessThanOrEqualTo([Int(1), Int(2), Int(3)]),
+                If(
+                    kernel.GreaterThanOrEqualTo(Int(2), Int(1)),
+                    kernel.GreaterThanOrEqualTo(Int(3), Int(2)),
+                    Bool(False),
+                ),
             ),
         ]
     ),
 )
-def test_desugar_expr_non_descending(
+def test_desugar_expr_less_than_or_equal_to(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    print(desugar_expr(expr))
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                sugar.LessThan([]),
+                Bool(True),
+            ),
+            (
+                sugar.LessThan([Int(0)]),
+                Bool(True),
+            ),
+            (
+                sugar.LessThan([Int(1), Int(2)]),
+                kernel.LessThan(Int(1), Int(2)),
+            ),
+            (
+                sugar.LessThan([Int(1), Int(2), Int(3)]),
+                If(
+                    kernel.LessThan(Int(1), Int(2)),
+                    kernel.LessThan(Int(2), Int(3)),
+                    Bool(False),
+                ),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_less_than(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Ascending([]),
+                sugar.EqualTo([]),
                 Bool(True),
             ),
             (
-                Ascending([Int(0)]),
+                sugar.EqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                Ascending([Int(1), Int(2)]),
-                LessThan(Int(1), Int(2)),
+                sugar.EqualTo([Int(1), Int(2)]),
+                kernel.EqualTo(Int(1), Int(2)),
             ),
             (
-                Ascending([Int(1), Int(2), Int(3)]),
-                If(LessThan(Int(1), Int(2)), LessThan(Int(2), Int(3)), Bool(False)),
+                sugar.EqualTo([Int(1), Int(2), Int(3)]),
+                If(
+                    kernel.EqualTo(Int(1), Int(2)),
+                    kernel.EqualTo(Int(2), Int(3)),
+                    Bool(False),
+                ),
             ),
         ]
     ),
 )
-def test_desugar_expr_ascending(
+def test_desugar_expr_equal_to(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Same([]),
+                sugar.GreaterThan([]),
                 Bool(True),
             ),
             (
-                Same([Int(0)]),
+                sugar.GreaterThan([Int(0)]),
                 Bool(True),
             ),
             (
-                Same([Int(1), Int(2)]),
-                EqualTo(Int(1), Int(2)),
+                sugar.GreaterThan([Int(1), Int(2)]),
+                kernel.LessThan(Int(2), Int(1)),
             ),
             (
-                Same([Int(1), Int(2), Int(3)]),
-                If(EqualTo(Int(1), Int(2)), EqualTo(Int(2), Int(3)), Bool(False)),
+                sugar.GreaterThan([Int(1), Int(2), Int(3)]),
+                If(
+                    kernel.LessThan(Int(2), Int(1)),
+                    kernel.LessThan(Int(3), Int(2)),
+                    Bool(False),
+                ),
             ),
         ]
     ),
 )
-def test_desugar_expr_same(
+def test_desugar_expr_greater_than(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:
     assert desugar_expr(expr) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[sugar.Expression, kernel.Expression]](
         [
             (
-                Descending([]),
+                sugar.GreaterThanOrEqualTo([]),
                 Bool(True),
             ),
             (
-                Descending([Int(0)]),
+                sugar.GreaterThanOrEqualTo([Int(0)]),
                 Bool(True),
             ),
             (
-                Descending([Int(1), Int(2)]),
-                LessThan(Int(2), Int(1)),
+                sugar.GreaterThanOrEqualTo([Int(1), Int(2)]),
+                kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
             ),
             (
-                Descending([Int(1), Int(2), Int(3)]),
-                If(LessThan(Int(2), Int(1)), LessThan(Int(3), Int(2)), Bool(False)),
+                sugar.GreaterThanOrEqualTo([Int(1), Int(2), Int(3)]),
+                If(
+                    kernel.GreaterThanOrEqualTo(Int(1), Int(2)),
+                    kernel.GreaterThanOrEqualTo(Int(2), Int(3)),
+                    Bool(False),
+                ),
             ),
         ]
     ),
 )
-def test_desugar_expr_descending(
-    expr: sugar.Expression,
-    expected: kernel.Expression,
-) -> None:
-    assert desugar_expr(expr) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[sugar.Expression, kernel.Expression]](
-        [
-            (
-                NonAscending([]),
-                Bool(True),
-            ),
-            (
-                NonAscending([Int(0)]),
-                Bool(True),
-            ),
-            (
-                NonAscending([Int(1), Int(2)]),
-                GreaterThanOrEqualTo(Int(1), Int(2)),
-            ),
-            (
-                NonAscending([Int(1), Int(2), Int(3)]),
-                If(GreaterThanOrEqualTo(Int(1), Int(2)), GreaterThanOrEqualTo(Int(2), Int(3)), Bool(False)),
-            ),
-        ]
-    ),
-)
-def test_desugar_expr_non_ascending(
+def test_desugar_expr_greater_than_or_equal_to(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:

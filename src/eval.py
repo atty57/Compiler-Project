@@ -24,7 +24,7 @@ type Environment = Mapping[str, Value]
 
 def eval(
     program: Program,
-    arguments: Sequence[Value],
+    arguments: Sequence[Int],
 ) -> Value:
     env: Environment = {p: a for p, a in zip(program.parameters, arguments, strict=True)}
     return eval_expr(program.body, env)
@@ -43,7 +43,7 @@ def eval_expr(
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
                     return Int(i1 + i2)
-                case [_, _]:  # pragma: no cover
+                case _:  # pragma: no cover
                     raise ValueError()
 
         case Subtract(e1, e2):
@@ -66,5 +66,37 @@ def eval_expr(
         case Var(x):
             return env[x]
 
-        case _:
-            raise NotImplementedError()
+        case Bool():
+            return expr
+
+        case If(e1, e2, e3):
+            match recur(e1):
+                case Bool(True):
+                    return recur(e2)
+                case Bool(False):
+                    return recur(e3)
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case LessThan(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 < i2)
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case EqualTo(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 == i2)
+                case [Bool(b1), Bool(b2)]:
+                    return Bool(b1 == b2)
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 >= i2)
+                case _:  # pragma: no cover
+                    raise ValueError()

@@ -89,5 +89,37 @@ def opt_expr(
         case Var():
             return expr
 
-        case _:
-            raise NotImplementedError()
+        case Bool():
+            return expr
+
+        case If(e1, e2, e3):
+            match recur(e1):
+                case Bool(True):
+                    return recur(e2)
+                case Bool(False):
+                    return recur(e3)
+                case e1:  # pragma: no branch
+                    return If(e1, recur(e2), recur(e3))
+
+        case LessThan(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 < i2)
+                case [e1, e2]:  # pragma: no branch
+                    return LessThan(e1, e2)
+
+        case EqualTo(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 == i2)
+                case [Bool(b1), Bool(b2)]:
+                    return Bool(b1 == b2)
+                case [e1, e2]:  # pragma: no branch
+                    return EqualTo(e1, e2)
+
+        case GreaterThanOrEqualTo(e1, e2):  # pragma: no branch
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 >= i2)
+                case [e1, e2]:  # pragma: no branch
+                    return GreaterThanOrEqualTo(e1, e2)

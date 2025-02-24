@@ -1,4 +1,6 @@
-program: "(" "program" "(" parameters ")" expr ")"
+program: "(" "program" "(" parameters* ")" expr ")"
+
+parameters: identifier*
 
 expr: int                                                           -> int_expr
     | "(" "+" expr expr ")"                                         -> add_expr
@@ -11,8 +13,6 @@ expr: int                                                           -> int_expr
     | "(" "<" expr expr ")"                                         -> less_than_expr
     | "(" "==" expr expr ")"                                        -> equal_to_expr
     | "(" ">=" expr expr ")"                                        -> greater_than_or_equal_to_expr
-
-parameters: identifier*
 
 int: INT
 true: TRUE
