@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
-from maltose import (
+from lactose import (
     Int,
     Add,
     Subtract,
@@ -17,8 +17,10 @@ from maltose import (
     Get,
     Set,
     Do,
-    Lambda,
     Apply,
+    Assign,
+    Return,
+    Jump,
 )
 
 type Atom = Union[
@@ -38,9 +40,7 @@ type Expression = Union[
     GreaterThanOrEqualTo[Atom],
     Tuple[Atom],
     Get[Atom],
-    Lambda[Tail],
     Apply[Atom],
-    Block[Tail],
 ]
 
 
@@ -59,28 +59,20 @@ type Tail = Union[
 
 
 @dataclass(frozen=True)
-class Assign[Value]:
+class Block:
     name: str
-    value: Value
+    body: Tail
 
 
 @dataclass(frozen=True)
-class Block[Body]:
+class Function:
     name: str
-    body: Body
-
-
-@dataclass(frozen=True)
-class Jump:
-    target: str
-
-
-@dataclass(frozen=True)
-class Return[Value]:
-    value: Value
+    parameters: Sequence[str]
+    blocks: Sequence[Block]
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
     body: Tail
+    functions: Sequence[Function]

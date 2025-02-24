@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from functools import partial
 from typing import cast
 from llvmlite import ir  # type: ignore
-from lactose import (
+from cellulose import (
     Program,
     Expression,
     Int,
@@ -17,6 +17,7 @@ from lactose import (
     Unit,
     Tuple,
     Get,
+    Apply,
     Block,
     Statement,
     Assign,
@@ -101,6 +102,13 @@ def lower_stmt(
             builder.store(expr(a2), ptr=builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
             return env
 
+        case Apply(a1, as_):
+            builder.call(
+                builder.inttoptr(expr(a1), typ=ir.FunctionType(i64, [i64 for _ in as_]).as_pointer()),
+                [expr(a) for a in as_],
+            )
+            return env
+
 
 def lower_expr(
     expr: Expression,
@@ -150,6 +158,12 @@ def lower_expr(
         case Get(a1, i):
             base = builder.inttoptr(recur(a1), i64.as_pointer())  # type: ignore
             return builder.load(builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
+
+        case Lambda(xs, body):
+            ir.Function(
+                builder.module,
+                ir.FunctionType(i64, [i64 for _ in xs]),
+            )
 
         case Block(body):
             block: ir.Block = cast(ir.Block, builder.append_basic_block())
