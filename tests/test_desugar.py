@@ -1,6 +1,6 @@
 import pytest
 import sugar
-from sugar import Int, Let, Var, Bool, If, LetStar, Not, All, Any, Cond
+from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond, Unit, Cell, Get, Set, While
 import kernel
 from desugar import desugar, desugar_expr
 
@@ -478,6 +478,128 @@ def test_desugar_expr_greater_than(
     ),
 )
 def test_desugar_expr_greater_than_or_equal_to(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Unit(),
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_unit(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Cell(Unit()),
+                Cell(Unit()),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_cell(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Get(Var("x")),
+                Get(Var("x")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_get(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                Set(Var("x"), Var("y")),
+                Set(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_set(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                sugar.Do([]),
+                Unit(),
+            ),
+            (
+                sugar.Do([Int(0)]),
+                Int(0),
+            ),
+            (
+                sugar.Do([Unit(), Int(0)]),
+                kernel.Do(Unit(), Int(0)),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_begin(
+    expr: sugar.Expression,
+    expected: kernel.Expression,
+) -> None:
+    assert desugar_expr(expr) == expected
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[sugar.Expression, kernel.Expression]](
+        [
+            (
+                While(Var("x"), Var("y")),
+                While(Var("x"), Var("y")),
+            ),
+        ]
+    ),
+)
+def test_desugar_expr_while(
     expr: sugar.Expression,
     expected: kernel.Expression,
 ) -> None:

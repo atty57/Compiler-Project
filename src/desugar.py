@@ -1,6 +1,22 @@
 from functools import partial
 import sugar
-from sugar import Int, Let, Var, LetStar, Bool, Not, All, Any, If, Cond
+from sugar import (
+    Int,
+    Let,
+    Var,
+    LetStar,
+    Bool,
+    Not,
+    All,
+    Any,
+    If,
+    Cond,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    While,
+)
 import kernel
 
 
@@ -177,3 +193,6 @@ def desugar_expr(
 
                 case _:  # pragma: no cover
                     raise NotImplementedError()
+
+        case _:  # pragma: no branch
+            raise NotImplementedError()

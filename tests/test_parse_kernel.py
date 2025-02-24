@@ -13,6 +13,12 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    Do,
+    While,
 )
 from parse_kernel import parse, parse_expr
 
@@ -41,7 +47,7 @@ def test_parse(
 
 @pytest.mark.parametrize(
     "source, expected",
-    list[tuple[str, Int]](
+    list[tuple[str, Expression]](
         [
             (
                 "0",
@@ -235,6 +241,114 @@ def test_parse_expr_equal_to(
     ),
 )
 def test_parse_expr_greater_than_or_equal_to(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "#u",
+                Unit(),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_unit(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(cell #u)",
+                Cell(Unit()),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_cell(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(get x)",
+                Get(Var("x")),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_get(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(set x #u)",
+                Set(Var("x"), Unit()),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_set(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(do x #u)",
+                Do(Var("x"), Unit()),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_seq(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(while #t #u)",
+                While(Bool(True), Unit()),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_while(
     source: str,
     expected: Expression,
 ) -> None:
