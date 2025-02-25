@@ -22,8 +22,6 @@ addopts = [
     "--cov-report=term",
     "--cov-report=html:reports/coverage/htmlcov",
     "--cov-report=xml:reports/coverage/coverage.xml",
-
-
 ]
 
 [dependency-groups]

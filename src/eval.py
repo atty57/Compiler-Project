@@ -31,7 +31,12 @@ class Location:
     value: int
 
 
-type Value = Union[Int, Bool, Unit, Location]
+type Value = Union[
+    Int,
+    Bool,
+    Unit,
+    Location,
+]
 
 type Environment = Mapping[str, Value]
 
