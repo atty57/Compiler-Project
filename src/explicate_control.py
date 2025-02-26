@@ -168,9 +168,9 @@ def explicate_control_predicate(
             ifTrue = fresh("then")
             ifFalse = fresh("else")
             return Do(
-                Assign(ifTrue, Block(then)),
+                Block(ifTrue, then),
                 Do(
-                    Assign(ifFalse, Block(otherwise)),
+                    Block(ifFalse, otherwise),
                     If(expr, Jump(ifTrue), Jump(ifFalse)),
                 ),
             )
@@ -262,7 +262,7 @@ def explicate_control_effect(
         case While(e1, e2):
             loop = fresh("loop")
             return Do(
-                Assign(loop, Block(predicate(e1, effect(e2, Jump(loop)), next))),
+                Block(loop, predicate(e1, effect(e2, Jump(loop)), next)),
                 Jump(loop),
             )
 

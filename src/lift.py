@@ -18,6 +18,7 @@ from lactose import (
     Lambda,
     Apply,
     Block,
+    Assign,
     Do,
     Return,
     Jump,
@@ -26,7 +27,7 @@ from lactose import (
 import cellulose
 
 
-def lift_tail(tail: lactose.Tail) -> None:
+def lift_tail(tail: lactose.Tail) -> cellulose.Tail:
     match tail:
         case Do(stmt, next):
             pass
@@ -38,6 +39,14 @@ def lift_tail(tail: lactose.Tail) -> None:
             pass
 
         case If(condition, Jump(then), Jump(otherwise)):
+            pass
+
+
+def left_statement(statement: lactose.Statement) -> None:
+    match statement:
+        case Assign(name, value):
+            pass
+        case Set():
             pass
 
 
@@ -58,13 +67,9 @@ def lift_expr(
             | GreaterThanOrEqualTo()
             | Tuple()
             | Get()
-            | Set()
             | Apply()
         ):
             return expr, [], []
 
         case Lambda(xs, body):
-            pass
-
-        case Block(body):
             pass

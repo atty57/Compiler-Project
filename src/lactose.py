@@ -40,14 +40,13 @@ type Expression = Union[
     Get[Atom],
     Lambda[Tail],
     Apply[Atom],
-    Block[Tail],
 ]
-
 
 type Statement = Union[
     Assign[Expression],
     Set[Atom],
     Apply[Atom],
+    Block[Tail],
 ]
 
 type Tail = Union[
