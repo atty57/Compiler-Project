@@ -13,6 +13,12 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    Do,
+    While,
 )
 
 
@@ -96,7 +102,7 @@ def opt_expr(
             new_c = recur(c)
             new_t = recur(t)
             new_f = recur(f)
-            if isinstance(new_c,Bool):
+            if isinstance(new_c, Bool):
                 return new_t if new_c.value else new_f
             else:
                 return If(new_c, new_t, new_f)
@@ -108,7 +114,7 @@ def opt_expr(
                 return Bool(new_x.value < new_y.value)
             else:
                 return LessThan(new_x, new_y)
-            
+
         case EqualTo(x, y):
             new_x = recur(x)
             new_y = recur(y)
@@ -127,5 +133,40 @@ def opt_expr(
             else:
                 return GreaterThanOrEqualTo(new_x, new_y)
 
-        case _:
+        case Bool():
+            return expr
+
+        case If(e1, e2, e3):
+            match recur(e1):
+                case Bool(True):
+                    return recur(e2)
+                case Bool(False):
+                    return recur(e3)
+                case e1:  # pragma: no branch
+                    return If(e1, recur(e2), recur(e3))
+
+        case LessThan(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 < i2)
+                case [e1, e2]:  # pragma: no branch
+                    return LessThan(e1, e2)
+
+        case EqualTo(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 == i2)
+                case [Bool(b1), Bool(b2)]:
+                    return Bool(b1 == b2)
+                case [e1, e2]:  # pragma: no branch
+                    return EqualTo(e1, e2)
+
+        case GreaterThanOrEqualTo(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 >= i2)
+                case [e1, e2]:  # pragma: no branch
+                    return GreaterThanOrEqualTo(e1, e2)
+
+        case _:  # pragma: branch
             raise NotImplementedError()

@@ -14,6 +14,12 @@ from kernel import (
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    Do,
+    While,
 )
 
 
@@ -61,17 +67,17 @@ def uniqify_expr(
         case Bool():
             return expr
 
-        case If(c, t, f):
-            return If(recur(c), recur(t), recur(f))
+        case If(e1, e2, e3):
+            return If(recur(e1), recur(e2), recur(e3))
 
-        case LessThan(x, y):
-            return LessThan(recur(x), recur(y))
+        case LessThan(e1, e2):
+            return LessThan(recur(e1), recur(e2))
 
-        case EqualTo(x, y):
-            return EqualTo(recur(x), recur(y))
+        case EqualTo(e1, e2):
+            return EqualTo(recur(e1), recur(e2))
 
-        case GreaterThanOrEqualTo(x, y):
-            return GreaterThanOrEqualTo(recur(x), recur(y))
+        case GreaterThanOrEqualTo(e1, e2):
+            return GreaterThanOrEqualTo(recur(e1), recur(e2))
 
-        case _:
-            raise NotImplementedError()
+        case _:  # pragma: no branch
+            raise NotADirectoryError()

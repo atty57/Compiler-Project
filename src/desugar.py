@@ -3,33 +3,23 @@ import sugar
 import kernel
 
 from sugar import (
-    Sum,
-    Difference,
-    Product,
+    Int,
+    Let,
+    Var,
     LetStar,
-    Cond,
+    Bool,
     Not,
     All,
     Any,
-    NonAscending,
-    Descending,
-    Same,
-    Ascending,
-    NonDescending,
-)
-from kernel import (
-    Int,
-    Add,
-    Subtract,
-    Multiply,
-    Let,
-    Var,
-    Bool,
     If,
-    LessThan,
-    EqualTo,
-    GreaterThanOrEqualTo,
+    Cond,
+    Unit,
+    Cell,
+    Get,
+    Set,
+    While,
 )
+import kernel
 
 
 def desugar(
@@ -46,15 +36,38 @@ def desugar_expr(
 ) -> kernel.Expression:
     recur = partial(desugar_expr)
     match expr:
-        # Basic constructs – note we now match on kernel.* instead of sugar.*
-        case Int(i):
-            return Int(i)
-        case Add(x, y):
-            return Add(recur(x), recur(y))
-        case Subtract(x, y):
-            return Subtract(recur(x), recur(y))
-        case Multiply(x, y):
-            return Multiply(recur(x), recur(y))
+        case Int():
+            return expr
+
+        case sugar.Add(es):
+            match es:
+                case []:
+                    return Int(0)
+                case [first, *rest]:
+                    return kernel.Add(recur(first), recur(sugar.Add(rest)))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case sugar.Subtract(es):
+            match es:
+                case [first]:
+                    return kernel.Subtract(Int(0), recur(first))
+                case [first, second]:
+                    return kernel.Subtract(recur(first), recur(second))
+                case [first, *rest]:
+                    return kernel.Subtract(recur(first), recur(sugar.Subtract(rest)))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case sugar.Multiply(es):
+            match es:
+                case []:
+                    return Int(1)
+                case [first, *rest]:
+                    return kernel.Multiply(recur(first), recur(sugar.Multiply(rest)))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
         case Let(x, e1, e2):
             return Let(x, recur(e1), recur(e2))
         case Var(x):
@@ -63,134 +76,210 @@ def desugar_expr(
             return Bool(b)
         case If(c, t, f):
             return If(recur(c), recur(t), recur(f))
-        case LessThan(x, y):
-            return LessThan(recur(x), recur(y))
-        case EqualTo(x, y):
-            return EqualTo(recur(x), recur(y))
-        case GreaterThanOrEqualTo(x, y):
-            return GreaterThanOrEqualTo(recur(x), recur(y))
+        case sugar.LessThan(x, y):
+            return kernel.LessThan(recur(x), recur(y))
+        case sugar.EqualTo(x, y):
+            return kernel.EqualTo(recur(x), recur(y))
+        case sugar.GreaterThanOrEqualTo(x, y):
+            return kernel.GreaterThanOrEqualTo(recur(x), recur(y))
 
         # Additional sugar constructs (unchanged)
-        case Sum(operands):
+        case sugar.Sum(operands):
             if not operands:
-                return Int(0)
+                return kernel.Int(0)
             elif len(operands) == 1:
-                return Add(recur(operands[0]), Int(0))
+                return kernel.Add(recur(operands[0]), kernel.Int(0))
             else:
-                return Add(recur(operands[0]), recur(Sum(operands[1:])))
+                return kernel.Add(recur(operands[0]), recur(sugar.Sum(operands[1:])))
 
-        case Difference(operands):
+        case sugar.Difference(operands):
             if len(operands) == 1:
-                return Subtract(Int(0), recur(operands[0]))
+                return kernel.Subtract(kernel.Int(0), recur(operands[0]))
             elif len(operands) == 2:
-                return Subtract(recur(operands[0]), recur(operands[1]))
+                return kernel.Subtract(recur(operands[0]), recur(operands[1]))
             else:
-                return Subtract(recur(operands[0]), recur(Difference(operands[1:])))
+                return kernel.Subtract(recur(operands[0]), recur(sugar.Difference(operands[1:])))
 
-        case Product(operands):
+        case sugar.Product(operands):
             if not operands:
-                return Int(1)
+                return kernel.Int(1)
             elif len(operands) == 1:
-                return Multiply(recur(operands[0]), Int(1))
+                return kernel.Multiply(recur(operands[0]), kernel.Int(1))
             else:
-                return Multiply(recur(operands[0]), recur(Product(operands[1:])))
+                return kernel.Multiply(recur(operands[0]), recur(sugar.Product(operands[1:])))
 
-        case LetStar(bindings, body):
+        case sugar.LetStar(bindings, body):
             if not bindings:
-                return recur(body)
+                recur(body)
             else:
                 (x, e) = bindings[0]
                 rest = bindings[1:]
                 # Desugar LetStar into nested Let: let x = e in (let* rest in body)
-                return Let(x, recur(e), recur(LetStar(rest, body)))
+                return kernel.Let(x, recur(e), recur(sugar.LetStar(rest, body)))
 
-        case Cond(arms, default):
+        case sugar.Cond(arms, default):
             if not arms:
                 return recur(default)
             else:
                 (c, a), *rest = arms
-                return If(recur(c), recur(a), recur(Cond(rest, default)))
+                return kernel.If(recur(c), recur(a), recur(sugar.Cond(rest, default)))
 
         # Modified Not case: use EqualTo to check for Bool(True)
-        case Not(x):
-            return If(EqualTo(recur(x), Bool(True)), Bool(False), Bool(True))
+        case sugar.Not(x):
+            return kernel.If(kernel.EqualTo(recur(x), kernel.Bool(True)), kernel.Bool(False), kernel.Bool(True))
 
-        case All(operands):
+        case sugar.All(operands):
             if not operands:
-                return Bool(True)
+                return kernel.Bool(True)
             elif len(operands) == 1:
-                return If(recur(operands[0]), Bool(True), Bool(False))
+                return kernel.If(recur(operands[0]), kernel.Bool(True), kernel.Bool(False))
             else:
-                return If(recur(operands[0]), recur(All(operands[1:])), Bool(False))
+                return kernel.If(recur(operands[0]), recur(sugar.All(operands[1:])), kernel.Bool(False))
 
         # Modified Any case: always produce an If–expression even for one operand
-        case Any(operands):
+        case sugar.Any(operands):
             if not operands:
-                return Bool(False)
+                return kernel.Bool(False)
             elif len(operands) == 1:
-                return If(recur(operands[0]), Bool(True), Bool(False))
+                return kernel.If(recur(operands[0]), kernel.Bool(True), kernel.Bool(False))
             else:
-                return If(recur(operands[0]), Bool(True), recur(Any(operands[1:])))
+                return kernel.If(recur(operands[0]), kernel.Bool(True), recur(sugar.Any(operands[1:])))
 
-        case NonDescending(operands):
+        case sugar.NonDescending(operands):
             if len(operands) == 0 or len(operands) == 1:
-                return Bool(True)
+                return kernel.Bool(True)
             elif len(operands) == 2:
-                return GreaterThanOrEqualTo(recur(operands[1]), recur(operands[0]))
+                return kernel.GreaterThanOrEqualTo(recur(operands[1]), recur(operands[0]))
             else:
-                return If(
-                    GreaterThanOrEqualTo(recur(operands[1]), recur(operands[0])),
-                    recur(NonDescending(operands[1:])),
-                    Bool(False),
+                return kernel.If(
+                    kernel.GreaterThanOrEqualTo(recur(operands[1]), recur(operands[0])),
+                    recur(sugar.NonDescending(operands[1:])),
+                    kernel.Bool(False),
                 )
 
-        case Ascending(operands):
+        case sugar.Ascending(operands):
             if len(operands) == 0 or len(operands) == 1:
-                return Bool(True)
+                return kernel.Bool(True)
             elif len(operands) == 2:
-                return LessThan(recur(operands[0]), recur(operands[1]))
+                return kernel.LessThan(recur(operands[0]), recur(operands[1]))
             else:
-                return If(
-                    LessThan(recur(operands[0]), recur(operands[1])),
-                    recur(Ascending(operands[1:])),
-                    Bool(False),
+                return kernel.If(
+                    kernel.LessThan(recur(operands[0]), recur(operands[1])),
+                    recur(sugar.Ascending(operands[1:])),
+                    kernel.Bool(False),
                 )
 
-        case Same(operands):
+        case sugar.Same(operands):
             if len(operands) == 0 or len(operands) == 1:
-                return Bool(True)
+                return kernel.Bool(True)
             elif len(operands) == 2:
-                return EqualTo(recur(operands[0]), recur(operands[1]))
+                return kernel.EqualTo(recur(operands[0]), recur(operands[1]))
             else:
-                return If(
-                    EqualTo(recur(operands[0]), recur(operands[1])),
-                    recur(Same(operands[1:])),
-                    Bool(False),
+                return kernel.If(
+                    kernel.EqualTo(recur(operands[0]), recur(operands[1])),
+                    recur(sugar.Same(operands[1:])),
+                    kernel.Bool(False),
                 )
 
-        case Descending(operands):
+        case sugar.Descending(operands):
             if len(operands) == 0 or len(operands) == 1:
-                return Bool(True)
+                return kernel.Bool(True)
             elif len(operands) == 2:
-                return LessThan(recur(operands[1]), recur(operands[0]))
+                return kernel.LessThan(recur(operands[1]), recur(operands[0]))
             else:
-                return If(
-                    LessThan(recur(operands[1]), recur(operands[0])),
-                    recur(Descending(operands[1:])),
-                    Bool(False),
+                return kernel.If(
+                    kernel.LessThan(recur(operands[1]), recur(operands[0])),
+                    recur(sugar.Descending(operands[1:])),
+                    kernel.Bool(False),
                 )
 
-        case NonAscending(operands):
+        case sugar.NonAscending(operands):
             if len(operands) == 0 or len(operands) == 1:
-                return Bool(True)
+                return kernel.Bool(True)
             elif len(operands) == 2:
-                return GreaterThanOrEqualTo(recur(operands[0]), recur(operands[1]))
+                return kernel.GreaterThanOrEqualTo(recur(operands[0]), recur(operands[1]))
             else:
-                return If(
-                    GreaterThanOrEqualTo(recur(operands[0]), recur(operands[1])),
-                    recur(NonAscending(operands[1:])),
-                    Bool(False),
+                return kernel.If(
+                    kernel.GreaterThanOrEqualTo(recur(operands[0]), recur(operands[1])),
+                    recur(sugar.NonAscending(operands[1:])),
+                    kernel.Bool(False),
                 )
 
-        case _:
-            raise NotImplementedError(f"Desugaring not implemented for: {expr}")
+        case sugar.LessThanOrEqualTo(es):
+            match es:
+                case [] | [_]:
+                    return Bool(True)
+                case [first, second]:
+                    return kernel.GreaterThanOrEqualTo(recur(second), recur(first))
+                case [first, second, *rest]:
+                    return If(
+                        kernel.GreaterThanOrEqualTo(recur(second), recur(first)),
+                        recur(sugar.LessThanOrEqualTo([second, *rest])),
+                        Bool(False),
+                    )
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case sugar.LessThan(es):
+            match es:
+                case [] | [_]:
+                    return Bool(True)
+                case [first, second]:
+                    return kernel.LessThan(recur(first), recur(second))
+                case [first, second, *rest]:
+                    return If(
+                        kernel.LessThan(recur(first), recur(second)),
+                        recur(sugar.LessThan([second, *rest])),
+                        Bool(False),
+                    )
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case sugar.EqualTo(es):
+            match es:
+                case [] | [_]:
+                    return Bool(True)
+                case [first, second]:
+                    return kernel.EqualTo(recur(first), recur(second))
+                case [first, second, *rest]:
+                    return If(
+                        kernel.EqualTo(recur(first), recur(second)),
+                        recur(sugar.EqualTo([second, *rest])),
+                        Bool(False),
+                    )
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case sugar.GreaterThan(es):
+            match es:
+                case [] | [_]:
+                    return Bool(True)
+                case [first, second]:
+                    return kernel.LessThan(recur(second), recur(first))
+                case [first, second, *rest]:
+                    return If(
+                        kernel.LessThan(recur(second), recur(first)),
+                        recur(sugar.GreaterThan([second, *rest])),
+                        Bool(False),
+                    )
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case sugar.GreaterThanOrEqualTo(es):  # pragma: no branch
+            match es:
+                case [] | [_]:
+                    return Bool(True)
+                case [first, second]:
+                    return kernel.GreaterThanOrEqualTo(recur(first), recur(second))
+                case [first, second, *rest]:
+                    return If(
+                        kernel.GreaterThanOrEqualTo(recur(first), recur(second)),
+                        recur(sugar.GreaterThanOrEqualTo([second, *rest])),
+                        Bool(False),
+                    )
+
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
+
+        case _:  # pragma: no branch
+            raise NotImplementedError()
