@@ -57,6 +57,11 @@ class All:
     operands: Sequence[TypingAny]
     __match_args__ = ("operands",)
 
+@dataclass(frozen=True)
+class Any:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
 
 @dataclass(frozen=True)
 class AnyExpression:
