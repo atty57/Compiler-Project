@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Annotated, Union
+from typing import Annotated, Union, Any as TypingAny
 from kernel import Int, Let, Var, Bool, If, Unit, Cell, Get, Set, While
 
 
@@ -15,7 +15,7 @@ type Expression = Union[
     Bool,
     Not[Expression],
     All[Expression],
-    Any[Expression],
+    TypingAny[Expression],
     If[Expression, Expression, Expression],
     Cond[Expression, Expression, Expression],
     LessThanOrEqualTo[Expression],
@@ -48,30 +48,40 @@ class Multiply[Operand]:
 
 
 @dataclass(frozen=True)
-class LetStar[Value, Body]:
-    bindings: Sequence[tuple[str, Value]]
-    body: Body
-
-
-@dataclass(frozen=True)
 class Not[Operand]:
     x: Operand
 
 
 @dataclass(frozen=True)
-class All[Operand]:
-    operands: Sequence[Operand]
+class All:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
 
 
 @dataclass(frozen=True)
-class Any[Operand]:
-    operands: Sequence[Operand]
+class AnyExpression:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
 
 
 @dataclass(frozen=True)
-class Cond[Condition, Consequent, Default]:
-    arms: Sequence[tuple[Condition, Consequent]]
-    default: Default
+class Cond:
+    arms: Sequence[tuple[TypingAny, TypingAny]]
+    default: TypingAny
+    __match_args__ = ("arms", "default")
+
+
+@dataclass(frozen=True)
+class LetStar:
+    bindings: Sequence[tuple[str, TypingAny]]
+    body: TypingAny
+    __match_args__ = ("bindings", "body")
+
+
+@dataclass(frozen=True)
+class Do:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
 
 
 @dataclass(frozen=True)
@@ -80,31 +90,110 @@ class LessThanOrEqualTo[Operand]:
 
 
 @dataclass(frozen=True)
-class LessThan[Operand]:
-    operands: Sequence[Operand]
+class LessThan:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("x", "y")
+
+    @property
+    def x(self):
+        return self.operands[0] if len(self.operands) >= 1 else None
+
+    @property
+    def y(self):
+        return self.operands[1] if len(self.operands) >= 2 else None
 
 
 @dataclass(frozen=True)
-class EqualTo[Operand]:
-    operands: Sequence[Operand]
+class EqualTo:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("x", "y")
+
+    @property
+    def x(self):
+        return self.operands[0] if len(self.operands) >= 1 else None
+
+    @property
+    def y(self):
+        return self.operands[1] if len(self.operands) >= 2 else None
 
 
 @dataclass(frozen=True)
-class GreaterThan[Operand]:
-    operands: Sequence[Operand]
+class GreaterThan:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("x", "y")
+
+    @property
+    def x(self):
+        return self.operands[0] if len(self.operands) >= 1 else None
+
+    @property
+    def y(self):
+        return self.operands[1] if len(self.operands) >= 2 else None
 
 
 @dataclass(frozen=True)
-class GreaterThanOrEqualTo[Operand]:
-    operands: Sequence[Operand]
+class GreaterThanOrEqualTo:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("x", "y")
 
+    @property
+    def x(self):
+        return self.operands[0] if len(self.operands) >= 1 else None
 
-@dataclass(frozen=True)
-class Do[Operand]:
-    operands: Sequence[Operand]
+    @property
+    def y(self):
+        return self.operands[1] if len(self.operands) >= 2 else None
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
     body: Expression
+
+
+@dataclass(frozen=True)
+class Sum:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class Difference:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class Product:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class NonDescending:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class Ascending:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class Same:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class Descending:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class NonAscending:
+    operands: Sequence[TypingAny]
+    __match_args__ = ("operands",)

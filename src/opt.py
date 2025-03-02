@@ -40,6 +40,9 @@ def opt_expr(
         case Int():
             return expr
 
+        case Unit():
+            return expr
+
         case Add(e1, e2):
             match recur(e1), recur(e2):
                 case [Int(0), e2]:
@@ -94,44 +97,6 @@ def opt_expr(
 
         case Var():
             return expr
-        case Bool():
-            return expr
-            return If(recur(c), recur(t), recur(f))
-
-        case If(c, t, f):
-            new_c = recur(c)
-            new_t = recur(t)
-            new_f = recur(f)
-            if isinstance(new_c, Bool):
-                return new_t if new_c.value else new_f
-            else:
-                return If(new_c, new_t, new_f)
-
-        case LessThan(x, y):
-            new_x = recur(x)
-            new_y = recur(y)
-            if isinstance(new_x, Int) and isinstance(new_y, Int):
-                return Bool(new_x.value < new_y.value)
-            else:
-                return LessThan(new_x, new_y)
-
-        case EqualTo(x, y):
-            new_x = recur(x)
-            new_y = recur(y)
-            if isinstance(new_x, Int) and isinstance(new_y, Int):
-                return Bool(new_x.value == new_y.value)
-            elif isinstance(new_x, Bool) and isinstance(new_y, Bool):
-                return Bool(new_x.value == new_y.value)
-            else:
-                return EqualTo(new_x, new_y)
-
-        case GreaterThanOrEqualTo(x, y):
-            new_x = recur(x)
-            new_y = recur(y)
-            if isinstance(new_x, Int) and isinstance(new_y, Int):
-                return Bool(new_x.value >= new_y.value)
-            else:
-                return GreaterThanOrEqualTo(new_x, new_y)
 
         case Bool():
             return expr
@@ -167,6 +132,26 @@ def opt_expr(
                     return Bool(i1 >= i2)
                 case [e1, e2]:  # pragma: no branch
                     return GreaterThanOrEqualTo(e1, e2)
+
+        case Cell(e):
+            return Cell(recur(e))
+
+        case Get(cell):
+            return Get(recur(cell))
+
+        case Set(cell, value):
+            return Set(recur(cell), recur(value))
+
+        case Do(effect, value):
+            return Do(recur(effect), recur(value))
+
+        case While(c, body):
+            new_c = recur(c)
+            new_body = recur(body)
+            if isinstance(new_c, Bool) and not new_c.value:
+                return Unit()
+            else:
+                return While(new_c, new_body)
 
         case _:  # pragma: branch
             raise NotImplementedError()

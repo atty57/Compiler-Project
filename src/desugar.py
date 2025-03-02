@@ -2,25 +2,6 @@ from functools import partial
 import sugar
 import kernel
 
-from sugar import (
-    Int,
-    Let,
-    Var,
-    LetStar,
-    Bool,
-    Not,
-    All,
-    Any,
-    If,
-    Cond,
-    Unit,
-    Cell,
-    Get,
-    Set,
-    While,
-)
-import kernel
-
 
 def desugar(
     program: sugar.Program,
@@ -36,7 +17,7 @@ def desugar_expr(
 ) -> kernel.Expression:
     recur = partial(desugar_expr)
     match expr:
-        case Int():
+        case sugar.Int():
             return expr
 
         case sugar.Add(es):
@@ -68,18 +49,24 @@ def desugar_expr(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case Let(x, e1, e2):
-            return Let(x, recur(e1), recur(e2))
-        case Var(x):
-            return Var(x)
-        case Bool(b):
-            return Bool(b)
-        case If(c, t, f):
-            return If(recur(c), recur(t), recur(f))
+        case sugar.Let(x, e1, e2):
+            return kernel.Let(x, recur(e1), recur(e2))
+
+        case sugar.Var(x):
+            return kernel.Var(x)
+
+        case sugar.Bool(b):
+            return kernel.Bool(b)
+
+        case sugar.If(c, t, f):
+            return kernel.If(recur(c), recur(t), recur(f))
+
         case sugar.LessThan(x, y):
             return kernel.LessThan(recur(x), recur(y))
+
         case sugar.EqualTo(x, y):
             return kernel.EqualTo(recur(x), recur(y))
+
         case sugar.GreaterThanOrEqualTo(x, y):
             return kernel.GreaterThanOrEqualTo(recur(x), recur(y))
 
@@ -137,7 +124,7 @@ def desugar_expr(
                 return kernel.If(recur(operands[0]), recur(sugar.All(operands[1:])), kernel.Bool(False))
 
         # Modified Any case: always produce an If–expression even for one operand
-        case sugar.Any(operands):
+        case sugar.TypingAny(operands):
             if not operands:
                 return kernel.Bool(False)
             elif len(operands) == 1:
@@ -282,4 +269,4 @@ def desugar_expr(
                     raise NotImplementedError()
 
         case _:  # pragma: no branch
-            raise NotImplementedError()
+            raise ValueError(f"Unsupported expression type: {type(expr)}")

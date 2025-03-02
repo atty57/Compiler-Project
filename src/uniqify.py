@@ -48,6 +48,9 @@ def uniqify_expr(
         case Int():
             return expr
 
+        case Unit():
+            return expr
+
         case Add(e1, e2):
             return Add(recur(e1), recur(e2))
 
@@ -78,6 +81,21 @@ def uniqify_expr(
 
         case GreaterThanOrEqualTo(e1, e2):
             return GreaterThanOrEqualTo(recur(e1), recur(e2))
+
+        case Cell(e):
+            return Cell(recur(e))
+
+        case Get(cell):
+            return Get(recur(cell))
+
+        case Set(cell, value):
+            return Set(recur(cell), recur(value))
+
+        case Do(effect, value):
+            return Do(recur(effect), recur(value))
+
+        case While(c, body):
+            return While(recur(c), recur(body))
 
         case _:  # pragma: no branch
             raise NotADirectoryError()

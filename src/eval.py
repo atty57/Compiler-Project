@@ -57,6 +57,9 @@ def eval_expr(
         case Int():
             return expr
 
+        case Unit():
+            return expr
+
         case Add(e1, e2):
             match recur(e1), recur(e2):
                 case [Int(i1), Int(i2)]:
@@ -120,6 +123,40 @@ def eval_expr(
                     return Bool(i1 >= i2)
                 case _:  # pragma: no cover
                     raise ValueError()
+
+        case Cell(value):
+            base = store.malloc(1)
+            store[(base, 0)] = recur(value)
+            return Location(base)
+
+        case Get(cell):
+            cell_val = recur(cell)
+            if isinstance(cell_val, Location):
+                return store[(cell_val.value, 0)]
+            else:
+                raise ValueError("Expected a Location")
+
+        case Set(cell, new_value):
+            cell_val = recur(cell)
+            if isinstance(cell_val, Location):
+                store[(cell_val.value, 0)] = recur(new_value)
+            else:
+                raise ValueError("Expected a Location")
+            return Unit()
+
+        case Do(effect, value):
+            recur(effect)
+            return recur(value)
+
+        case While(condition, body):
+            while True:
+                cond_val = recur(condition)
+                if isinstance(cond_val, Bool):
+                    if not cond_val.value:
+                        return Unit()
+                    recur(body)
+                else:
+                    raise ValueError("While condition must evaluate to Bool")
 
         case _:  # pragma: no branch
             raise NotImplementedError()
