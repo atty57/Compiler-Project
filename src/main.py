@@ -2,6 +2,7 @@ from parse import parse
 from simplify import simplify
 from convert_assignments import convert_assignments
 from uniqify import uniqify
+from opt import opt
 from eval import eval
 from util import SequentialNameGenerator
 
@@ -23,6 +24,7 @@ if __name__ == "__main__":
         result = simplify(program, fresh)
         result = convert_assignments(result)
         result = uniqify(result, fresh)
+        result = opt(result)
 
         print(result, file=options.output)
 
