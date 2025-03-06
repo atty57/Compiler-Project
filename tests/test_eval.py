@@ -1,13 +1,12 @@
 from collections.abc import Sequence
 import pytest
-from kernel import (
+from glucose import (
     Program,
     Expression,
     Int,
     Add,
     Subtract,
     Multiply,
-    Let,
     Var,
     Bool,
     If,
@@ -15,18 +14,18 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
-    Do,
-    While,
+    Lambda,
+    Apply,
 )
-from eval import Location, Store, Value, Environment, eval, eval_expr
+from eval import Closure, Location, Store, Value, Environment, eval, eval_expression
 
 
 @pytest.mark.parametrize(
     "program, arguments, expected",
-    list[tuple[Program, Sequence[Int], Value]](
+    list[tuple[Program, Sequence[Value], Value]](
         [
             (
                 Program([], Int(0)),
@@ -43,8 +42,8 @@ from eval import Location, Store, Value, Environment, eval, eval_expr
 )
 def test_eval(
     program: Program,
-    arguments: Sequence[Int],
-    expected: Value,
+    arguments: Sequence[Value],
+    expected: int,
 ) -> None:
     assert eval(program, arguments) == expected
 
@@ -62,13 +61,13 @@ def test_eval(
         ]
     ),
 )
-def test_eval_expr_int(
+def test_eval_expression_int(
     expr: Int,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -84,13 +83,13 @@ def test_eval_expr_int(
         ]
     ),
 )
-def test_eval_expr_add(
+def test_eval_expression_add(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -106,13 +105,13 @@ def test_eval_expr_add(
         ]
     ),
 )
-def test_eval_expr_subtract(
+def test_eval_expression_subtract(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -134,29 +133,7 @@ def test_eval_multiply(
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, env, store, expected",
-    list[tuple[Expression, Environment, Store[Value], Value]](
-        [
-            (
-                Let("x", Int(1), Var("x")),
-                {},
-                Store(),
-                Int(1),
-            ),
-        ]
-    ),
-)
-def test_eval_expr_let(
-    expr: Expression,
-    env: Environment,
-    store: Store[Value],
-    expected: Value,
-) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -172,13 +149,13 @@ def test_eval_expr_let(
         ]
     ),
 )
-def test_eval_expr_var(
+def test_eval_expression_var(
     expr: Var,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -200,13 +177,13 @@ def test_eval_expr_var(
         ]
     ),
 )
-def test_eval_expr_bool(
+def test_eval_expression_bool(
     expr: Bool,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -234,13 +211,13 @@ def test_eval_expr_bool(
         ]
     ),
 )
-def test_eval_expr_if(
+def test_eval_expression_if(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -268,13 +245,13 @@ def test_eval_expr_if(
         ]
     ),
 )
-def test_eval_expr_less_than(
+def test_eval_expression_less_than(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -308,13 +285,13 @@ def test_eval_expr_less_than(
         ]
     ),
 )
-def test_eval_expr_equal_to(
+def test_eval_expression_equal_to(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -342,13 +319,13 @@ def test_eval_expr_equal_to(
         ]
     ),
 )
-def test_eval_expr_greater_than_or_equal_to(
+def test_eval_expression_greater_than_or_equal_to(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -364,13 +341,13 @@ def test_eval_expr_greater_than_or_equal_to(
         ]
     ),
 )
-def test_eval_expr_unit(
+def test_eval_expression_unit(
     expr: Unit,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -378,7 +355,7 @@ def test_eval_expr_unit(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Cell(Unit()),
+                Tuple([]),
                 {},
                 Store(),
                 Location(0),
@@ -386,13 +363,13 @@ def test_eval_expr_unit(
         ]
     ),
 )
-def test_eval_expr_cell(
+def test_eval_expression_cell(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -400,7 +377,7 @@ def test_eval_expr_cell(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Get(Cell[Expression](Int(0))),
+                Get(Tuple[Expression]([Int(0)]), Int(0)),
                 {},
                 Store(),
                 Int(0),
@@ -408,13 +385,13 @@ def test_eval_expr_cell(
         ]
     ),
 )
-def test_eval_expr_get(
+def test_eval_expression_get(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
 @pytest.mark.parametrize(
@@ -422,7 +399,7 @@ def test_eval_expr_get(
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Set(Cell[Expression](Int(0)), Int(0)),
+                Set(Tuple[Expression]([Int(0)]), Int(0), Int(0)),
                 {},
                 Store(),
                 Unit(),
@@ -430,67 +407,56 @@ def test_eval_expr_get(
         ]
     ),
 )
-def test_eval_expr_set(
+def test_eval_expression_set(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, env, store, expected",
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                Do(Unit(), Int(1)),
+                Lambda([], Var("x")),
                 {},
                 Store(),
-                Int(1),
+                Closure(Lambda([], Var("x")), {}),
             ),
         ]
     ),
 )
-def test_eval_expr_do(
+def test_eval_expression_lambda(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, env, store, expected",
     list[tuple[Expression, Environment, Store[Value], Value]](
         [
             (
-                While(Bool(False), Var("x")),
+                Apply(Lambda(["x"], Var("x")), [Int(0)]),
                 {},
                 Store(),
-                Unit(),
-            ),
-            (
-                Let(
-                    "x",
-                    Cell(Bool(True)),
-                    While(
-                        Get(Var("x")),
-                        Set(Var("x"), Bool(False)),
-                    ),
-                ),
-                {},
-                Store(),
-                Unit(),
+                Int(0),
             ),
         ]
     ),
 )
-def test_eval_expr_while(
+def test_eval_expression_apply(
     expr: Expression,
     env: Environment,
     store: Store[Value],
     expected: Value,
 ) -> None:
-    assert eval_expr(expr, env, store) == expected
+    assert eval_expression(expr, env, store) == expected

@@ -1,13 +1,12 @@
 from collections.abc import Callable, Mapping
 from functools import partial
-from kernel import (
+from glucose import (
     Program,
     Expression,
     Int,
     Add,
     Subtract,
     Multiply,
-    Let,
     Var,
     Bool,
     If,
@@ -15,11 +14,11 @@ from kernel import (
     EqualTo,
     GreaterThanOrEqualTo,
     Unit,
-    Cell,
+    Tuple,
     Get,
     Set,
-    Do,
-    While,
+    Lambda,
+    Apply,
 )
 
 
@@ -30,39 +29,32 @@ def uniqify(
     program: Program,
     fresh: Callable[[str], str],
 ) -> Program:
-    local = {x: fresh(x) for x in program.parameters}
+    local = {parameter: fresh(parameter) for parameter in program.parameters}
     return Program(
         parameters=list(local.values()),
-        body=uniqify_expr(program.body, local, fresh),
+        body=uniqify_expression(program.body, local, fresh),
     )
 
 
-def uniqify_expr(
+def uniqify_expression(
     expr: Expression,
     env: Environment,
     fresh: Callable[[str], str],
 ) -> Expression:
-    recur = partial(uniqify_expr, env=env, fresh=fresh)
+    recur = partial(uniqify_expression, env=env, fresh=fresh)
 
     match expr:
         case Int():
             return expr
 
-        case Unit():
-            return expr
+        case Add(x, y):
+            return Add(recur(x), recur(y))
 
-        case Add(e1, e2):
-            return Add(recur(e1), recur(e2))
+        case Subtract(x, y):
+            return Subtract(recur(x), recur(y))
 
-        case Subtract(e1, e2):
-            return Subtract(recur(e1), recur(e2))
-
-        case Multiply(e1, e2):
-            return Multiply(recur(e1), recur(e2))
-
-        case Let(x, e1, e2):
-            y = fresh(x)
-            return Let(y, recur(e1), recur(e2, env={**env, x: y}))
+        case Multiply(x, y):
+            return Multiply(recur(x), recur(y))
 
         case Var(x):
             return Var(env[x])
@@ -70,32 +62,32 @@ def uniqify_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):
-            return If(recur(e1), recur(e2), recur(e3))
+        case If(condition, consequent, alternative):
+            return If(recur(condition), recur(consequent), recur(alternative))
 
-        case LessThan(e1, e2):
-            return LessThan(recur(e1), recur(e2))
+        case LessThan(x, y):
+            return LessThan(recur(x), recur(y))
 
-        case EqualTo(e1, e2):
-            return EqualTo(recur(e1), recur(e2))
+        case EqualTo(x, y):
+            return EqualTo(recur(x), recur(y))
 
-        case GreaterThanOrEqualTo(e1, e2):
-            return GreaterThanOrEqualTo(recur(e1), recur(e2))
+        case GreaterThanOrEqualTo(x, y):
+            return GreaterThanOrEqualTo(recur(x), recur(y))
 
-        case Cell(e):
-            return Cell(recur(e))
+        case Unit():
+            return expr
 
-        case Get(cell):
-            return Get(recur(cell))
+        case Tuple(components):
+            return Tuple([recur(e) for e in components])
 
-        case Set(cell, value):
-            return Set(recur(cell), recur(value))
+        case Get(tuple, index):
+            return Get(recur(tuple), recur(index))
 
-        case Do(effect, value):
-            return Do(recur(effect), recur(value))
+        case Set(tuple, index, value):
+            return Set(recur(tuple), recur(index), recur(value))
 
-        case While(c, body):
-            return While(recur(c), recur(body))
+        case Lambda(parameters, body):
+            raise NotImplementedError()
 
-        case _:  # pragma: no branch
-            raise NotADirectoryError()
+        case Apply(callee, arguments):
+            raise NotImplementedError()

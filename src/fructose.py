@@ -1,8 +1,16 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Annotated, Union, Any as TypingAny
-from kernel import Int, Let, Var, Bool, If, Unit, Cell, Get, Set, While
-
+from typing import Union, Any as TypingAny
+from sucrose import (
+    Int,
+    Var,
+    Bool,
+    If,
+    Unit,
+    Lambda,
+    Apply,
+    Assign,
+)
 
 type Expression = Union[
     Int,
@@ -10,12 +18,13 @@ type Expression = Union[
     Subtract[Expression],
     Multiply[Expression],
     Let[Expression, Expression],
-    Var,
     LetStar[Expression, Expression],
+    LetRec[Expression, Expression],
+    Var,
     Bool,
     Not[Expression],
-    All[Expression],
-    TypingAny[Expression],
+    And[Expression],
+    Or[Expression],
     If[Expression, Expression, Expression],
     Cond[Expression, Expression, Expression],
     LessThanOrEqualTo[Expression],
@@ -27,8 +36,11 @@ type Expression = Union[
     Cell[Expression],
     Get[Expression],
     Set[Expression],
-    Do[Expression],
+    Begin[Expression],
     While[Expression, Expression],
+    Lambda[Expression],
+    Apply[Expression],
+    Assign[Expression],
 ]
 
 
@@ -39,7 +51,7 @@ class Add[Operand]:
 
 @dataclass(frozen=True)
 class Subtract[Operand]:
-    operands: Annotated[Sequence[Operand], "non-empty"]
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
@@ -48,25 +60,36 @@ class Multiply[Operand]:
 
 
 @dataclass(frozen=True)
+class Let[Value, Body]:
+    bindings: Sequence[tuple[str, Value]]
+    body: Body
+
+
+@dataclass(frozen=True)
+class LetStar[Value, Body]:
+    bindings: Sequence[tuple[str, Value]]
+    body: Body
+
+
+@dataclass(frozen=True)
+class LetRec[Value, Body]:
+    bindings: Sequence[tuple[str, Value]]
+    body: Body
+
+
+@dataclass(frozen=True)
 class Not[Operand]:
-    x: Operand
+    operand: Operand
 
 
 @dataclass(frozen=True)
-class All:
-    operands: Sequence[TypingAny]
-    __match_args__ = ("operands",)
-
-@dataclass(frozen=True)
-class Any:
-    operands: Sequence[TypingAny]
-    __match_args__ = ("operands",)
+class And[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class AnyExpression:
-    operands: Sequence[TypingAny]
-    __match_args__ = ("operands",)
+class Or[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
@@ -145,14 +168,38 @@ class GreaterThanOrEqualTo:
     def x(self):
         return self.operands[0] if len(self.operands) >= 1 else None
 
-    @property
-    def y(self):
-        return self.operands[1] if len(self.operands) >= 2 else None
+
+@dataclass(frozen=True)
+class Cell[Operand]:
+    value: Operand
+
+
+@dataclass(frozen=True)
+class Get[Operand]:
+    cell: Operand
+
+
+@dataclass(frozen=True)
+class Set[Operand]:
+    cell: Operand
+    value: Operand
+
+
+@dataclass(frozen=True)
+class Begin[Operand]:
+    operands: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class While[Condition, Body]:
+    condition: Condition
+    body: Body
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
+    definitions: Sequence[tuple[str, Expression]]
     body: Expression
 
 

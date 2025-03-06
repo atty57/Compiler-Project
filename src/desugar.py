@@ -2,15 +2,17 @@ from functools import partial
 import sugar
 import kernel
 
+
 def desugar(program: sugar.Program) -> kernel.Program:
     return kernel.Program(
         parameters=program.parameters,
         body=desugar_expr(program.body),
     )
 
+
 def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
     recur = partial(desugar_expr)
-    
+
     # --- Added fixes for sugar.LessThan, EqualTo, GreaterThan,
     #     GreaterThanOrEqualTo, and LessThanOrEqualTo ---
     if isinstance(expr, sugar.LessThan):
@@ -76,7 +78,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
                 kernel.Bool(False),
             )
     # -------------------------------------------------------------------
-    
+
     match expr:
         case sugar.Int():
             # sugar.Int is effectively the same class as kernel.Int
@@ -124,7 +126,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
             return kernel.If(recur(c), recur(t), recur(f))
 
         # ----------------------------------------------------------------------
-        # Additional sugar constructs (multi-operand expansions). 
+        # Additional sugar constructs (multi-operand expansions).
         # ----------------------------------------------------------------------
 
         case sugar.Sum(operands):
@@ -141,10 +143,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
             elif len(operands) == 2:
                 return kernel.Subtract(recur(operands[0]), recur(operands[1]))
             else:
-                return kernel.Subtract(
-                    recur(operands[0]),
-                    recur(sugar.Difference(operands[1:]))
-                )
+                return kernel.Subtract(recur(operands[0]), recur(sugar.Difference(operands[1:])))
 
         case sugar.Product(operands):
             if not operands:
@@ -152,10 +151,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
             elif len(operands) == 1:
                 return kernel.Multiply(recur(operands[0]), kernel.Int(1))
             else:
-                return kernel.Multiply(
-                    recur(operands[0]),
-                    recur(sugar.Product(operands[1:]))
-                )
+                return kernel.Multiply(recur(operands[0]), recur(sugar.Product(operands[1:])))
 
         case sugar.LetStar(bindings, body):
             if not bindings:
@@ -163,11 +159,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
             else:
                 (x, e) = bindings[0]
                 rest = bindings[1:]
-                return kernel.Let(
-                    x,
-                    recur(e),
-                    recur(sugar.LetStar(rest, body))
-                )
+                return kernel.Let(x, recur(e), recur(sugar.LetStar(rest, body)))
 
         case sugar.Cond(arms, default):
             if not arms:
@@ -202,11 +194,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
             elif len(operands) == 1:
                 return kernel.If(recur(operands[0]), kernel.Bool(True), kernel.Bool(False))
             else:
-                return kernel.If(
-                    recur(operands[0]),
-                    kernel.Bool(True),
-                    recur(sugar.Any(operands[1:]))
-                )
+                return kernel.If(recur(operands[0]), kernel.Bool(True), recur(sugar.Any(operands[1:])))
 
         case sugar.NonDescending(operands):
             if len(operands) <= 1:
@@ -218,7 +206,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
                 return kernel.If(
                     kernel.GreaterThanOrEqualTo(recur(operands[1]), recur(operands[0])),
                     recur(sugar.NonDescending(operands[1:])),
-                    kernel.Bool(False)
+                    kernel.Bool(False),
                 )
 
         case sugar.Ascending(operands):
@@ -230,7 +218,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
                 return kernel.If(
                     kernel.LessThan(recur(operands[0]), recur(operands[1])),
                     recur(sugar.Ascending(operands[1:])),
-                    kernel.Bool(False)
+                    kernel.Bool(False),
                 )
 
         case sugar.Same(operands):
@@ -242,7 +230,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
                 return kernel.If(
                     kernel.EqualTo(recur(operands[0]), recur(operands[1])),
                     recur(sugar.Same(operands[1:])),
-                    kernel.Bool(False)
+                    kernel.Bool(False),
                 )
 
         case sugar.Descending(operands):
@@ -254,7 +242,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
                 return kernel.If(
                     kernel.LessThan(recur(operands[1]), recur(operands[0])),
                     recur(sugar.Descending(operands[1:])),
-                    kernel.Bool(False)
+                    kernel.Bool(False),
                 )
 
         case sugar.NonAscending(operands):
@@ -267,7 +255,7 @@ def desugar_expr(expr: sugar.Expression) -> kernel.Expression:
                 return kernel.If(
                     kernel.GreaterThanOrEqualTo(recur(operands[0]), recur(operands[1])),
                     recur(sugar.NonAscending(operands[1:])),
-                    kernel.Bool(False)
+                    kernel.Bool(False),
                 )
 
         case sugar.Do(operands):
