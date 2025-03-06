@@ -81,7 +81,7 @@ def simplify_expression(
             return recur(
                 fructose.Let(
                     [(name, Unit()) for name, _ in bindings],
-                    fructose.Begin([*[Assign(name, value) for name, value in bindings], body]),
+                    Begin([*[Assign(name, value) for name, value in bindings], body]),
                 ),
             )
 
@@ -239,7 +239,7 @@ def simplify_expression(
             return Lambda(parameters, recur(body))
 
         case Apply(callee, arguments):
-            return Apply(recur(callee), [recur(e) for e in arguments])
+            return Apply(recur(callee), [recur(argument) for argument in arguments])
 
         case Assign(name, value):  # pragma: no branch
             return Assign(name, recur(value))
