@@ -1,13 +1,13 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from functools import partial
-import maltose
-from maltose import (
+import glucose
+from glucose import (
     Int,
     Add,
     Subtract,
     Multiply,
-    Let,
     Var,
+    Let,
     Bool,
     If,
     LessThan,
@@ -18,256 +18,201 @@ from maltose import (
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
 )
-import lactose
-from lactose import Block, Assign, Return, Jump
+import maltose
+from maltose import (
+    Copy,
+    Halt,
+)
 
 
 def explicate_control(
-    program: maltose.Program,
+    program: glucose.Program,
     fresh: Callable[[str], str],
-) -> lactose.Program:
-    return lactose.Program(
-        program.parameters,
-        explicate_control_tail(program.body, fresh),
+) -> maltose.Program:
+    return maltose.Program(
+        parameters=program.parameters,
+        body=explicate_control_expression(program.body, lambda v: Halt(v), fresh),
     )
 
 
-def explicate_control_tail(
-    expr: maltose.Expression,
+def explicate_control_expression(
+    expression: glucose.Expression,
+    m: Callable[[maltose.Atom], maltose.Statement],
     fresh: Callable[[str], str],
-) -> lactose.Tail:
-    tail = partial(explicate_control_tail, fresh=fresh)
-    assign = partial(explicate_control_assign, fresh=fresh)
-    predicate = partial(explicate_control_predicate, fresh=fresh)
-    effect = partial(explicate_control_effect, fresh=fresh)
+) -> maltose.Statement:
+    expr = partial(explicate_control_expression, fresh=fresh)
+    exprs = partial(explicate_control_expressions, fresh=fresh)
 
-    match expr:
-        case Int() | Add() | Subtract() | Multiply():
-            return Return(expr)
-
-        case Let(x, e1, e2):
-            return assign(x, e1, tail(e2))
-
-        case Var():
-            return Return(expr)
-
-        case Bool():
-            return Return(expr)
-
-        case If(e1, e2, e3):
-            return predicate(e1, tail(e2), tail(e3))
-
-        case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            return Return(expr)
-
-        case Unit():
-            return Return(expr)
-
-        case Tuple():
-            return Return(expr)
-
-        case Get():
-            return Return(expr)
-
-        case Set():
-            return effect(expr, Return(Unit()))
-
-        case Do(e1, e2):
-            return effect(e1, tail(e2))
-
-        case While():  # pragma: no branch
-            return effect(expr, Return(Unit()))
-
-        case Lambda(xs, e1):
-            return Return(Lambda(xs, tail(e1)))
-
-        case Apply():
-            return Return(expr)
-
-
-def explicate_control_assign(
-    dest: str,
-    value: maltose.Expression,
-    next: lactose.Tail,
-    fresh: Callable[[str], str],
-) -> lactose.Tail:
-    tail = partial(explicate_control_tail, fresh=fresh)
-    assign = partial(explicate_control_assign, fresh=fresh)
-    predicate = partial(explicate_control_predicate, fresh=fresh)
-    effect = partial(explicate_control_effect, fresh=fresh)
-
-    match value:
+    match expression:
         case Int():
-            return Do(Assign(dest, value), next)
+            return m(expression)
 
-        case Add() | Subtract() | Multiply():
-            return Do(Assign(dest, value), next)
-
-        case Let(x, e1, e2):
-            return assign(x, e1, assign(dest, e2, next))
-
-        case Var():
-            return Do(Assign(dest, value), next)
-
-        case Bool():
-            return Do(Assign(dest, value), next)
-
-        case If(e1, e2, e3):
-            return predicate(e1, assign(dest, e2, next), assign(dest, e3, next))
-
-        case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            return Do(Assign(dest, value), next)
-
-        case Unit():
-            return Do(Assign(dest, value), next)
-
-        case Tuple():
-            return Do(Assign(dest, value), next)
-
-        case Get():
-            return Do(Assign(dest, value), next)
-
-        case Set():
-            return effect(value, assign(dest, Unit(), next))
-
-        case Do(e1, e2):
-            return effect(e1, assign(dest, e2, next))
-
-        case While():  # pragma: no branch
-            return effect(value, assign(dest, Unit(), next))
-
-        case Lambda(xs, e1):
-            return Do(Assign(dest, Lambda(xs, tail(e1))), next)
-
-        case Apply():
-            return Do(Assign(dest, value), next)
-
-
-def explicate_control_predicate(
-    expr: maltose.Expression,
-    then: lactose.Tail,
-    otherwise: lactose.Tail,
-    fresh: Callable[[str], str],
-) -> lactose.Tail:
-    assign = partial(explicate_control_assign, fresh=fresh)
-    predicate = partial(explicate_control_predicate, fresh=fresh)
-    effect = partial(explicate_control_effect, fresh=fresh)
-
-    match expr:
-        case Int() | Add() | Subtract() | Multiply():
-            raise ValueError(f"non-boolean predicate: {expr}")
-
-        case Let(x, e1, e2):
-            return assign(x, e1, predicate(e2, then, otherwise))
-
-        case Var():
-            ifTrue = fresh("then")
-            ifFalse = fresh("else")
-            return Do(
-                Block(ifTrue, then),
-                Do(
-                    Block(ifFalse, otherwise),
-                    If(expr, Jump(ifTrue), Jump(ifFalse)),
+        case Add(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, Add(x, y), m(Var(t))),
                 ),
             )
 
-        case Bool(b):
-            match b:
-                case True:
-                    return then
-                case False:  # pragma: no branch
-                    return otherwise
-
-        case If(e1, e2, e3):
-            return predicate(e1, predicate(e2, then, otherwise), predicate(e3, then, otherwise))
-
-        case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            tmp = fresh("t")
-            return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
-
-        case Unit():
-            raise ValueError(f"non-boolean predicate: {expr}")
-
-        case Tuple():
-            raise ValueError(f"non-boolean predicate: {expr}")
-
-        case Get():
-            tmp = fresh("t")
-            return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
-
-        case Set():
-            raise ValueError(f"non-boolean predicate: {expr}")
-
-        case Do(e1, e2):
-            return effect(e1, predicate(e2, then, otherwise))
-
-        case While():
-            raise ValueError(f"non-boolean predicate: {expr}")
-
-        case Lambda():
-            raise ValueError(f"non-boolean predicate: {expr}")
-
-        case Apply():  # pragma: no branch
-            tmp = fresh("t")
-            return assign(tmp, expr, predicate(Var(tmp), then, otherwise))
-
-
-def explicate_control_effect(
-    expr: maltose.Expression,
-    next: lactose.Tail,
-    fresh: Callable[[str], str],
-) -> lactose.Tail:
-    assign = partial(explicate_control_assign, fresh=fresh)
-    predicate = partial(explicate_control_predicate, fresh=fresh)
-    effect = partial(explicate_control_effect, fresh=fresh)
-
-    match expr:
-        case Int() | Add() | Subtract() | Multiply():
-            return next
-
-        case Let(x, e1, e2):
-            return assign(x, e1, effect(e2, next))
-
-        case Var():
-            return next
-
-        case Bool():
-            return next
-
-        case If(e1, e2, e3):
-            return predicate(e1, effect(e2, next), effect(e3, next))
-
-        case LessThan() | EqualTo() | GreaterThanOrEqualTo():
-            return next
-
-        case Unit():
-            return next
-
-        case Tuple():
-            return next
-
-        case Get():
-            return next
-
-        case Set():
-            return Do(expr, next)
-
-        case Do(e1, e2):
-            return effect(e1, effect(e2, next))
-
-        case While(e1, e2):
-            loop = fresh("loop")
-            return Do(
-                Block(loop, predicate(e1, effect(e2, Jump(loop)), next)),
-                Jump(loop),
+        case Subtract(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, Subtract(x, y), m(Var(t))),
+                ),
             )
 
-        case Lambda():
-            return next
+        case Multiply(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, Multiply(x, y), m(Var(t))),
+                ),
+            )
 
-        case Apply():  # pragma: no branch
-            return Do(expr, next)
+        case Let(name, value, body):
+            return expr(
+                value,
+                lambda value: Let(name, Copy(value), expr(body, m)),
+            )
+
+        case Var():
+            return m(expression)
+
+        case Bool():
+            return m(expression)
+
+        case If(condition, consequent, alternative):
+            j = fresh("j")
+            t = fresh("t")
+            return Let(
+                j,
+                Lambda([t], m(Var(t))),
+                expr(
+                    condition,
+                    lambda condition: If(
+                        condition,
+                        expr(consequent, lambda consequent: Apply(Var(j), [consequent])),
+                        expr(alternative, lambda alternative: Apply(Var(j), [alternative])),
+                    ),
+                ),
+            )
+
+        case LessThan(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, LessThan(x, y), m(Var(t))),
+                ),
+            )
+
+        case EqualTo(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, EqualTo(x, y), m(Var(t))),
+                ),
+            )
+
+        case GreaterThanOrEqualTo(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, GreaterThanOrEqualTo(x, y), m(Var(t))),
+                ),
+            )
+
+        case Unit():
+            return m(expression)
+
+        case Tuple(components):
+            t = fresh("t")
+            return exprs(
+                components,
+                lambda components: Let(t, Tuple(components), m(Var(t))),
+            )
+
+        case Get(base, index):
+            t = fresh("t")
+            return expr(
+                base,
+                lambda base: expr(
+                    index,
+                    lambda index: Let(t, Get(base, index), m(Var(t))),
+                ),
+            )
+
+        case Set(base, index, value):
+            t = fresh("t")
+            return expr(
+                base,
+                lambda base: expr(
+                    index,
+                    lambda index: expr(
+                        value,
+                        lambda value: Let(t, Set(base, index, value), m(Var(t))),
+                    ),
+                ),
+            )
+
+        case Do(first, second):
+            return expr(
+                first,
+                lambda _: expr(second, lambda second: m(second)),
+            )
+
+        case Lambda(parameters, body):
+            t = fresh("t")
+            k = fresh("k")
+            return Let(
+                t,
+                Lambda([*parameters, k], expr(body, lambda body: Apply(Var(k), [body]))),
+                m(Var(t)),
+            )
+
+        case Apply(callee, arguments):  # pragma: no branch
+            t = fresh("t")
+            k = fresh("k")
+            return expr(
+                callee,
+                lambda callee: exprs(
+                    arguments,
+                    lambda arguments: Let(
+                        k,
+                        Lambda([t], m(Var(t))),
+                        Apply(callee, [*arguments, Var(k)]),
+                    ),
+                ),
+            )
+
+
+def explicate_control_expressions(
+    expressions: Sequence[glucose.Expression],
+    k: Callable[[Sequence[maltose.Atom]], maltose.Statement],
+    fresh: Callable[[str], str],
+) -> maltose.Statement:
+    expr = partial(explicate_control_expression, fresh=fresh)
+    exprs = partial(explicate_control_expressions, fresh=fresh)
+    match expressions:
+        case []:
+            return k([])
+        case [x, *es]:
+            return expr(x, lambda x: exprs(es, lambda vs: k([x, *vs])))
+        case _:  # pragma: no cover
+            raise NotImplementedError()

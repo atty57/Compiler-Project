@@ -1,22 +1,16 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Annotated, Union
+from typing import Union
 from sucrose import (
     Int,
-    Let,
     Var,
     Bool,
     If,
     Unit,
-    Tuple,
-    Get,
-    Set,
-    While,
-    Assign,
     Lambda,
     Apply,
+    Assign,
 )
-
 
 type Expression = Union[
     Int,
@@ -24,12 +18,13 @@ type Expression = Union[
     Subtract[Expression],
     Multiply[Expression],
     Let[Expression, Expression],
-    Var,
     LetStar[Expression, Expression],
-    Not[Expression],
-    All[Expression],
-    Any[Expression],
+    LetRec[Expression, Expression],
+    Var,
     Bool,
+    Not[Expression],
+    And[Expression],
+    Or[Expression],
     If[Expression, Expression, Expression],
     Cond[Expression, Expression, Expression],
     LessThanOrEqualTo[Expression],
@@ -38,22 +33,14 @@ type Expression = Union[
     GreaterThan[Expression],
     GreaterThanOrEqualTo[Expression],
     Unit,
-    Tuple[Expression],
+    Cell[Expression],
     Get[Expression],
     Set[Expression],
-    Do[Expression],
+    Begin[Expression],
     While[Expression, Expression],
-    Assign[Expression],
     Lambda[Expression],
     Apply[Expression],
-    #
-    Cell[Expression],
-    CellGet[Expression],
-    CellSet[Expression],
-    Vector[Expression],
-    VectorLength[Expression],
-    VectorGet[Expression],
-    VectorSet[Expression],
+    Assign[Expression],
 ]
 
 
@@ -64,12 +51,18 @@ class Add[Operand]:
 
 @dataclass(frozen=True)
 class Subtract[Operand]:
-    operands: Annotated[Sequence[Operand], "non-empty"]
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
 class Multiply[Operand]:
     operands: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class Let[Value, Body]:
+    bindings: Sequence[tuple[str, Value]]
+    body: Body
 
 
 @dataclass(frozen=True)
@@ -79,17 +72,23 @@ class LetStar[Value, Body]:
 
 
 @dataclass(frozen=True)
-class Not[Operand]:
-    x: Operand
+class LetRec[Value, Body]:
+    bindings: Sequence[tuple[str, Value]]
+    body: Body
 
 
 @dataclass(frozen=True)
-class All[Operand]:
+class Not[Operand]:
+    operand: Operand
+
+
+@dataclass(frozen=True)
+class And[Operand]:
     operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class Any[Operand]:
+class Or[Operand]:
     operands: Sequence[Operand]
 
 
@@ -130,45 +129,28 @@ class Cell[Operand]:
 
 
 @dataclass(frozen=True)
-class CellGet[Operand]:
+class Get[Operand]:
     cell: Operand
 
 
 @dataclass(frozen=True)
-class CellSet[Operand]:
+class Set[Operand]:
     cell: Operand
     value: Operand
 
 
 @dataclass(frozen=True)
-class Vector[Operand]:
-    elements: Sequence[Operand]
+class Begin[Operand]:
+    operands: Sequence[Operand]
 
 
 @dataclass(frozen=True)
-class VectorLength[Operand]:
-    vector: Operand
-
-
-@dataclass(frozen=True)
-class VectorGet[Operand]:
-    vector: Operand
-    index: int
-
-
-@dataclass(frozen=True)
-class VectorSet[Operand]:
-    vector: Operand
-    index: int
-    value: Operand
+class While[Condition, Body]:
+    condition: Condition
+    body: Body
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
     body: Expression
-
-
-@dataclass(frozen=True)
-class Do[Operand]:
-    operands: Sequence[Operand]

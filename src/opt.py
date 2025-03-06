@@ -18,7 +18,6 @@ from glucose import (
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
 )
@@ -87,12 +86,12 @@ def opt_expr(
                 case [e1, e2]:  # pragma: no branch
                     return Multiply(e1, e2)
 
-        case Let(x, e1, e2):
-            match recur(e2):
+        case Let(x, value, body):
+            match recur(body):
                 case Var(y) if x == y:
-                    return recur(e1)
-                case e2:  # pragma: no branch
-                    return Let(x, recur(e1), e2)
+                    return recur(value)
+                case body:  # pragma: no branch
+                    return Let(x, recur(value), body)
 
         case Var():
             return expr
@@ -100,14 +99,14 @@ def opt_expr(
         case Bool():
             return expr
 
-        case If(e1, e2, e3):
-            match recur(e1):
+        case If(condition, consequent, alternative):
+            match recur(condition):
                 case Bool(True):
-                    return recur(e2)
+                    return recur(consequent)
                 case Bool(False):
-                    return recur(e3)
-                case e1:  # pragma: no branch
-                    return If(e1, recur(e2), recur(e3))
+                    return recur(alternative)
+                case condition:  # pragma: no branch
+                    return If(condition, recur(consequent), recur(alternative))
 
         case LessThan(e1, e2):
             match recur(e1), recur(e2):
@@ -135,31 +134,24 @@ def opt_expr(
         case Unit():
             return expr
 
-        case Tuple(es):
-            return Tuple([recur(e) for e in es])
+        case Tuple(components):
+            return Tuple([recur(component) for component in components])
 
-        case Get(e1, i):
-            match recur(e1):
-                case Tuple(es) if i in range(len(es)):
-                    return es[i]
-                case e1:  # pragma: no branch
-                    return Get(e1, i)
+        case Get(tuple, index):
+            match recur(tuple), recur(index):
+                case [Tuple(components), Int(i)] if i in range(len(components)):
+                    return components[i]
+                case tuple, index:  # pragma: no branch
+                    return Get(tuple, index)
 
-        case Set(e1, i, e2):
-            return Set(recur(e1), i, recur(e2))
+        case Set(tuple, index, value):
+            return Set(recur(tuple), index, recur(value))
 
-        case Do(e1, e2):
-            return Do(recur(e1), recur(e2))
+        case Do(effect, value):
+            return Do(recur(effect), recur(value))
 
-        case While(e1, e2):  # pragma no branch
-            match recur(e1):
-                case Bool(False):
-                    return Unit()
-                case e1:
-                    return While(e1, recur(e2))
+        case Lambda(parameters, body):
+            return Lambda(parameters, recur(body))
 
-        case Lambda(xs, e1):
-            return Lambda(xs, recur(e1))
-
-        case Apply(e1, es):  # pragma no branch
-            return Apply(recur(e1), [recur(e) for e in es])
+        case Apply(callee, arguments):  # pragma no branch
+            return Apply(recur(callee), [recur(argument) for argument in arguments])

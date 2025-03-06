@@ -18,7 +18,6 @@ from glucose import (
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
 )
@@ -398,12 +397,12 @@ def test_opt_expr_cell(
     list[tuple[Expression, Expression]](
         [
             (
-                Get(Tuple[Expression]([Unit()]), 0),
+                Get(Tuple([Unit()]), Int(0)),
                 Unit(),
             ),
             (
-                Get(Var("x"), 0),
-                Get(Var("x"), 0),
+                Get(Var("x"), Int(0)),
+                Get(Var("x"), Int(0)),
             ),
         ]
     ),
@@ -420,8 +419,8 @@ def test_opt_expr_get(
     list[tuple[Expression, Expression]](
         [
             (
-                Set(Var("x"), 0, Var("y")),
-                Set(Var("x"), 0, Var("y")),
+                Set(Var("x"), Int(0), Var("y")),
+                Set(Var("x"), Int(0), Var("y")),
             ),
         ]
     ),
@@ -444,29 +443,7 @@ def test_opt_expr_set(
         ]
     ),
 )
-def test_opt_expr_seq(
-    expr: Expression,
-    expected: Expression,
-) -> None:
-    assert opt_expr(expr) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, expected",
-    list[tuple[Expression, Expression]](
-        [
-            (
-                While(Bool(False), Var("y")),
-                Unit(),
-            ),
-            (
-                While(Var("x"), Var("y")),
-                While(Var("x"), Var("y")),
-            ),
-        ]
-    ),
-)
-def test_opt_expr_while(
+def test_opt_expr_do(
     expr: Expression,
     expected: Expression,
 ) -> None:

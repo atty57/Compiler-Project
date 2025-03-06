@@ -31,7 +31,7 @@ addopts = [
 
 
 [tool.coverage.run]
-omit = ["src/main.py", "src/store.py", "src/execute.py"]
+omit = ["src/main.py", "src/execute.py"]
 
 
 [dependency-groups]

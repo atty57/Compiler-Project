@@ -19,89 +19,82 @@ from glucose import (
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
 )
-
-
-type Environment = Mapping[str, str]
 
 
 def uniqify(
     program: Program,
     fresh: Callable[[str], str],
 ) -> Program:
-    local = {x: fresh(x) for x in program.parameters}
+    replacements = {parameter: fresh(parameter) for parameter in program.parameters}
     return Program(
-        parameters=list(local.values()),
-        body=uniqify_expr(program.body, local, fresh),
+        parameters=list(replacements.values()),
+        body=uniqify_expression(program.body, replacements, fresh),
     )
 
 
-def uniqify_expr(
-    expr: Expression,
-    env: Environment,
+def uniqify_expression(
+    expression: Expression,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
 ) -> Expression:
-    recur = partial(uniqify_expr, env=env, fresh=fresh)
+    recur = partial(uniqify_expression, replacements=replacements, fresh=fresh)
 
-    match expr:
+    match expression:
         case Int():
-            return expr
+            return expression
 
-        case Add(e1, e2):
-            return Add(recur(e1), recur(e2))
+        case Add(x, y):
+            return Add(recur(x), recur(y))
 
-        case Subtract(e1, e2):
-            return Subtract(recur(e1), recur(e2))
+        case Subtract(x, y):
+            return Subtract(recur(x), recur(y))
 
-        case Multiply(e1, e2):
-            return Multiply(recur(e1), recur(e2))
+        case Multiply(x, y):
+            return Multiply(recur(x), recur(y))
 
-        case Let(x, e1, e2):
-            y = fresh(x)
-            return Let(y, recur(e1), recur(e2, env={**env, x: y}))
+        case Let(name, value, body):
+            replacement = fresh(name)
+            return Let(replacement, recur(value), recur(body, replacements={**replacements, name: replacement}))
 
         case Var(x):
-            return Var(env[x])
+            return Var(replacements[x])
 
         case Bool():
-            return expr
+            return expression
 
-        case If(e1, e2, e3):
-            return If(recur(e1), recur(e2), recur(e3))
+        case If(condition, consequent, alternative):
+            return If(recur(condition), recur(consequent), recur(alternative))
 
-        case LessThan(e1, e2):
-            return LessThan(recur(e1), recur(e2))
+        case LessThan(x, y):
+            return LessThan(recur(x), recur(y))
 
-        case EqualTo(e1, e2):
-            return EqualTo(recur(e1), recur(e2))
+        case EqualTo(x, y):
+            return EqualTo(recur(x), recur(y))
 
-        case GreaterThanOrEqualTo(e1, e2):
-            return GreaterThanOrEqualTo(recur(e1), recur(e2))
+        case GreaterThanOrEqualTo(x, y):
+            return GreaterThanOrEqualTo(recur(x), recur(y))
 
         case Unit():
-            return expr
+            return expression
 
-        case Tuple(es):
-            return Tuple([recur(e) for e in es])
+        case Tuple(components):
+            return Tuple([recur(e) for e in components])
 
-        case Get(e1, i):
-            return Get(recur(e1), i)
+        case Get(tuple, index):
+            return Get(recur(tuple), recur(index))
 
-        case Set(e1, i, e2):
-            return Set(recur(e1), i, recur(e2))
+        case Set(tuple, index, value):
+            return Set(recur(tuple), recur(index), recur(value))
 
-        case Do(e1, e2):
-            return Do(recur(e1), recur(e2))
+        case Do(effect, value):
+            return Do(recur(effect), recur(value))
 
-        case While(e1, e2):
-            return While(recur(e1), recur(e2))
+        case Lambda(parameters, body):
+            local = {parameter: fresh(parameter) for parameter in parameters}
+            return Lambda(list(local.values()), recur(body, replacements={**replacements, **local}))
 
-        case Lambda(xs, e1):
-            local = {x: fresh(x) for x in xs}
-            return Lambda(list(local.values()), recur(e1, env={**env, **local}))
-
-        case Apply(e1, es):  # pragma: no branch
-            return Apply(recur(e1), [recur(e) for e in es])
+        case Apply(callee, arguments):  # pragma: no branch
+            return Apply(recur(callee), [recur(e) for e in arguments])

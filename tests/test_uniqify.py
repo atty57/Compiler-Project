@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 import pytest
 from glucose import (
     Program,
@@ -19,11 +19,10 @@ from glucose import (
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
 )
-from uniqify import Environment, uniqify, uniqify_expr
+from uniqify import uniqify, uniqify_expression
 from util import SequentialNameGenerator
 
 
@@ -53,8 +52,8 @@ def test_uniqify(
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Int(0),
@@ -65,18 +64,18 @@ def test_uniqify(
         ]
     ),
 )
-def test_uniqify_expr_int(
+def test_uniqify_expression_int(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Add(Int(1), Int(1)),
@@ -87,18 +86,18 @@ def test_uniqify_expr_int(
         ]
     ),
 )
-def test_uniqify_expr_add(
+def test_uniqify_expression_add(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Subtract(Int(1), Int(1)),
@@ -109,18 +108,18 @@ def test_uniqify_expr_add(
         ]
     ),
 )
-def test_uniqify_expr_subtract(
+def test_uniqify_expression_subtract(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Multiply(Int(1), Int(1)),
@@ -131,18 +130,18 @@ def test_uniqify_expr_subtract(
         ]
     ),
 )
-def test_uniqify_expr_multiply(
+def test_uniqify_expression_multiply(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Let("x", Int(1), Var("x")),
@@ -159,18 +158,18 @@ def test_uniqify_expr_multiply(
         ]
     ),
 )
-def test_uniqify_expr_let(
+def test_uniqify_expression_let(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Var("x"),
@@ -181,18 +180,18 @@ def test_uniqify_expr_let(
         ]
     ),
 )
-def test_uniqify_expr_var(
+def test_uniqify_expression_var(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Bool(True),
@@ -203,18 +202,18 @@ def test_uniqify_expr_var(
         ]
     ),
 )
-def test_uniqify_expr_bool(
+def test_uniqify_expression_bool(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 If(Bool(True), Int(2), Int(2)),
@@ -225,18 +224,18 @@ def test_uniqify_expr_bool(
         ]
     ),
 )
-def test_uniqify_expr_if(
+def test_uniqify_expression_if(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 LessThan(Int(1), Int(1)),
@@ -247,18 +246,18 @@ def test_uniqify_expr_if(
         ]
     ),
 )
-def test_uniqify_expr_less_than(
+def test_uniqify_expression_less_than(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 EqualTo(Int(1), Int(1)),
@@ -269,18 +268,18 @@ def test_uniqify_expr_less_than(
         ]
     ),
 )
-def test_uniqify_expr_equal_to(
+def test_uniqify_expression_equal_to(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 GreaterThanOrEqualTo(Int(1), Int(1)),
@@ -291,18 +290,18 @@ def test_uniqify_expr_equal_to(
         ]
     ),
 )
-def test_uniqify_expr_greater_than_or_equal_to(
+def test_uniqify_expression_greater_than_or_equal_to(
     expr: Expression,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Unit(),
@@ -313,18 +312,18 @@ def test_uniqify_expr_greater_than_or_equal_to(
         ]
     ),
 )
-def test_uniqify_expr_unit(
+def test_uniqify_expression_unit(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Tuple([Unit()]),
@@ -335,62 +334,62 @@ def test_uniqify_expr_unit(
         ]
     ),
 )
-def test_uniqify_expr_cell(
+def test_uniqify_expression_cell(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
-                Get(Var("x"), 0),
+                Get(Var("x"), Int(0)),
                 {"x": "x"},
                 SequentialNameGenerator(),
-                Get(Var("x"), 0),
+                Get(Var("x"), Int(0)),
             ),
         ]
     ),
 )
-def test_uniqify_expr_get(
+def test_uniqify_expression_get(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
-                Set(Var("x"), 0, Unit()),
+                Set(Var("x"), Int(0), Unit()),
                 {"x": "x"},
                 SequentialNameGenerator(),
-                Set(Var("x"), 0, Unit()),
+                Set(Var("x"), Int(0), Unit()),
             ),
         ]
     ),
 )
-def test_uniqify_expr_set(
+def test_uniqify_expression_set(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Do(Int(0), Unit()),
@@ -401,42 +400,19 @@ def test_uniqify_expr_set(
         ]
     ),
 )
-def test_uniqify_expr_seq(
+def test_uniqify_expression_do(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
     fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
-        [
-            (
-                While(Int(0), Unit()),
-                {},
-                SequentialNameGenerator(),
-                While(Int(0), Unit()),
-            ),
-        ]
-    ),
-)
-def test_uniqify_expr_while(
-    expr: Int,
-    env: Environment,
-    fresh: Callable[[str], str],
-    expected: Expression,
-) -> None:
-    fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Lambda([], Unit()),
@@ -447,19 +423,19 @@ def test_uniqify_expr_while(
         ]
     ),
 )
-def test_uniqify_expr_lambda(
+def test_uniqify_expression_lambda(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
     fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, fresh, expected",
-    list[tuple[Expression, Environment, Callable[[str], str], Expression]](
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
         [
             (
                 Apply(Int(0), []),
@@ -470,11 +446,11 @@ def test_uniqify_expr_lambda(
         ]
     ),
 )
-def test_uniqify_expr_apply(
+def test_uniqify_expression_apply(
     expr: Int,
-    env: Environment,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
     expected: Expression,
 ) -> None:
     fresh = SequentialNameGenerator()
-    assert uniqify_expr(expr, env, fresh) == expected
+    assert uniqify_expression(expr, replacements, fresh) == expected

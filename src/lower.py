@@ -1,37 +1,32 @@
 from collections.abc import Mapping
 from functools import partial
 from typing import cast
-from llvmlite import ir  # type: ignore
-from cellulose import (
+from llvmlite import ir  #  type: ignore
+from lactose import (
     Program,
-    Expression,
+    Atom,
     Int,
+    Var,
+    Bool,
+    Unit,
+    Expression,
     Add,
     Subtract,
     Multiply,
-    Var,
-    Bool,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
-    Unit,
     Tuple,
     Get,
-    Apply,
-    Block,
-    Statement,
-    Assign,
     Set,
-    Tail,
-    Do,
-    Return,
-    Jump,
+    Copy,
+    Global,
+    Statement,
+    Let,
+    Apply,
     If,
+    Halt,
 )
-
-
-type Environment = Mapping[str, ir.Value]
-
 
 i1 = cast(ir.IntType, ir.IntType(1))
 i8 = cast(ir.IntType, ir.IntType(8))
@@ -43,123 +38,139 @@ def lower(
 ) -> ir.Module:
     module = ir.Module()
 
+    ir.Function(module, ir.FunctionType(i64.as_pointer(), [i64]), "malloc")
+
     atoi = ir.Function(module, ir.FunctionType(i64, [i8.as_pointer()]), "atoi")
 
-    main = ir.Function(
-        module,
-        ir.FunctionType(i64, [i64, i8.as_pointer().as_pointer()]),
-        "main",
-    )
-    block = main.append_basic_block()
-    builder = ir.IRBuilder(block)
-    _argc, argv = main.args
-    env = {
-        p: builder.call(atoi, [builder.load(builder.gep(argv, [ir.Constant(i64, i + 1)]))])  # type: ignore
-        for i, p in enumerate(program.parameters)
-    }
+    for name, abs in program.functions.items():
+        fun = ir.Function(module, ir.FunctionType(i64, [i64 for _ in abs.parameters]), name)  # type: ignore
+        fun.calling_convention = "tailcc"
+        env = {p: v for p, v in zip(abs.parameters, fun.args, strict=True)}
+        lower_statement(abs.body, env, ir.IRBuilder(fun.append_basic_block()))
 
-    lower_tail(program.body, env, builder)
+    start = ir.Function(module, ir.FunctionType(i64, [i64 for _ in program.parameters]), "_start")  # type: ignore
+    start.calling_convention = "tailcc"
+    env = {p: a for p, a in zip(program.parameters, start.args, strict=True)}
+    lower_statement(program.body, env, ir.IRBuilder(start.append_basic_block()))
+
+    main = ir.Function(module, ir.FunctionType(i64, [i64, i8.as_pointer().as_pointer()]), "main")
+    builder = ir.IRBuilder(main.append_basic_block())
+    _argc, argv = main.args
+    builder.ret(  # type:ignore
+        builder.call(  # type:ignore
+            start,
+            [
+                builder.call(atoi, [builder.load(builder.gep(argv, [ir.Constant(i64, i + 1)]))])  # type: ignore
+                for i, _ in enumerate(program.parameters)
+            ],
+        )
+    )
 
     return module
 
 
-def lower_tail(
-    tail: Tail,
-    env: Environment,
+def lower_statement(
+    statement: Statement,
+    env: Mapping[str, ir.Value],
     builder: ir.IRBuilder,
 ) -> None:
-    recur = partial(lower_tail, env=env, builder=builder)
-    match tail:
-        case Do(stmt, next):
-            recur(next, env=lower_stmt(stmt, env, builder))
+    atom = partial(lower_atom, env=env, builder=builder)
+    recur = partial(lower_statement, env=env, builder=builder)
+    expr = partial(lower_expression, env=env, builder=builder)
 
-        case Return(value):
-            builder.ret(lower_expr(value, env, builder))  # type: ignore
+    match statement:
+        case Let(name, value, next):
+            return recur(next, env={**env, name: expr(value)})
 
-        case Jump(target):
-            builder.branch(env[target])  # type: ignore
+        case If(condition, then, otherwise):
+            with builder.if_else(builder.trunc(atom(condition), i1)) as (ifTrue, ifFalse):  # type: ignore
+                with ifTrue:
+                    recur(then)
+                with ifFalse:
+                    recur(otherwise)
+            builder.unreachable()
 
-        case If(condition, Jump(then), Jump(otherwise)):
-            builder.cbranch(  # type: ignore
-                builder.trunc(lower_expr(condition, env, builder), i1),  # type: ignore
-                env[then],
-                env[otherwise],
+        case Apply(callee, arguments):
+            builder.ret(  # type: ignore
+                builder.call(  # type: ignore
+                    fn=builder.inttoptr(  # type: ignore
+                        atom(callee), ir.FunctionType(i64, [i64 for _ in arguments]).as_pointer()
+                    ),
+                    args=[atom(argument) for argument in arguments],
+                    tail="musttail",  # type: ignore
+                    cconv="tailcc",
+                )
             )
 
-
-def lower_stmt(
-    stmt: Statement,
-    env: Environment,
-    builder: ir.IRBuilder,
-) -> Environment:
-    expr = partial(lower_expr, env=env, builder=builder)
-    match stmt:
-        case Assign(x, e1):
-            return {**env, x: expr(e1)}
-
-        case Set(a1, i, a2):
-            base = builder.inttoptr(expr(a1), i64.as_pointer())  # type: ignore
-            builder.store(expr(a2), ptr=builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
-            return env
-
-        case Apply(a1, as_):
-            builder.call(
-                builder.inttoptr(expr(a1), typ=ir.FunctionType(i64, [i64 for _ in as_]).as_pointer()),
-                [expr(a) for a in as_],
-            )
-            return env
-
-        case Block(body):
-            block: ir.Block = cast(ir.Block, builder.append_basic_block())
-            tail(body, builder=ir.IRBuilder(block))
-            return block
+        case Halt(value):  # pragma: no branch
+            builder.ret(atom(value))  # type: ignore
 
 
-def lower_expr(
-    expr: Expression,
-    env: Environment,
+def lower_expression(
+    expression: Expression,
+    env: Mapping[str, ir.Value],
     builder: ir.IRBuilder,
 ) -> ir.Value:
-    tail = partial(lower_tail, env=env, builder=builder)
-    recur = partial(lower_expr, env=env, builder=builder)
+    atom = partial(lower_atom, env=env, builder=builder)
 
-    match expr:
+    match expression:
+        case Add(x, y):
+            return builder.add(atom(x), atom(y))  # type: ignore
+
+        case Subtract(x, y):
+            return builder.sub(atom(x), atom(y))  # type: ignore
+
+        case Multiply(x, y):
+            return builder.mul(atom(x), atom(y))  # type: ignore
+
+        case LessThan(x, y):
+            return builder.zext(builder.icmp_signed("<", atom(x), atom(y)), typ=i64)  # type: ignore
+
+        case EqualTo(x, y):
+            return builder.zext(builder.icmp_signed("==", atom(x), atom(y)), typ=i64)  # type: ignore
+
+        case GreaterThanOrEqualTo(x, y):
+            return builder.zext(builder.icmp_signed(">=", atom(x), atom(y)), typ=i64)  # type: ignore
+
+        case Tuple(xs):
+            base = builder.call(builder.module.get_global("malloc"), [ir.Constant(i64, len(xs) * 8)])  # type: ignore
+
+            for i, x in enumerate(xs):
+                builder.store(value=atom(x), ptr=builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
+
+            return builder.ptrtoint(base, typ=i64)  # type: ignore
+
+        case Get(base, index):
+            return builder.load(builder.gep(builder.inttoptr(atom(base), typ=i64.as_pointer()), [atom(index)]), typ=i64)  # type: ignore
+
+        case Set(base, index, value):
+            builder.store(  # type: ignore
+                atom(value),
+                builder.gep(builder.inttoptr(atom(base), i64.as_pointer()), [atom(index)]),  # type: ignore
+            )
+            return ir.Constant(i64, 0)
+
+        case Copy(value):
+            return atom(value)
+
+        case Global(name):
+            return builder.ptrtoint(builder.module.get_global(name), typ=i64)  # type: ignore
+
+
+def lower_atom(
+    atom: Atom,
+    env: Mapping[str, ir.Value],
+    builder: ir.IRBuilder,
+) -> ir.Value:
+    match atom:
         case Int(i):
             return ir.Constant(i64, i)
 
-        case Add(a1, a2):
-            return builder.add(recur(a1), recur(a2))  # type: ignore
-
-        case Subtract(a1, a2):
-            return builder.sub(recur(a1), recur(a2))  # type: ignore
-
-        case Multiply(a1, a2):
-            return builder.mul(recur(a1), recur(a2))  # type: ignore
-
-        case Var(x):
-            return env[x]
+        case Var(name):
+            return env[name]
 
         case Bool(b):
-            return builder.zext(ir.Constant(i1, b), i64)  # type: ignore
-
-        case LessThan(a1, a2):
-            return builder.zext(builder.icmp_signed("<", recur(a1), recur(a2)), i64)  # type: ignore
-
-        case EqualTo(a1, a2):
-            return builder.zext(builder.icmp_signed("==", recur(a1), recur(a2)), i64)  # type: ignore
-
-        case GreaterThanOrEqualTo(a1, a2):
-            return builder.zext(builder.icmp_signed(">=", recur(a1), recur(a2)), i64)  # type: ignore
+            return builder.zext(ir.Constant(i1, b), typ=i64)  # type: ignore
 
         case Unit():
             return ir.Constant(i64, 0)
-
-        case Tuple(as_):
-            base = builder.alloca(i64, len(as_))  # type: ignore
-            for i, a in enumerate(as_):
-                builder.store(recur(a), builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
-            return builder.ptrtoint(base, i64)  # type: ignore
-
-        case Get(a1, i):
-            base = builder.inttoptr(recur(a1), i64.as_pointer())  # type: ignore
-            return builder.load(builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore

@@ -17,13 +17,12 @@ from sucrose import (
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
     Assign,
 )
 import glucose
-from convert_assign import convert_assign, convert_assign_expr, mutable_variables
+from assignment_conversion import convert_assignments, convert_assignments_expression, mutable_free_variables
 
 
 @pytest.mark.parametrize(
@@ -40,17 +39,16 @@ from convert_assign import convert_assign, convert_assign_expr, mutable_variable
             ),
             (
                 sucrose.Program(["x"], Assign("x", Int(0))),
-                glucose.Program(["x"], Let("x", Tuple([Var("x")]), Set(Var("x"), 0, Int(0)))),
+                glucose.Program(["x"], Let("x", Tuple([Var("x")]), Set(Var("x"), Int(0), Int(0)))),
             ),
         ]
     ),
 )
-def test_convert_assign(
+def test_convert_assignmentsments(
     program: sucrose.Program,
     expected: glucose.Expression,
 ) -> None:
-    print(convert_assign(program))
-    assert convert_assign(program) == expected
+    assert convert_assignments(program) == expected
 
 
 @pytest.mark.parametrize(
@@ -65,12 +63,12 @@ def test_convert_assign(
         ]
     ),
 )
-def test_convert_assign_expr_int(
+def test_convert_assignments_expression_int(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -85,12 +83,12 @@ def test_convert_assign_expr_int(
         ]
     ),
 )
-def test_convert_assign_expr_add(
+def test_convert_assignments_expression_add(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -105,12 +103,12 @@ def test_convert_assign_expr_add(
         ]
     ),
 )
-def test_convert_assign_expr_subtract(
+def test_convert_assignments_expression_subtract(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -125,12 +123,12 @@ def test_convert_assign_expr_subtract(
         ]
     ),
 )
-def test_convert_assign_expr_multiply(
+def test_convert_assignments_expression_multiply(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -145,12 +143,12 @@ def test_convert_assign_expr_multiply(
         ]
     ),
 )
-def test_convert_assign_expr_let(
+def test_convert_assignments_expression_let(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -165,17 +163,17 @@ def test_convert_assign_expr_let(
             (
                 Var("x"),
                 {"x"},
-                Get(Var("x"), 0),
+                Get(Var("x"), Int(0)),
             ),
         ]
     ),
 )
-def test_convert_assign_expr_var(
+def test_convert_assignments_expression_var(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -190,12 +188,12 @@ def test_convert_assign_expr_var(
         ]
     ),
 )
-def test_convert_assign_expr_bool(
+def test_convert_assignments_expression_bool(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -210,12 +208,12 @@ def test_convert_assign_expr_bool(
         ]
     ),
 )
-def test_convert_assign_expr_if(
+def test_convert_assignments_expression_if(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -230,12 +228,12 @@ def test_convert_assign_expr_if(
         ]
     ),
 )
-def test_convert_assign_expr_less_than(
+def test_convert_assignments_expression_less_than(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -250,12 +248,12 @@ def test_convert_assign_expr_less_than(
         ]
     ),
 )
-def test_convert_assign_expr_equal_to(
+def test_convert_assignments_expression_equal_to(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -270,12 +268,12 @@ def test_convert_assign_expr_equal_to(
         ]
     ),
 )
-def test_convert_assign_expr_greater_than_or_equal_to(
+def test_convert_assignments_expression_greater_than_or_equal_to(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -290,12 +288,12 @@ def test_convert_assign_expr_greater_than_or_equal_to(
         ]
     ),
 )
-def test_convert_assign_expr_unit(
+def test_convert_assignments_expression_unit(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -310,12 +308,12 @@ def test_convert_assign_expr_unit(
         ]
     ),
 )
-def test_convert_assign_expr_cell(
+def test_convert_assignments_expression_cell(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -323,19 +321,19 @@ def test_convert_assign_expr_cell(
     list[tuple[sucrose.Expression, set[str], glucose.Expression]](
         [
             (
-                Get(Var("x"), 0),
+                Get(Var("x"), Int(0)),
                 set(),
-                Get(Var("x"), 0),
+                Get(Var("x"), Int(0)),
             ),
         ]
     ),
 )
-def test_convert_assign_expr_get(
+def test_convert_assignments_expression_get(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -343,19 +341,19 @@ def test_convert_assign_expr_get(
     list[tuple[sucrose.Expression, set[str], glucose.Expression]](
         [
             (
-                Set(Var("x"), 0, Var("y")),
+                Set(Var("x"), Int(0), Var("y")),
                 set(),
-                Set(Var("x"), 0, Var("y")),
+                Set(Var("x"), Int(0), Var("y")),
             ),
         ]
     ),
 )
-def test_convert_assign_expr_set(
+def test_convert_assignments_expression_set(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -370,32 +368,12 @@ def test_convert_assign_expr_set(
         ]
     ),
 )
-def test_convert_assign_expr_do(
+def test_convert_assignments_expression_do(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
-
-
-@pytest.mark.parametrize(
-    "expr, vars, expected",
-    list[tuple[sucrose.Expression, set[str], glucose.Expression]](
-        [
-            (
-                While(Var("x"), Var("y")),
-                set(),
-                While(Var("x"), Var("y")),
-            ),
-        ]
-    ),
-)
-def test_convert_assign_expr_while(
-    expr: sucrose.Expression,
-    vars: set[str],
-    expected: glucose.Expression,
-) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -410,12 +388,12 @@ def test_convert_assign_expr_while(
         ]
     ),
 )
-def test_convert_assign_expr_lambda(
+def test_convert_assignments_expression_lambda(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -430,12 +408,12 @@ def test_convert_assign_expr_lambda(
         ]
     ),
 )
-def test_convert_assign_expr_apply(
+def test_convert_assignments_expression_apply(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
 ) -> None:
-    assert convert_assign_expr(expr, vars) == expected
+    assert convert_assignments_expression(expr, vars) == expected
 
 
 @pytest.mark.parametrize(
@@ -455,10 +433,9 @@ def test_convert_assign_expr_apply(
             (GreaterThanOrEqualTo(Int(0), Int(0)), set()),
             (Unit(), set()),
             (Tuple([]), set()),
-            (Get(Var("x"), 0), set()),
-            (Set(Var("x"), 0, Var("y")), set()),
+            (Get(Var("x"), Int(0)), set()),
+            (Set(Var("x"), Int(0), Var("y")), set()),
             (Do(Var("x"), Var("y")), set()),
-            (While(Var("x"), Var("y")), set()),
             (Assign("x", Var("y")), {"x"}),
             (Lambda("x", Var("y")), set()),
             (Apply(Var("x"), []), set()),
@@ -469,4 +446,4 @@ def test_mutable_variables(
     expr: sucrose.Expression,
     expected: set[str],
 ) -> None:
-    assert mutable_variables(expr) == expected
+    assert mutable_free_variables(expr) == expected

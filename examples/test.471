@@ -1,3 +1,0 @@
-(program ()
-    (let ([t (tuple 1 2 3)])
-        (get t 0)))

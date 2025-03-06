@@ -14,6 +14,13 @@ def execute(
 ) -> int:
     machine = binding.Target.from_default_triple().create_target_machine()
     module = binding.parse_assembly(source)
+    print(module)
+    # module.verify()
+
+    # pb = binding.PassBuilder(machine, binding.PipelineTuningOptions(speed_level=3))
+    # mpm = pb.getModulePassManager()
+    # mpm.run(module, pb)
+
     with binding.create_mcjit_compiler(module, machine) as engine:
         engine.finalize_object()
         engine.run_static_constructors()

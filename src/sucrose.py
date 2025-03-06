@@ -9,20 +9,18 @@ from glucose import (
     Let,
     Var,
     Bool,
-    If,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
+    If,
     Unit,
     Tuple,
     Get,
     Set,
     Do,
-    While,
     Lambda,
     Apply,
 )
-
 
 type Expression = Union[
     Int,
@@ -41,10 +39,10 @@ type Expression = Union[
     Get[Expression],
     Set[Expression],
     Do[Expression, Expression],
-    While[Expression, Expression],
-    Assign[Expression],
     Lambda[Expression],
     Apply[Expression],
+    #
+    Assign[Expression],
 ]
 
 

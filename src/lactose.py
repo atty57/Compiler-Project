@@ -1,25 +1,6 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Union
-from maltose import (
-    Int,
-    Add,
-    Subtract,
-    Multiply,
-    Var,
-    Bool,
-    If,
-    LessThan,
-    EqualTo,
-    GreaterThanOrEqualTo,
-    Unit,
-    Tuple,
-    Get,
-    Set,
-    Do,
-    Lambda,
-    Apply,
-)
 
 type Atom = Union[
     Int,
@@ -28,8 +9,28 @@ type Atom = Union[
     Unit,
 ]
 
+
+@dataclass(frozen=True)
+class Int:
+    value: int
+
+
+@dataclass(frozen=True)
+class Var:
+    name: str
+
+
+@dataclass(frozen=True)
+class Bool:
+    value: bool
+
+
+@dataclass(frozen=True)
+class Unit:
+    pass
+
+
 type Expression = Union[
-    Atom,
     Add[Atom],
     Subtract[Atom],
     Multiply[Atom],
@@ -38,48 +39,117 @@ type Expression = Union[
     GreaterThanOrEqualTo[Atom],
     Tuple[Atom],
     Get[Atom],
-    Lambda[Tail],
-    Apply[Atom],
-]
-
-type Statement = Union[
-    Assign[Expression],
     Set[Atom],
-    Apply[Atom],
-    Block[Tail],
-]
-
-type Tail = Union[
-    Do[Statement, Tail],
-    Return[Expression],
-    Jump,
-    If[Atom, Jump, Jump],
+    Copy[Atom],
+    Global,
 ]
 
 
 @dataclass(frozen=True)
-class Assign[Value]:
-    name: str
-    value: Value
+class Add[Operand]:
+    x: Operand
+    y: Operand
 
 
 @dataclass(frozen=True)
-class Block[Body]:
-    name: str
+class Subtract[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class Multiply[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class LessThan[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class EqualTo[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class GreaterThanOrEqualTo[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class Tuple[Operand]:
+    components: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class Get[Operand]:
+    tuple: Operand
+    index: Operand
+
+
+@dataclass(frozen=True)
+class Set[Operand]:
+    tuple: Operand
+    index: Operand
+    value: Operand
+
+
+@dataclass(frozen=True)
+class Lambda[Body]:
+    parameters: Sequence[str]
     body: Body
 
 
 @dataclass(frozen=True)
-class Jump:
-    target: str
+class Global:
+    name: str
 
 
 @dataclass(frozen=True)
-class Return[Value]:
+class Copy[Value]:
+    value: Value
+
+
+type Statement = Union[
+    Let[Expression, Statement],
+    If[Atom, Statement, Statement],
+    Apply[Atom],
+    Halt[Atom],
+]
+
+
+@dataclass(frozen=True)
+class Let[Value, Body]:
+    name: str
+    value: Value
+    body: Body
+
+
+@dataclass(frozen=True)
+class If[Condition, Consequent, Alternative]:
+    condition: Condition
+    consequent: Consequent
+    alternative: Alternative
+
+
+@dataclass(frozen=True)
+class Apply[Operand]:
+    callee: Operand
+    arguments: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class Halt[Value]:
     value: Value
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
-    body: Tail
+    body: Statement
+    functions: Mapping[str, Lambda[Statement]]

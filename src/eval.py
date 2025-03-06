@@ -1,36 +1,44 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from functools import partial
+from itertools import count
 from typing import Union
-from glucose import (
+from maltose import (
     Program,
-    Expression,
+    Atom,
     Int,
+    Var,
+    Bool,
+    Unit,
+    Expression,
     Add,
     Subtract,
     Multiply,
-    Let,
-    Var,
-    Bool,
-    If,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
-    Unit,
     Tuple,
     Get,
     Set,
-    Do,
-    While,
     Lambda,
+    Copy,
+    Statement,
+    Let,
+    If,
     Apply,
+    Halt,
 )
-from store import Store
 
-
-type Value = Union[Int, Bool, Unit, Location, Closure]
+type Value = Union[
+    Int,
+    Bool,
+    Unit,
+    Location,
+    Closure,
+]
 
 type Environment = Mapping[str, Value]
+type Store = Mapping[Location, list[Value]]
 
 
 @dataclass(frozen=True)
@@ -40,144 +48,152 @@ class Location:
 
 @dataclass(frozen=True)
 class Closure:
-    abs: Lambda[Expression]
+    abs: Lambda[Statement]
     env: Environment
 
 
 def eval(
     program: Program,
     arguments: Sequence[Int],
-) -> Value:
-    return eval_expr(
-        expr=program.body,
-        env={p: a for p, a in zip(program.parameters, arguments, strict=True)},
-        store=Store(),
+) -> tuple[Value, Store]:
+    return eval_statement(
+        statement=program.body,
+        environment={p: a for p, a in zip(program.parameters, arguments, strict=True)},
+        store={},
+        locations=map(lambda i: Location(i), count(0)),
     )
 
 
-def eval_expr(
-    expr: Expression,
-    env: Environment,
-    store: Store[Value],
-) -> Value:
-    recur = partial(eval_expr, env=env, store=store)
-    match expr:
-        case Int():
-            return expr
+def eval_statement(
+    statement: Statement,
+    environment: Environment,
+    store: Store,
+    locations: Iterator[Location],
+) -> tuple[Value, Store]:
+    atom = partial(eval_atom, environment=environment)
+    expr = partial(eval_expression, environment=environment, store=store, locations=locations)
+    recur = partial(eval_statement, environment=environment, store=store, locations=locations)
 
-        case Add(e1, e2):
-            match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Int(i1 + i2)
-                case _:  # pragma: no cover
-                    raise ValueError()
+    match statement:
+        case Let(name, value, body):
+            value, s1 = expr(value)
+            return recur(body, environment={**environment, name: value}, store=s1)
 
-        case Subtract(e1, e2):
-            match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Int(i1 - i2)
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case Multiply(e1, e2):
-            match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Int(i1 * i2)
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case Let(x, e1, e2):
-            return recur(e2, env={**env, x: recur(e1)})
-
-        case Var(x):
-            return env[x]
-
-        case Bool():
-            return expr
-
-        case If(e1, e2, e3):
-            match recur(e1):
+        case If(condition, then, otherwise):
+            match atom(condition):
                 case Bool(True):
-                    return recur(e2)
+                    return recur(then)
                 case Bool(False):
-                    return recur(e3)
+                    return recur(otherwise)
                 case _:  # pragma: no cover
                     raise ValueError()
 
-        case LessThan(e1, e2):
-            match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Bool(i1 < i2)
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case EqualTo(e1, e2):
-            match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Bool(i1 == i2)
-                case [Bool(b1), Bool(b2)]:
-                    return Bool(b1 == b2)
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case GreaterThanOrEqualTo(e1, e2):
-            match recur(e1), recur(e2):
-                case [Int(i1), Int(i2)]:
-                    return Bool(i1 >= i2)
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case Unit():
-            return expr
-
-        case Tuple(es):
-            base = store.malloc(1)
-            for i, e in enumerate(es):
-                store[base, i] = recur(e)
-            return Location(base)
-
-        case Get(e1, i):
-            match recur(e1):
-                case Location(base):
-                    return store[base, i]
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case Set(e1, i, e2):
-            match recur(e1):
-                case Location(base):
-                    store[base, i] = recur(e2)
-                    return Unit()
-                case _:  # pragma: no cover
-                    raise ValueError()
-
-        case Do(e1, e2):
-            recur(e1)
-            return recur(e2)
-
-        case While(e1, e2):
-            while True:
-                match recur(e1):
-                    case Bool(True):
-                        recur(e2)
-                    case Bool(False):
-                        break
-                    case _:  # pragma: no cover
-                        raise ValueError()
-            return Unit()
-
-        case Lambda():
-            return Closure(expr, env)
-
-        case Apply(callee, arguments):  # pragma: no branch
-            match recur(callee):
-                case Closure(Lambda(parameters, body), env):
+        case Apply(callee, arguments):
+            match atom(callee):
+                case Closure(Lambda(parameters, body), environment):
                     return recur(
                         body,
-                        env={
-                            **env,
-                            **{p: recur(a) for p, a in zip(parameters, arguments, strict=True)},
+                        environment={
+                            **environment,
+                            **{p: atom(a) for p, a in zip(parameters, arguments, strict=True)},
                         },
                     )
                 case _:  # pragma: no cover
                     raise ValueError()
+
+        case Halt(value):  # pragma: no branch
+            return atom(value), store
+
+
+def eval_expression(
+    expression: Expression,
+    environment: Environment,
+    store: Store,
+    locations: Iterator[Location],
+) -> tuple[Value, Store]:
+    atom = partial(eval_atom, environment=environment)
+
+    match expression:
+        case Add(e1, e2):
+            match atom(e1), atom(e2):
+                case [Int(i1), Int(i2)]:
+                    return Int(i1 + i2), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case Subtract(e1, e2):
+            match atom(e1), atom(e2):
+                case [Int(i1), Int(i2)]:
+                    return Int(i1 - i2), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case Multiply(e1, e2):
+            match atom(e1), atom(e2):
+                case [Int(i1), Int(i2)]:
+                    return Int(i1 * i2), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case LessThan(e1, e2):
+            match atom(e1), atom(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 < i2), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case EqualTo(e1, e2):
+            match atom(e1), atom(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 == i2), store
+                case [Bool(b1), Bool(b2)]:
+                    return Bool(b1 == b2), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case GreaterThanOrEqualTo(e1, e2):
+            match atom(e1), atom(e2):
+                case [Int(i1), Int(i2)]:
+                    return Bool(i1 >= i2), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case Tuple(components):
+            location = next(locations)
+            return location, {**store, location: [atom(component) for component in components]}
+
+        case Get(tuple, index):
+            match atom(tuple), atom(index):
+                case [Location() as location, Int(i)]:
+                    return store[location][i], store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case Set(tuple, index, value):
+            match atom(tuple), atom(index):
+                case [Location() as location, Int(i)]:
+                    store[location][i] = atom(value)
+                    return Unit(), store
+                case _:  # pragma: no cover
+                    raise ValueError()
+
+        case Lambda():
+            return Closure(expression, environment), store
+
+        case Copy(value):  # pragma: no branch
+            return atom(value), store
+
+
+def eval_atom(
+    atom: Atom,
+    environment: Environment,
+) -> Value:
+    match atom:
+        case Int():
+            return atom
+        case Var(name):
+            return environment[name]
+        case Bool():
+            return atom
+        case Unit():  # pragma: no branch
+            return atom

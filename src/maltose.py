@@ -1,26 +1,26 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
-from glucose import (
+from lactose import (
     Int,
+    Var,
+    Bool,
+    Unit,
     Add,
     Subtract,
     Multiply,
-    Let,
-    Var,
-    Bool,
-    If,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
-    Unit,
     Tuple,
     Get,
-    Set,
-    Do,
-    While,
     Lambda,
+    Copy,
+    Set,
+    Let,
+    If,
     Apply,
+    Halt,
 )
 
 type Atom = Union[
@@ -31,26 +31,29 @@ type Atom = Union[
 ]
 
 type Expression = Union[
-    Atom,
     Add[Atom],
     Subtract[Atom],
     Multiply[Atom],
-    Let[Expression, Expression],
-    If[Expression, Expression, Expression],
     LessThan[Atom],
     EqualTo[Atom],
     GreaterThanOrEqualTo[Atom],
     Tuple[Atom],
     Get[Atom],
     Set[Atom],
-    Do[Expression, Expression],
-    While[Expression, Expression],
-    Lambda[Expression],
+    Lambda[Statement],
+    Copy[Atom],
+]
+
+
+type Statement = Union[
+    Let[Expression, Statement],
+    If[Atom, Statement, Statement],
     Apply[Atom],
+    Halt[Atom],
 ]
 
 
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
-    body: Expression
+    body: Statement

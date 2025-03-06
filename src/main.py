@@ -1,39 +1,45 @@
-from llvmlite import ir  # type: ignore
-from parse_glucose import parse
+from llvmlite.ir import Module  # type: ignore
+from llvmlite.binding import parse_assembly, ModuleRef, PipelineTuningOptions  # type: ignore
+from parse import parse
+from simplify import simplify
+from assignment_conversion import convert_assignments
 from uniqify import uniqify
 from opt import opt
-from remove_complex_operands import remove_complex_operands
 from explicate_control import explicate_control
+from close_lambdas import close
+from hoist import hoist
 from lower import lower
 
 from util import SequentialNameGenerator
 
 
-def compile(source: str) -> ir.Module:
-    program = parse(source)
-
+def compile(source: str) -> Module:
     fresh = SequentialNameGenerator()
-    result = uniqify(program, fresh)
-    result = opt(result)
-    result = remove_complex_operands(result, fresh)
-    result = explicate_control(result, fresh)
-    return lower(result)
+    program = parse(source)
+    program = simplify(program, fresh)
+    program = convert_assignments(program)
+    program = uniqify(program, fresh)
+    program = opt(program)
+    program = explicate_control(program, fresh)
+    program = close(program, fresh)
+    program = hoist(program, fresh)
+    return lower(program)
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(prog="471c")
-    parser.add_argument("input", type=argparse.FileType("r"), help="")
-    parser.add_argument("-o", "--output", type=argparse.FileType("w"), default="-")
-    parser.add_argument("--run", action="store_true", help="")
+    parser.add_argument("input", type=argparse.FileType("r"))
+    parser.add_argument("-o", "--output", type=argparse.FileType("w"))
+    parser.add_argument("--run", action="store_true")
     parser.add_argument("--args", default=[], action="extend", nargs="*", type=str, help="")
     options = parser.parse_args()
 
     with options.input as input:
         module = compile(input.read())
 
-        print(module, file=options.output)
+        # print(module, file=options.output)
 
         if options.run:
             from execute import execute
