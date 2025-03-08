@@ -416,7 +416,6 @@ def test_eval_expression_set(
     assert eval_expression(expr, env, store) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, env, store, expected",
     list[tuple[Expression, Environment, Store[Value], Value]](
@@ -439,7 +438,6 @@ def test_eval_expression_lambda(
     assert eval_expression(expr, env, store) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, env, store, expected",
     list[tuple[Expression, Environment, Store[Value], Value]](

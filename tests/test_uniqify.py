@@ -357,7 +357,6 @@ def test_uniqify_expression_set(
     assert uniqify_expression(expr, env, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, env, fresh, expected",
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](
@@ -380,7 +379,6 @@ def test_uniqify_expression_lambda(
     assert uniqify_expression(expr, env, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, env, fresh, expected",
     list[tuple[Expression, Environment, Callable[[str], str], Expression]](

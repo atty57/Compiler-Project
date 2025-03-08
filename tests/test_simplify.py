@@ -27,7 +27,6 @@ from simplify import simplify, simplify_expression
 from util import SequentialNameGenerator
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[fructose.Program, Callable[[str], str], sucrose.Program]](
@@ -158,7 +157,6 @@ def test_simplify_expression_multiply(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -179,7 +177,6 @@ def test_simplify_expression_let(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -210,7 +207,6 @@ def test_simplify_expression_letstar(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -700,7 +696,6 @@ def test_simplify_expression_set(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -731,7 +726,6 @@ def test_simplify_expression_begin(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -779,7 +773,6 @@ def test_simplify_expression_while(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -800,7 +793,6 @@ def test_simplify_expression_lambda(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -821,7 +813,6 @@ def test_simplify_expression_apply(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
