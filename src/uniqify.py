@@ -1,4 +1,4 @@
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, MutableMapping
 from functools import partial
 from glucose import (
     Program,
@@ -22,7 +22,7 @@ from glucose import (
 )
 
 
-type Environment = Mapping[str, str]
+type Environment = MutableMapping[str, str]
 
 
 def uniqify(
@@ -86,8 +86,22 @@ def uniqify_expression(
         case Set(tuple, index, value):
             return Set(recur(tuple), recur(index), recur(value))
 
-        case Lambda(parameters, body):
-            raise NotImplementedError()
+        case Lambda(params, body):
+            old_env = dict(env)
+            new_params: list[str] = []
+            for p in params:
+                new_p = fresh(p)
+                new_params.append(new_p)
+                env[p] = new_p
+            new_body = uniqify_expression(body, env, fresh)
+            env.clear()
+            env.update(old_env)
+            return Lambda(new_params, new_body)
 
         case Apply(callee, arguments):
-            raise NotImplementedError()
+            new_callee = recur(callee)
+            new_args = [recur(a) for a in arguments]
+            return Apply(new_callee, new_args)
+
+        case _:
+            raise NotImplementedError(f"uniqify_expression not implemented for {expr}")

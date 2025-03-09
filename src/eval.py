@@ -153,8 +153,25 @@ def eval_expression(
                 case tuple, index:  # pragma: no cover
                     raise ValueError()
 
-        case Lambda():
-            raise NotImplementedError()
+        case Lambda(_, _):
+            # Return a closure capturing the current env
+            return Closure(expr, env)
 
-        case Apply(callee, arguments):  # pragma: no branch
-            raise NotImplementedError()
+        case Apply(callee, arguments):
+            callee_val = recur(callee)
+            if not isinstance(callee_val, Closure):
+                raise NotImplementedError("Apply to non-closure is not supported by these tests")
+            closure_expr = callee_val.abs
+            closure_env = dict(callee_val.env)
+
+            # Evaluate each argument and extend closure_env
+            if len(closure_expr.parameters) != len(arguments):
+                raise TypeError("Arity mismatch in function application")
+
+            for param, arg_expr in zip(closure_expr.parameters, arguments):
+                closure_env[param] = recur(arg_expr)
+
+            return eval_expression(closure_expr.body, closure_env, store)
+
+        case _:
+            raise NotImplementedError(f"eval_expression not implemented for: {expr}")

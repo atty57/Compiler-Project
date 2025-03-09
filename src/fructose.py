@@ -93,17 +93,10 @@ class Or[Operand]:
 
 
 @dataclass(frozen=True)
-class Cond:
+class Cond[Condition, Consequent, Default]:
     arms: Sequence[tuple[TypingAny, TypingAny]]
     default: TypingAny
     __match_args__ = ("arms", "default")
-
-
-@dataclass(frozen=True)
-class LetStar:
-    bindings: Sequence[tuple[str, TypingAny]]
-    body: TypingAny
-    __match_args__ = ("bindings", "body")
 
 
 @dataclass(frozen=True)
@@ -118,7 +111,7 @@ class LessThanOrEqualTo[Operand]:
 
 
 @dataclass(frozen=True)
-class LessThan:
+class LessThan[Operand]:
     operands: Sequence[TypingAny]
     __match_args__ = ("x", "y")
 
@@ -132,7 +125,7 @@ class LessThan:
 
 
 @dataclass(frozen=True)
-class EqualTo:
+class EqualTo[Operand]:
     operands: Sequence[TypingAny]
     __match_args__ = ("x", "y")
 
@@ -146,7 +139,7 @@ class EqualTo:
 
 
 @dataclass(frozen=True)
-class GreaterThan:
+class GreaterThan[Operand]:
     operands: Sequence[TypingAny]
     __match_args__ = ("x", "y")
 
@@ -160,7 +153,7 @@ class GreaterThan:
 
 
 @dataclass(frozen=True)
-class GreaterThanOrEqualTo:
+class GreaterThanOrEqualTo[Operand]:
     operands: Sequence[TypingAny]
     __match_args__ = ("x", "y")
 

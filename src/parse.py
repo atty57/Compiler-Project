@@ -119,7 +119,7 @@ class AstTransformer(Transformer[Token, Any]):
         self,
         bindings: Sequence[tuple[str, Expression]],
         body: Expression,
-    ) -> LetStar:
+    ) -> LetStar[Expression, Expression]:
         return LetStar(bindings, body)
 
     def letrec_expr(
@@ -191,7 +191,7 @@ class AstTransformer(Transformer[Token, Any]):
         self,
         arms: Sequence[tuple[Expression, Expression]],
         default: Expression,
-    ) -> Cond:
+    ) -> Cond[Expression, Expression, Expression]:
         return Cond(arms, default)
 
     @v_args(inline=False)
@@ -219,28 +219,28 @@ class AstTransformer(Transformer[Token, Any]):
     def less_than_expr(
         self,
         operands: Sequence[Expression],
-    ) -> LessThan:
+    ) -> LessThan[Expression]:
         return LessThan(operands)
 
     @v_args(inline=False)
     def equal_to_expr(
         self,
         operands: Sequence[Expression],
-    ) -> EqualTo:
+    ) -> EqualTo[Expression]:
         return EqualTo(operands)
 
     @v_args(inline=False)
     def greater_than(
         self,
         operands: Sequence[Expression],
-    ) -> GreaterThan:
+    ) -> GreaterThan[Expression]:
         return GreaterThan(operands)
 
     @v_args(inline=False)
     def greater_than_or_equal_to_expr(
         self,
         operands: Sequence[Expression],
-    ) -> GreaterThanOrEqualTo:
+    ) -> GreaterThanOrEqualTo[Expression]:
         return GreaterThanOrEqualTo(operands)
 
     def unit_expr(
