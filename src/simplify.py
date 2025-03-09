@@ -34,7 +34,7 @@ def simplify_expression(
                     return recur(x)
                 case [x, *rest]:
                     return sucrose.Add(recur(x), recur(fructose.Add(rest)))
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
         case fructose.Subtract(operands):
@@ -45,7 +45,7 @@ def simplify_expression(
                     return sucrose.Subtract(recur(x), recur(y))
                 case [x, *rest]:
                     return sucrose.Subtract(recur(x), recur(fructose.Subtract(rest)))
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
         case fructose.Multiply(operands):
@@ -56,7 +56,7 @@ def simplify_expression(
                     return recur(x)
                 case [x, *rest]:
                     return sucrose.Multiply(recur(x), recur(fructose.Multiply(rest)))
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
         case fructose.Let(bindings, body):
@@ -93,10 +93,14 @@ def simplify_expression(
                 if not varvals:
                     return recur(body)
                 (v, e) = varvals[0]
+                # Fresh name each time:
+                tempName = fresh("t")
                 rest = varvals[1:]
                 next_part = chain_assigns(rest)
-                tempName = fresh("_t")
-                return sucrose.Apply(sucrose.Lambda([tempName], next_part), [sucrose.Assign(v, recur(e))])
+                return sucrose.Apply(
+                    sucrose.Lambda([tempName], next_part),
+                    [sucrose.Assign(v, recur(e))]
+                )
 
             inside = chain_assigns(list(bindings))
             outer_lam = sucrose.Lambda(all_vars, inside)
@@ -110,7 +114,11 @@ def simplify_expression(
             return expression
 
         case Not(x):
-            return If(sucrose.EqualTo(recur(x), Bool(True)), Bool(False), Bool(True))
+            return If(
+                sucrose.EqualTo(recur(x), Bool(True)),
+                Bool(False),
+                Bool(True),
+            )
 
         case And(operands):
             match operands:
@@ -122,7 +130,7 @@ def simplify_expression(
                     return If(recur(x), recur(y), Bool(False))
                 case [x, *rest]:
                     return If(recur(x), recur(Or(rest)), Bool(False))
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
         case Or(operands):
@@ -135,7 +143,7 @@ def simplify_expression(
                     return If(recur(x), Bool(True), recur(y))
                 case [x, *rest]:
                     return If(recur(x), Bool(True), recur(And(rest)))
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
         case If(condition, consequent, alternative):
@@ -147,12 +155,15 @@ def simplify_expression(
                     return recur(default)
                 case [[e1, e2], *rest]:
                     return If(recur(e1), recur(e2), recur(Cond(rest, default)))
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
+        # L E S S - T H A N - O R - E Q U A L - T O
         case fructose.LessThanOrEqualTo(es):
             match es:
-                case [] | [_]:
+                case []:
+                    return Bool(True)
+                case [_]:
                     return Bool(True)
                 case [x, y]:
                     return sucrose.GreaterThanOrEqualTo(recur(y), recur(x))
@@ -162,12 +173,15 @@ def simplify_expression(
                         recur(fructose.LessThanOrEqualTo([y, *rest])),
                         Bool(False),
                     )
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
+        # L E S S - T H A N
         case fructose.LessThan(es):
             match es:
-                case [] | [_]:
+                case []:
+                    return Bool(True)
+                case [_]:
                     return Bool(True)
                 case [x, y]:
                     return sucrose.LessThan(recur(x), recur(y))
@@ -177,12 +191,15 @@ def simplify_expression(
                         recur(fructose.LessThan([y, *rest])),
                         Bool(False),
                     )
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
+        # E Q U A L - T O
         case fructose.EqualTo(es):
             match es:
-                case [] | [_]:
+                case []:
+                    return Bool(True)
+                case [_]:
                     return Bool(True)
                 case [x, y]:
                     return sucrose.EqualTo(recur(x), recur(y))
@@ -192,14 +209,18 @@ def simplify_expression(
                         recur(fructose.EqualTo([y, *rest])),
                         Bool(False),
                     )
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
+        # G R E A T E R - T H A N
         case fructose.GreaterThan(es):
             match es:
-                case [] | [_]:
+                case []:
+                    return Bool(True)
+                case [_]:
                     return Bool(True)
                 case [x, y]:
+                    # The spec wants "GreaterThan(x,y)" => "LessThan(y,x)"
                     return sucrose.LessThan(recur(y), recur(x))
                 case [x, y, *rest]:
                     return If(
@@ -207,12 +228,15 @@ def simplify_expression(
                         recur(fructose.GreaterThan([y, *rest])),
                         Bool(False),
                     )
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
+        # G R E A T E R - T H A N - O R - E Q U A L - T O
         case fructose.GreaterThanOrEqualTo(es):
             match es:
-                case [] | [_]:
+                case []:
+                    return Bool(True)
+                case [_]:
                     return Bool(True)
                 case [x, y]:
                     return sucrose.GreaterThanOrEqualTo(recur(x), recur(y))
@@ -222,7 +246,7 @@ def simplify_expression(
                         recur(fructose.GreaterThanOrEqualTo([y, *rest])),
                         Bool(False),
                     )
-                case _:  # pragma: no cover
+                case _:
                     raise NotImplementedError()
 
         case Unit():
@@ -245,26 +269,33 @@ def simplify_expression(
             else:
                 head = body_list[0]
                 tail = fructose.Begin(body_list[1:])
-                tempName = fresh("_t")
-                return sucrose.Apply(sucrose.Lambda([tempName], recur(tail)), [recur(head)])
+                tempName = fresh("t")   # was fresh("_t") originally
+                return sucrose.Apply(
+                    sucrose.Lambda([tempName], recur(tail)),
+                    [recur(head)]
+                )
 
         case fructose.While(condition, loop_body):
-            loopName = fresh("_loop")
-            tempName0 = fresh("_t")
+            loopName = fresh("loop")
+            tempName0 = fresh("t")
             lamLoop = sucrose.Lambda(
                 [],
                 sucrose.If(
                     recur(condition),
                     sucrose.Apply(
-                        sucrose.Lambda([fresh("_t")], sucrose.Apply(sucrose.Var(loopName), [])), [recur(loop_body)]
+                        sucrose.Lambda([fresh("t")], sucrose.Apply(sucrose.Var(loopName), [])),
+                        [recur(loop_body)]
                     ),
                     sucrose.Unit(),
                 ),
             )
             assignLoop = sucrose.Assign(loopName, lamLoop)
-            step = sucrose.Apply(sucrose.Lambda([tempName0], sucrose.Apply(sucrose.Var(loopName), [])), [assignLoop])
+            step = sucrose.Apply(
+                sucrose.Lambda([tempName0], sucrose.Apply(sucrose.Var(loopName), [])),
+                [assignLoop]
+            )
             outer = sucrose.Lambda([loopName], step)
-            return sucrose.Begin([sucrose.Apply(outer, [sucrose.Unit()]), sucrose.Unit()])
+            return sucrose.Apply(outer, [sucrose.Unit()])
 
         case fructose.Lambda(params, body):
             return sucrose.Lambda(params, recur(body))
