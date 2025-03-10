@@ -47,13 +47,13 @@ def close_statement(
             match value:
                 case Lambda(parameters, body):
                     fvs = list(free_variables_expression(value))
-                    env = fresh("env")
+                    env = fresh("t")
 
                     body: Statement = stmt(body)
                     for i, v in enumerate(fvs):
                         body = Let(v, Get(Var(env), Int(i + 1)), body)
 
-                    code = fresh("code")
+                    code = fresh("t")
                     return Let(
                         code,
                         Lambda([env, *parameters], body),
@@ -64,21 +64,17 @@ def close_statement(
                         ),
                     )
 
-                case value:
+                case value:  # pragma: no branch
                     return Let(name, value, stmt(next))
 
         case If(condition, then, otherwise):
             return If(condition, stmt(then), stmt(otherwise))
 
         case Apply(callee, arguments):
-            code = fresh("code")
-            return Let(
-                code,
-                Get(callee, Int(0)),
-                Apply(Var(code), [callee, *arguments]),
-            )
+            t = fresh("t")
+            return Let(t, Get(callee, Int(0)), Apply(Var(t), [callee, *arguments]))
 
-        case Halt():
+        case Halt():  # pragma: no branch
             return statement
 
 
