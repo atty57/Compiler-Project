@@ -1,11 +1,6 @@
-program: "(" _PROGRAM "(" parameters ")" definitions expr ")"
+program: "(" _PROGRAM "(" parameters* ")" expr ")"
 
 parameters: identifier*
-
-definitions: definition*
-
-definition: "(" _DEF identifier expr ")"                            -> value_def
-          | "(" _DEF "(" identifier parameters ")" expr ")"         -> function_def
 
 expr: int                                                           -> int_expr
     | "(" _ADD expr* ")"                                            -> add_expr
@@ -18,10 +13,10 @@ expr: int                                                           -> int_expr
     | _TRUE                                                         -> true_expr
     | _FALSE                                                        -> false_expr
     | "(" _NOT expr ")"                                             -> not_expr
-    | "(" _AND expr* ")"                                            -> and_expr
-    | "(" _OR expr* ")"                                             -> or_expr
+    | "(" _AND expr * ")"                                           -> and_expr
+    | "(" _OR expr * ")"                                            -> or_expr
     | "(" _IF expr expr expr ")"                                    -> if_expr
-    | "(" _COND arms "(" _ELSE expr ")" ")"                         -> cond_expr
+    | "(" _COND arms expr ")"                                       -> cond_expr
     | "(" _LESS_THAN_OR_EQUAL_TO expr* ")"                          -> less_than_or_equal_to_expr
     | "(" _LESS_THAN expr* ")"                                      -> less_than_expr
     | "(" _EQUAL_TO expr* ")"                                       -> equal_to_expr
@@ -48,8 +43,6 @@ identifier: IDENTIFIER
 
 _PROGRAM.2: "program"
 
-_DEF.2: "def"
-
 _ADD.2: "+"
 _SUBTRACT.2: "-"
 _MULTIPLY.2: "*"
@@ -61,10 +54,9 @@ _AND.2: "and"
 _OR.2: "or"
 _IF.2: "if"
 _COND.2: "cond"
-_ELSE.2: "else"
 _LESS_THAN_OR_EQUAL_TO.2: "<="
 _LESS_THAN.2: "<"
-_EQUAL_TO.2: "=="
+_EQUAL_TO.2: "="
 _GREATER_THAN.2: ">"
 _GREATER_THAN_OR_EQUAL_TO.2: ">="
 _CELL.2: "cell"
@@ -72,7 +64,7 @@ _GET.2: "^"
 _SET.2: ":="
 _BEGIN.2: "begin"
 _WHILE.2: "while"
-_LAMBDA.2: "lambda" | "abs"
+_LAMBDA.2: "abs"
 _ASSIGN.2: "set!"
 
 INT.2: ("0".."9")+

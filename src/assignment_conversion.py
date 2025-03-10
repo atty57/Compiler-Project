@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from functools import partial
 import sucrose
 from sucrose import (
@@ -6,6 +5,7 @@ from sucrose import (
     Add,
     Subtract,
     Multiply,
+    Let,
     Var,
     Bool,
     If,
@@ -16,9 +16,10 @@ from sucrose import (
     Tuple,
     Get,
     Set,
-    Assign,
+    Do,
     Lambda,
     Apply,
+    Assign,
 )
 import glucose
 
@@ -29,19 +30,19 @@ def convert_assignments(
     vars = mutable_free_variables(program.body)
     return glucose.Program(
         program.parameters,
-        _wrap_vars(list(vars), convert_assignments_expresssion(program.body, vars)),
+        body=_wrap_vars(vars, convert_assignments_expression(program.body, vars)),
     )
 
 
-def convert_assignments_expresssion(
-    expr: sucrose.Expression,
+def convert_assignments_expression(
+    expression: sucrose.Expression,
     vars: set[str],
 ) -> glucose.Expression:
-    recur = partial(convert_assignments_expresssion, vars=vars)
+    recur = partial(convert_assignments_expression, vars=vars)
 
-    match expr:
+    match expression:
         case Int():
-            return expr
+            return expression
 
         case Add(x, y):
             return Add(recur(x), recur(y))
@@ -52,11 +53,16 @@ def convert_assignments_expresssion(
         case Multiply(x, y):
             return Multiply(recur(x), recur(y))
 
-        case Var(name):
-            return Get(expr, Int(0)) if name in vars else expr
+        case Let(name, value, body):
+            (vars_m, vars_u) = _partition({name}, body)
+            local_m = (vars | vars_m) - vars_u
+            return Let(name, _maybe_cell(name, vars_m, recur(value)), recur(body, vars=local_m))
+
+        case Var(x):
+            return Get(expression, Int(0)) if x in vars else expression
 
         case Bool():
-            return expr
+            return expression
 
         case If(condition, consequent, alternative):
             return If(recur(condition), recur(consequent), recur(alternative))
@@ -71,38 +77,30 @@ def convert_assignments_expresssion(
             return GreaterThanOrEqualTo(recur(x), recur(y))
 
         case Unit():
-            return expr
+            return expression
 
         case Tuple(components):
             return Tuple([recur(e) for e in components])
 
-        case Get(tuple, index):
-            return Get(recur(tuple), recur(index))
+        case Get(base, offset):
+            return Get(recur(base), recur(offset))
 
-        case Set(tuple, index, value):
-            return Set(recur(tuple), recur(index), recur(value))
+        case Set(base, offset, value):
+            return Set(recur(base), recur(offset), recur(value))
+
+        case Do(effect, value):
+            return Do(recur(effect), recur(value))
 
         case Lambda(parameters, body):
             (vars_m, vars_u) = _partition(set(parameters), body)
             local_m = (vars | vars_m) - vars_u
-            return Lambda(parameters, _wrap_vars(list(vars_m), recur(body, vars=local_m)))
+            return Lambda(parameters, _wrap_vars(vars_m, recur(body, vars=local_m)))
 
         case Apply(callee, arguments):
             return Apply(recur(callee), [recur(e) for e in arguments])
 
         case Assign(name, value):  # pragma: no branch
             return Set(Var(name), Int(0), recur(value))
-
-
-def _wrap_vars(
-    vars: Sequence[str],
-    expr: glucose.Expression,
-) -> glucose.Expression:
-    match vars:
-        case []:
-            return expr
-        case vars:  # pragma: no branch
-            return Apply(Lambda(list(vars), expr), [Tuple([Var(v)]) for v in vars])
 
 
 def _partition(
@@ -113,17 +111,37 @@ def _partition(
     return (vars & mv, vars - mv)
 
 
+def _wrap_vars(
+    vars: set[str],
+    expr: glucose.Expression,
+) -> glucose.Expression:
+    for v in vars:
+        return Let(v, Tuple([Var(v)]), expr)
+    return expr
+
+
+def _maybe_cell(
+    name: str,
+    vars: set[str],
+    expr: glucose.Expression,
+) -> glucose.Expression:
+    return Tuple([expr]) if name in vars else expr
+
+
 def mutable_free_variables(
-    expr: sucrose.Expression,
+    expression: sucrose.Expression,
 ) -> set[str]:
     recur = partial(mutable_free_variables)
 
-    match expr:
+    match expression:
         case Int():
             return set()
 
         case Add(x, y) | Subtract(x, y) | Multiply(x, y):
             return recur(x) | recur(y)
+
+        case Let(name, value, body):
+            return recur(value) | (recur(body) - {name})
 
         case Var():
             return set()
@@ -143,11 +161,14 @@ def mutable_free_variables(
         case Tuple(components):
             return {mv for e in components for mv in recur(e)}
 
-        case Get(tuple, index):
-            return recur(tuple) | recur(index)
+        case Get(base, offset):
+            return recur(base) | recur(offset)
 
-        case Set(tuple, index, value):
-            return recur(tuple) | recur(index) | recur(value)
+        case Set(base, offset, value):
+            return recur(base) | recur(offset) | recur(value)
+
+        case Do(effect, value):
+            return recur(effect) | recur(value)
 
         case Lambda(parameters, body):
             return recur(body) - set(parameters)
@@ -156,4 +177,4 @@ def mutable_free_variables(
             return recur(callee) | {mv for e in arguments for mv in recur(e)}
 
         case Assign(name, value):  # pragma: no branch
-            return {name} | recur(value)
+            return recur(value) | {name}

@@ -6,6 +6,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Let,
     Var,
     Bool,
     LessThan,
@@ -16,6 +17,7 @@ from glucose import (
     Tuple,
     Get,
     Set,
+    Do,
     Lambda,
     Apply,
 )
@@ -25,6 +27,7 @@ type Expression = Union[
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    Let[Expression, Expression],
     Var,
     Bool,
     If[Expression, Expression, Expression],
@@ -35,6 +38,7 @@ type Expression = Union[
     Tuple[Expression],
     Get[Expression],
     Set[Expression],
+    Do[Expression, Expression],
     Lambda[Expression],
     Apply[Expression],
     #

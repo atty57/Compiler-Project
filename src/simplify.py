@@ -1,9 +1,9 @@
 from collections.abc import Callable
 from functools import partial
 import fructose
-from fructose import Let, LetStar, LetRec, Not, And, Or, Cond, Cell, Begin, While
+from fructose import LetStar, LetRec, Not, And, Or, Cond, Cell, Begin, While
 import sucrose
-from sucrose import Int, Var, Bool, If, Unit, Tuple, Lambda, Apply, Assign
+from sucrose import Int, Var, Bool, If, Unit, Tuple, Do, Lambda, Apply, Assign
 
 
 def simplify(
@@ -12,7 +12,7 @@ def simplify(
 ) -> sucrose.Program:
     return sucrose.Program(
         program.parameters,
-        body=simplify_expression(LetRec(program.definitions, program.body), fresh),
+        body=simplify_expression(program.body, fresh),
     )
 
 
@@ -59,17 +59,31 @@ def simplify_expression(
                 case _:  # pragma: no cover
                     raise NotImplementedError()
 
-        case Let(bindings, body):
-            # See: Design Concepts in Programming Languages p. 220
-            raise NotImplementedError()
+        case fructose.Let(bindings, body):
+            match bindings:
+                case []:
+                    return recur(body)
+                case [(name, value), *rest]:
+                    return sucrose.Let(name, recur(value), recur(fructose.Let(rest, body)))
+                case _:  # pragma: no cover
+                    raise ValueError()
 
         case LetStar(bindings, body):
-            # See: Design Concepts in Programming Languages p. 1031
-            raise NotImplementedError()
+            match bindings:
+                case []:
+                    return recur(body)
+                case [(name, value), *rest]:
+                    return sucrose.Let(name, recur(value), recur(LetStar(rest, body)))
+                case _:  # pragma: no cover
+                    raise ValueError()
 
         case LetRec(bindings, body):
-            # See: Design Concepts in Programming Languages p. 432
-            raise NotImplementedError()
+            return recur(
+                fructose.Let(
+                    [(name, Unit()) for name, _ in bindings],
+                    Begin([*[Assign(name, value) for name, value in bindings], body]),
+                ),
+            )
 
         case Var():
             return expression
@@ -86,8 +100,6 @@ def simplify_expression(
                     return Bool(True)
                 case [x]:
                     return recur(x)
-                case [x, y]:
-                    return If(recur(x), recur(y), Bool(False))
                 case [x, *rest]:
                     return If(recur(x), recur(Or(rest)), Bool(False))
                 case _:  # pragma: no cover
@@ -99,8 +111,6 @@ def simplify_expression(
                     return Bool(False)
                 case [x]:
                     return recur(x)
-                case [x, y]:
-                    return If(recur(x), Bool(True), recur(y))
                 case [x, *rest]:
                     return If(recur(x), Bool(True), recur(And(rest)))
                 case _:  # pragma: no cover
@@ -205,19 +215,31 @@ def simplify_expression(
         case fructose.Set(cell, value):
             return sucrose.Set(recur(cell), Int(0), recur(value))
 
-        case Begin(body):
-            # See: Design Concepts in Programming Languages pp. 401 and 410
-            raise NotImplementedError()
+        case fructose.Begin(body):
+            match body:
+                case []:
+                    return Unit()
+                case [value]:
+                    return recur(value)
+                case [first, *rest]:
+                    return Do(recur(first), recur(Begin(rest)))
+                case _:  # pragma: no cover
+                    raise NotImplementedError()
 
         case While(condition, body):
-            # See: Design Concepts in Programming Languages pp. 401
-            raise NotImplementedError()
+            loop = fresh("loop")
+            return recur(
+                LetRec(
+                    [(loop, Lambda([], If(condition, Begin([body, Apply(Var(loop), [])]), Unit())))],
+                    Apply(Var(loop), []),
+                )
+            )
 
         case Lambda(parameters, body):
-            raise NotImplementedError()
+            return Lambda(parameters, recur(body))
 
         case Apply(callee, arguments):
-            raise NotImplementedError()
+            return Apply(recur(callee), [recur(argument) for argument in arguments])
 
         case Assign(name, value):  # pragma: no branch
-            raise NotImplementedError()
+            return Assign(name, recur(value))

@@ -1,12 +1,32 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Union
+from maltose import (
+    Int,
+    Add,
+    Subtract,
+    Multiply,
+    Let,
+    Var,
+    Bool,
+    If,
+    LessThan,
+    EqualTo,
+    GreaterThanOrEqualTo,
+    Unit,
+    Tuple,
+    Get,
+    Set,
+    Lambda,
+    Apply,
+)
 
 type Expression = Union[
     Int,
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    Let[Expression, Expression],
     Var,
     Bool,
     If[Expression, Expression, Expression],
@@ -17,102 +37,16 @@ type Expression = Union[
     Tuple[Expression],
     Get[Expression],
     Set[Expression],
+    Do[Expression, Expression],
     Lambda[Expression],
     Apply[Expression],
 ]
 
 
 @dataclass(frozen=True)
-class Int:
-    value: int
-
-
-@dataclass(frozen=True)
-class Add[Operand]:
-    x: Operand
-    y: Operand
-
-
-@dataclass(frozen=True)
-class Subtract[Operand]:
-    x: Operand
-    y: Operand
-
-
-@dataclass(frozen=True)
-class Multiply[Operand]:
-    x: Operand
-    y: Operand
-
-
-@dataclass(frozen=True)
-class Var:
-    name: str
-
-
-@dataclass(frozen=True)
-class Bool:
-    value: bool
-
-
-@dataclass(frozen=True)
-class If[Condition, Consequent, Alternative]:
-    condition: Condition
-    consequent: Consequent
-    alternative: Alternative
-
-
-@dataclass(frozen=True)
-class LessThan[Operand]:
-    x: Operand
-    y: Operand
-
-
-@dataclass(frozen=True)
-class EqualTo[Operand]:
-    x: Operand
-    y: Operand
-
-
-@dataclass(frozen=True)
-class GreaterThanOrEqualTo[Operand]:
-    x: Operand
-    y: Operand
-
-
-@dataclass(frozen=True)
-class Unit:
-    pass
-
-
-@dataclass(frozen=True)
-class Tuple[Operand]:
-    components: Sequence[Operand]
-
-
-@dataclass(frozen=True)
-class Get[Operand]:
-    tuple: Operand
-    index: Operand
-
-
-@dataclass(frozen=True)
-class Set[Operand]:
-    tuple: Operand
-    index: Operand
-    value: Operand
-
-
-@dataclass(frozen=True)
-class Lambda[Body]:
-    parameters: Sequence[str]
-    body: Body
-
-
-@dataclass(frozen=True)
-class Apply[Operand]:
-    callee: Operand
-    arguments: Sequence[Operand]
+class Do[Effect, Value]:
+    effect: Effect
+    value: Value
 
 
 @dataclass(frozen=True)

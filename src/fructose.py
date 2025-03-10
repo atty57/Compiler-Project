@@ -153,5 +153,4 @@ class While[Condition, Body]:
 @dataclass(frozen=True)
 class Program:
     parameters: Sequence[str]
-    definitions: Sequence[tuple[str, Expression]]
     body: Expression

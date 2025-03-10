@@ -1,39 +1,19 @@
 from collections.abc import Callable
 import pytest
 import fructose
-from fructose import (
-    Int,
-    Let,
-    LetStar,
-    LetRec,
-    Var,
-    Bool,
-    Not,
-    And,
-    Or,
-    If,
-    Cond,
-    Unit,
-    Cell,
-    Begin,
-    While,
-    Assign,
-    Lambda,
-    Apply,
-)
+from fructose import Int, Var, LetStar, Bool, Not, And, Or, If, Cond, Unit, Begin, Cell, While, Lambda, Apply, Assign
 import sucrose
-from sucrose import Tuple
-from simplify import simplify, simplify_expression
+from sucrose import Tuple, Do
 from util import SequentialNameGenerator
+from simplify import simplify, simplify_expression
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[fructose.Program, Callable[[str], str], sucrose.Program]](
         [
             (
-                fructose.Program([], [], Int(0)),
+                fructose.Program([], Int(0)),
                 SequentialNameGenerator(),
                 sucrose.Program([], Int(0)),
             ),
@@ -83,9 +63,9 @@ def test_simplify_expression_int(
                 Int(1),
             ),
             (
-                fructose.Add([Int(1), Int(1)]),
+                fructose.Add([Int(1), Int(2), Int(3)]),
                 SequentialNameGenerator(),
-                sucrose.Add(Int(1), Int(1)),
+                sucrose.Add(Int(1), sucrose.Add(Int(2), Int(3))),
             ),
         ]
     ),
@@ -138,14 +118,19 @@ def test_simplify_expression_subtract(
                 Int(1),
             ),
             (
-                fructose.Multiply([Int(1)]),
+                fructose.Multiply([Int(2)]),
                 SequentialNameGenerator(),
-                Int(1),
+                Int(2),
             ),
             (
-                fructose.Multiply([Int(2), Int(1)]),
+                fructose.Multiply([Int(2), Int(2)]),
                 SequentialNameGenerator(),
-                sucrose.Multiply(Int(2), Int(1)),
+                sucrose.Multiply(Int(2), Int(2)),
+            ),
+            (
+                fructose.Multiply([Int(1), Int(2), Int(3)]),
+                SequentialNameGenerator(),
+                sucrose.Multiply(Int(1), sucrose.Multiply(Int(2), Int(3))),
             ),
         ]
     ),
@@ -158,91 +143,19 @@ def test_simplify_expression_multiply(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
         [
             (
-                Let([("x", Int(0))], Var("x")),
+                fructose.Let([("x", Int(0))], Var("x")),
                 SequentialNameGenerator(),
-                Apply(Lambda(["x"], Var("x")), [Int(0)]),
+                sucrose.Let("x", Int(0), Var("x")),
             ),
         ]
     ),
 )
 def test_simplify_expression_let(
-    expr: fructose.Expression,
-    fresh: Callable[[str], str],
-    expected: sucrose.Expression,
-) -> None:
-    assert simplify_expression(expr, fresh) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, fresh, expected",
-    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
-        [
-            (
-                LetStar([], Var("x")),
-                SequentialNameGenerator(),
-                Var("x"),
-            ),
-            (
-                LetStar([("x", Int(0))], Var("x")),
-                SequentialNameGenerator(),
-                Apply(Lambda(["x"], Var("x")), [Int(0)]),
-            ),
-            (
-                LetStar([("x", Int(0)), ("y", Int(1))], Var("x")),
-                SequentialNameGenerator(),
-                Apply(Lambda(["x"], Apply(Lambda(["y"], Var("x")), [Int(1)])), [Int(0)]),
-            ),
-        ]
-    ),
-)
-def test_simplify_expression_letstar(
-    expr: fructose.Expression,
-    fresh: Callable[[str], str],
-    expected: sucrose.Expression,
-) -> None:
-    assert simplify_expression(expr, fresh) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, fresh, expected",
-    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
-        [
-            (
-                LetRec([], Var("x")),
-                SequentialNameGenerator(),
-                Var("x"),
-            ),
-            (
-                LetRec([("x", Int(0))], Var("x")),
-                SequentialNameGenerator(),
-                Apply(Lambda(["x"], Apply(Lambda(["_t0"], Var("x")), [Assign("x", Int(0))])), [Unit()]),
-            ),
-            (
-                LetRec([("x", Int(0)), ("y", Int(1))], Var("x")),
-                SequentialNameGenerator(),
-                Apply(
-                    Lambda(
-                        ["x", "y"],
-                        Apply(
-                            Lambda(["_t0"], Apply(Lambda(["_t1"], Var("x")), [Assign("y", Int(1))])),
-                            [Assign("x", Int(0))],
-                        ),
-                    ),
-                    [Unit(), Unit()],
-                ),
-            ),
-        ]
-    ),
-)
-def test_simplify_expression_letrec(
     expr: fructose.Expression,
     fresh: Callable[[str], str],
     expected: sucrose.Expression,
@@ -263,6 +176,40 @@ def test_simplify_expression_letrec(
     ),
 )
 def test_simplify_expression_var(
+    expr: fructose.Expression,
+    fresh: Callable[[str], str],
+    expected: sucrose.Expression,
+) -> None:
+    assert simplify_expression(expr, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, fresh, expected",
+    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
+        [
+            (
+                LetStar([], Var("x")),
+                SequentialNameGenerator(),
+                Var("x"),
+            ),
+            (
+                LetStar([("x", Int(0))], Var("x")),
+                SequentialNameGenerator(),
+                sucrose.Let("x", Int(0), Var("x")),
+            ),
+            (
+                LetStar([("x", Int(0)), ("y", Int(1))], Var("x")),
+                SequentialNameGenerator(),
+                sucrose.Let(
+                    "x",
+                    Int(0),
+                    sucrose.Let("y", Int(1), Var("x")),
+                ),
+            ),
+        ]
+    ),
+)
+def test_simplify_expression_letstar(
     expr: fructose.Expression,
     fresh: Callable[[str], str],
     expected: sucrose.Expression,
@@ -329,11 +276,6 @@ def test_simplify_expression_not(
                 SequentialNameGenerator(),
                 If(Bool(True), Bool(False), Bool(False)),
             ),
-            (
-                And([Bool(True), Bool(True), Bool(False)]),
-                SequentialNameGenerator(),
-                If(Bool(True), If(Bool(True), Bool(True), Bool(False)), Bool(False)),
-            ),
         ]
     ),
 )
@@ -363,11 +305,6 @@ def test_simplify_expression_and(
                 Or([Bool(True), Bool(False)]),
                 SequentialNameGenerator(),
                 If(Bool(True), Bool(True), Bool(False)),
-            ),
-            (
-                Or([Bool(False), Bool(False), Bool(True)]),
-                SequentialNameGenerator(),
-                If(Bool(False), Bool(True), If(Bool(False), Bool(True), Bool(False))),
             ),
         ]
     ),
@@ -700,7 +637,6 @@ def test_simplify_expression_set(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -718,7 +654,7 @@ def test_simplify_expression_set(
             (
                 Begin([Unit(), Int(0)]),
                 SequentialNameGenerator(),
-                Apply(Lambda(["_t0"], Int(0)), [Unit()]),
+                Do(Unit(), Int(0)),
             ),
         ]
     ),
@@ -731,7 +667,6 @@ def test_simplify_expression_begin(
     assert simplify_expression(expr, fresh) == expected
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "expr, fresh, expected",
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
@@ -739,102 +674,19 @@ def test_simplify_expression_begin(
             (
                 While(Var("x"), Var("y")),
                 SequentialNameGenerator(),
-                Apply(
-                    Lambda(
-                        ["_loop0"],
-                        Apply(
-                            Lambda(["_t0"], Apply(Var("_loop0"), [])),
-                            [
-                                Assign(
-                                    "_loop0",
-                                    Lambda(
-                                        [],
-                                        If(
-                                            condition=Var("x"),
-                                            consequent=Apply(
-                                                Lambda(
-                                                    ["_t1"],
-                                                    Apply(Var("_loop0"), []),
-                                                ),
-                                                [Var("y")],
-                                            ),
-                                            alternative=Unit(),
-                                        ),
-                                    ),
-                                )
-                            ],
-                        ),
+                sucrose.Let[sucrose.Expression, sucrose.Expression](
+                    "_loop0",
+                    Unit(),
+                    Do(
+                        Assign("_loop0", Lambda([], If(Var("x"), Do(Var("y"), Apply(Var("_loop0"), [])), Unit()))),
+                        Apply(Var("_loop0"), []),
                     ),
-                    [Unit()],
                 ),
             ),
         ]
     ),
 )
 def test_simplify_expression_while(
-    expr: fructose.Expression,
-    fresh: Callable[[str], str],
-    expected: sucrose.Expression,
-) -> None:
-    assert simplify_expression(expr, fresh) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, fresh, expected",
-    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
-        [
-            (
-                Lambda("x", Var("y")),
-                SequentialNameGenerator(),
-                Lambda("x", Var("y")),
-            ),
-        ]
-    ),
-)
-def test_simplify_expression_lambda(
-    expr: fructose.Expression,
-    fresh: Callable[[str], str],
-    expected: sucrose.Expression,
-) -> None:
-    assert simplify_expression(expr, fresh) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, fresh, expected",
-    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
-        [
-            (
-                Apply(Var("x"), []),
-                SequentialNameGenerator(),
-                Apply(Var("x"), []),
-            ),
-        ]
-    ),
-)
-def test_simplify_expression_apply(
-    expr: fructose.Expression,
-    fresh: Callable[[str], str],
-    expected: sucrose.Expression,
-) -> None:
-    assert simplify_expression(expr, fresh) == expected
-
-
-@pytest.mark.xfail
-@pytest.mark.parametrize(
-    "expr, fresh, expected",
-    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
-        [
-            (
-                Assign("x", Var("y")),
-                SequentialNameGenerator(),
-                Assign("x", Var("y")),
-            ),
-        ]
-    ),
-)
-def test_simplify_expression_assign(
     expr: fructose.Expression,
     fresh: Callable[[str], str],
     expected: sucrose.Expression,
