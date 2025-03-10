@@ -96,7 +96,10 @@ def simplify_expression(
                 tempName = fresh("t")
                 rest = varvals[1:]
                 next_part = chain_assigns(rest)
-                return sucrose.Apply(sucrose.Lambda([tempName], next_part), [sucrose.Assign(v, recur(e))])
+                return sucrose.Apply(
+                    sucrose.Lambda([tempName], next_part),
+                    [sucrose.Assign(v, recur(e))]
+                )
 
             inside = chain_assigns(bindings)
             outer_lam = sucrose.Lambda(all_vars, inside)
@@ -110,7 +113,7 @@ def simplify_expression(
             return expression
 
         case Not(x):
-            return If(
+            return sucrose.If(
                 sucrose.EqualTo(recur(x), Bool(True)),
                 Bool(False),
                 Bool(True),
@@ -123,9 +126,9 @@ def simplify_expression(
                 case [x]:
                     return recur(x)
                 case [x, y]:
-                    return If(recur(x), recur(y), Bool(False))
+                    return sucrose.If(recur(x), recur(y), Bool(False))
                 case [x, *rest]:
-                    return If(recur(x), recur(Or(rest)), Bool(False))
+                    return sucrose.If(recur(x), recur(fructose.Or(rest)), Bool(False))
                 case _:
                     raise NotImplementedError(f"And: unhandled operands: {operands}")
 
@@ -136,25 +139,26 @@ def simplify_expression(
                 case [x]:
                     return recur(x)
                 case [x, y]:
-                    return If(recur(x), Bool(True), recur(y))
+                    return sucrose.If(recur(x), Bool(True), recur(y))
                 case [x, *rest]:
-                    return If(recur(x), Bool(True), recur(And(rest)))
+                    return sucrose.If(recur(x), Bool(True), recur(fructose.And(rest)))
                 case _:
                     raise NotImplementedError(f"Or: unhandled operands: {operands}")
 
-        case If(condition, consequent, alternative):
-            return If(recur(condition), recur(consequent), recur(alternative))
+        case fructose.If(condition, consequent, alternative):
+            return sucrose.If(recur(condition), recur(consequent), recur(alternative))
 
         case Cond(arms, default):
             match arms:
                 case []:
                     return recur(default)
                 case [[e1, e2], *rest]:
-                    return If(recur(e1), recur(e2), recur(Cond(rest, default)))
+                    return sucrose.If(recur(e1), recur(e2), recur(fructose.Cond(rest, default)))
                 case _:
                     raise NotImplementedError(f"Cond: unhandled arms: {arms}")
 
-        case fructose.LessThanOrEqualTo(es_seq):
+        # Comparison forms with named-attribute matching for operands:
+        case fructose.LessThanOrEqualTo(operands=es_seq):
             es_list: list[fructose.Expression] = list(es_seq or [])
             match es_list:
                 case []:
@@ -173,7 +177,7 @@ def simplify_expression(
                 case _:
                     raise NotImplementedError(f"LessThanOrEqualTo: unhandled operands: {es_list}")
 
-        case fructose.LessThan(es_seq):
+        case fructose.LessThan(operands=es_seq):
             es_list: list[fructose.Expression] = list(es_seq or [])
             match es_list:
                 case []:
@@ -192,7 +196,7 @@ def simplify_expression(
                 case _:
                     raise NotImplementedError(f"LessThan: unhandled operands: {es_list}")
 
-        case fructose.EqualTo(es_seq):
+        case fructose.EqualTo(operands=es_seq):
             es_list: list[fructose.Expression] = list(es_seq or [])
             match es_list:
                 case []:
@@ -211,7 +215,7 @@ def simplify_expression(
                 case _:
                     raise NotImplementedError(f"EqualTo: unhandled operands: {es_list}")
 
-        case fructose.GreaterThan(es_seq):
+        case fructose.GreaterThan(operands=es_seq):
             es_list: list[fructose.Expression] = list(es_seq or [])
             match es_list:
                 case []:
@@ -230,7 +234,7 @@ def simplify_expression(
                 case _:
                     raise NotImplementedError(f"GreaterThan: unhandled operands: {es_list}")
 
-        case fructose.GreaterThanOrEqualTo(es_seq):
+        case fructose.GreaterThanOrEqualTo(operands=es_seq):
             es_list: list[fructose.Expression] = list(es_seq or [])
             match es_list:
                 case []:
@@ -249,7 +253,7 @@ def simplify_expression(
                 case _:
                     raise NotImplementedError(f"GreaterThanOrEqualTo: unhandled operands: {es_list}")
 
-        case Unit():
+        case fructose.Unit():
             return expression
 
         case Cell(value):
@@ -270,25 +274,43 @@ def simplify_expression(
                 head = body_list[0]
                 tail = fructose.Begin(body_list[1:])
                 tempName = fresh("t")
-                return sucrose.Apply(sucrose.Lambda([tempName], recur(tail)), [recur(head)])
+                return sucrose.Apply(
+                    sucrose.Lambda([tempName], recur(tail)),
+                    [recur(head)]
+                )
 
         case fructose.While(condition, loop_body):
-            loopName = fresh("loop")  # e.g. "_loop0"
-            tempName0 = fresh("t")  # e.g. "_t0"
-            tempName1 = fresh("t")  # e.g. "_t1"
+            loopVar = fresh("loop")  # e.g. "_loop0"
+            t0 = fresh("t")         # e.g. "_t0"
+            t1 = fresh("t")         # e.g. "_t1"
+
+            # Define the loop body
             lamLoop = sucrose.Lambda(
                 [],
                 sucrose.If(
                     recur(condition),
                     sucrose.Apply(
-                        sucrose.Lambda([tempName1], sucrose.Apply(sucrose.Var(loopName), [])), [recur(loop_body)]
+                        sucrose.Lambda([t1], sucrose.Apply(sucrose.Var(loopVar), [])),
+                        [recur(loop_body)],
                     ),
                     sucrose.Unit(),
                 ),
             )
-            assignLoop = sucrose.Assign(loopName, lamLoop)
-            _ = sucrose.Apply(sucrose.Lambda([tempName0], sucrose.Apply(sucrose.Var(loopName), [])), [assignLoop])
-            return sucrose.Unit()
+
+            # We'll assign (loopVar = lamLoop)
+            assignLoop = sucrose.Assign(loopVar, lamLoop)
+
+            # Then we do an inner apply that calls Var(loopVar)
+            bodyOfLoop = sucrose.Apply(
+                sucrose.Lambda([t0], sucrose.Apply(sucrose.Var(loopVar), [])),
+                [assignLoop]
+            )
+
+            # Outer lambda that takes [loopVar]
+            outerLam = sucrose.Lambda([loopVar], bodyOfLoop)
+
+            # Finally, apply that outerLam to Unit
+            return sucrose.Apply(outerLam, [sucrose.Unit()])
 
         case fructose.Lambda(params, body):
             return sucrose.Lambda(params, recur(body))
