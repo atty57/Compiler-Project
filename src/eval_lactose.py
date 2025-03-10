@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 from itertools import count
 from typing import Union
-from maltose import (
+from lactose import (
     Program,
     Atom,
     Int,
@@ -22,6 +22,7 @@ from maltose import (
     Set,
     Lambda,
     Copy,
+    Global,
     Statement,
     Let,
     If,
@@ -34,22 +35,17 @@ type Value = Union[
     Bool,
     Unit,
     Location,
-    Closure,
+    Lambda[Statement],
 ]
 
 type Environment = Mapping[str, Value]
 type Store = Mapping[Location, list[Value]]
+type Globals = Mapping[str, Lambda[Statement]]
 
 
 @dataclass(frozen=True)
 class Location:
     value: int
-
-
-@dataclass(frozen=True)
-class Closure:
-    abs: Lambda[Statement]
-    env: Environment
 
 
 def eval(
@@ -61,6 +57,7 @@ def eval(
         environment={p: a for p, a in zip(program.parameters, arguments, strict=True)},
         store={},
         locations=map(lambda i: Location(i), count(0)),
+        globals=program.functions,
     )
 
 
@@ -69,10 +66,11 @@ def eval_statement(
     environment: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Mapping[str, Lambda[Statement]],
 ) -> tuple[Value, Store]:
+    recur = partial(eval_statement, environment=environment, store=store, locations=locations, globals=globals)
+    expr = partial(eval_expression, environment=environment, store=store, locations=locations, globals=globals)
     atom = partial(eval_atom, environment=environment)
-    expr = partial(eval_expression, environment=environment, store=store, locations=locations)
-    recur = partial(eval_statement, environment=environment, store=store, locations=locations)
 
     match statement:
         case Let(name, value, body):
@@ -90,13 +88,10 @@ def eval_statement(
 
         case Apply(callee, arguments):
             match atom(callee):
-                case Closure(Lambda(parameters, body), environment):
+                case Lambda(parameters, body):
                     return recur(
                         body,
-                        environment={
-                            **environment,
-                            **{p: atom(a) for p, a in zip(parameters, arguments, strict=True)},
-                        },
+                        environment={p: atom(a) for p, a in zip(parameters, arguments, strict=True)},
                     )
                 case _:  # pragma: no cover
                     raise ValueError()
@@ -110,6 +105,7 @@ def eval_expression(
     environment: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Mapping[str, Lambda[Statement]],
 ) -> tuple[Value, Store]:
     atom = partial(eval_atom, environment=environment)
 
@@ -177,11 +173,11 @@ def eval_expression(
                 case _:  # pragma: no cover
                     raise ValueError()
 
-        case Lambda():
-            return Closure(expression, environment), store
-
-        case Copy(value):  # pragma: no branch
+        case Copy(value):
             return atom(value), store
+
+        case Global(name):  # pragma: no branch
+            return globals[name], store
 
 
 def eval_atom(

@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="471c")
     parser.add_argument("input", type=argparse.FileType("r"))
-    parser.add_argument("-o", "--output", type=argparse.FileType("w"))
+    parser.add_argument("-o", "--output", type=argparse.FileType("w"), default="-")
     parser.add_argument("--run", action="store_true")
     parser.add_argument("--args", default=[], action="extend", nargs="*", type=str, help="")
     options = parser.parse_args()
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     with options.input as input:
         module = compile(input.read())
 
-        # print(module, file=options.output)
+        print(module, file=options.output)
 
         if options.run:
             from execute import execute

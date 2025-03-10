@@ -1,8 +1,9 @@
 from collections.abc import Iterator, Sequence
 from itertools import count
 import pytest
-from maltose import (
+from lactose import (
     Program,
+    Lambda,
     Atom,
     Int,
     Var,
@@ -18,15 +19,15 @@ from maltose import (
     Tuple,
     Get,
     Set,
-    Lambda,
     Copy,
+    Global,
     Statement,
     Let,
     If,
     Apply,
     Halt,
 )
-from eval import Value, Closure, Location, Environment, Store, eval, eval_statement, eval_expression, eval_atom
+from eval_lactose import Value, Location, Environment, Store, Globals, eval, eval_statement, eval_expression, eval_atom
 
 
 class SequentialLocationGenerator:
@@ -42,12 +43,12 @@ class SequentialLocationGenerator:
     list[tuple[Program, Sequence[Int], tuple[Value, Store]]](
         [
             (
-                Program([], Halt(Int(0))),
+                Program([], Halt(Int(0)), {}),
                 [],
                 (Int(0), {}),
             ),
             (
-                Program(["x"], Halt(Var("x"))),
+                Program(["x"], Halt(Var("x")), {}),
                 [Int(0)],
                 (Int(0), {}),
             ),
@@ -63,14 +64,15 @@ def test_eval(
 
 
 @pytest.mark.parametrize(
-    "stmt, env, store, locations, expected",
-    list[tuple[Statement, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "stmt, env, store, locations, globals, expected",
+    list[tuple[Statement, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Let("x", Copy(Int(1)), Halt(Var("x"))),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(1), {}),
             ),
         ]
@@ -81,20 +83,22 @@ def test_eval_statement_let(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_statement(stmt, env, store, locations) == expected
+    assert eval_statement(stmt, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "stmt, env, store, locations, expected",
-    list[tuple[Statement, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "stmt, env, store, locations, globals, expected",
+    list[tuple[Statement, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 If(Bool(True), Halt(Int(10)), Halt(Int(20))),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(10), {}),
             ),
             (
@@ -102,6 +106,7 @@ def test_eval_statement_let(
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(20), {}),
             ),
         ]
@@ -112,20 +117,22 @@ def test_eval_statement_if(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_statement(stmt, env, store, locations) == expected
+    assert eval_statement(stmt, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "stmt, env, store, locations, expected",
-    list[tuple[Statement, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "stmt, env, store, locations, globals, expected",
+    list[tuple[Statement, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
-                Apply(Var("id"), [Int(0)]),
-                {"id": Closure(Lambda(["x"], Halt(Var("x"))), {})},
+                Apply(Var("x"), [Int(0)]),
+                {"x": Lambda[Statement](["x"], Halt(Var("x")))},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(0), {}),
             ),
         ]
@@ -136,20 +143,22 @@ def test_eval_statement_apply(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_statement(stmt, env, store, locations) == expected
+    assert eval_statement(stmt, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Add(Int(1), Int(1)),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(2), {}),
             ),
         ]
@@ -160,20 +169,22 @@ def test_eval_expr_add(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Subtract(Int(1), Int(1)),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(0), {}),
             ),
         ]
@@ -184,20 +195,22 @@ def test_eval_expr_subtract(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Multiply(Int(1), Int(2)),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(2), {}),
             ),
         ]
@@ -208,20 +221,22 @@ def test_eval_multiply(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 LessThan(Int(1), Int(2)),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Bool(True), {}),
             ),
         ]
@@ -232,20 +247,22 @@ def test_eval_expr_less_than(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 EqualTo(Int(1), Int(2)),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Bool(False), {}),
             ),
             (
@@ -253,6 +270,7 @@ def test_eval_expr_less_than(
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Bool(True), {}),
             ),
         ]
@@ -263,20 +281,22 @@ def test_eval_expr_equal_to(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 GreaterThanOrEqualTo(Int(2), Int(1)),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Bool(True), {}),
             ),
         ]
@@ -287,20 +307,22 @@ def test_eval_expr_greater_than_or_equal_to(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Tuple([]),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Location(0), {Location(0): []}),
             ),
         ]
@@ -311,20 +333,22 @@ def test_eval_expr_tuple(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Get(Var("t"), Int(0)),
                 {"t": Location(0)},
                 {Location(0): [Int(0)]},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Int(0), {Location(0): [Int(0)]}),
             ),
         ]
@@ -335,20 +359,22 @@ def test_eval_expr_get(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
                 Set(Var("t"), Int(0), Int(1)),
                 {"t": Location(0)},
                 {Location(0): [Int(0)]},
                 map(lambda i: Location(i), count(0)),
+                {},
                 (Unit(), {Location(0): [Int(1)]}),
             ),
         ]
@@ -359,33 +385,36 @@ def test_eval_expr_set(
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
-    "expr, env, store, locations, expected",
-    list[tuple[Expression, Environment, Store, Iterator[Location], tuple[Value, Store]]](
+    "expr, env, store, locations, globals, expected",
+    list[tuple[Expression, Environment, Store, Iterator[Location], Globals, tuple[Value, Store]]](
         [
             (
-                Lambda[Statement]([], Halt(Unit())),
+                Global("f"),
                 {},
                 {},
                 map(lambda i: Location(i), count(0)),
-                (Closure(Lambda([], Halt(Unit())), {}), {}),
+                {"f": Lambda([], Halt(Unit()))},
+                (Lambda([], Halt[Atom](Unit())), {}),
             ),
         ]
     ),
 )
-def test_eval_expr_lambda(
+def test_eval_expr_global(
     expr: Expression,
     env: Environment,
     store: Store,
     locations: Iterator[Location],
+    globals: Globals,
     expected: Value,
 ) -> None:
-    assert eval_expression(expr, env, store, locations) == expected
+    assert eval_expression(expr, env, store, locations, globals) == expected
 
 
 @pytest.mark.parametrize(
