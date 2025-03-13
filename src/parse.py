@@ -47,10 +47,9 @@ class AstTransformer(Transformer[Token, Any]):
     def program(
         self,
         parameters: Sequence[str],
-        definitions: Sequence[tuple[str, Expression]],
         body: Expression,
     ) -> Program:
-        return Program(parameters, definitions, body)
+        return Program(parameters, body)
 
     @v_args(inline=False)
     def parameters(
@@ -58,28 +57,6 @@ class AstTransformer(Transformer[Token, Any]):
         parameters: Sequence[str],
     ) -> Sequence[str]:
         return parameters
-
-    @v_args(inline=False)
-    def definitions(
-        self,
-        definitions: Sequence[tuple[str, Expression]],
-    ) -> Sequence[tuple[str, Expression]]:
-        return definitions
-
-    def value_def(
-        self,
-        name: str,
-        value: Expression,
-    ) -> tuple[str, Expression]:
-        return name, value
-
-    def function_def(
-        self,
-        name: str,
-        parameters: Sequence[str],
-        body: Expression,
-    ) -> tuple[str, Expression]:
-        return name, Lambda(parameters, body)
 
     def int_expr(
         self,
@@ -328,7 +305,7 @@ def parse(
         return AstTransformer().transform(tree)  # type: ignore
 
 
-def parse_expression(
+def parse_expr(
     source: str,
 ) -> Expression:
     with open(os.path.join(__location__, "./fructose.lark"), "r") as f:

@@ -31,7 +31,7 @@ from fructose import (
     Apply,
     Assign,
 )
-from parse import parse, parse_expression
+from parse import parse, parse_expr
 
 
 @pytest.mark.parametrize(
@@ -40,26 +40,18 @@ from parse import parse, parse_expression
         [
             (
                 "(program () 0)",
-                Program([], [], Int(0)),
+                Program([], Int(0)),
             ),
             (
                 "(program (x) x)",
-                Program(["x"], [], Var("x")),
-            ),
-            (
-                "(program () (def x 5) #u)",
-                Program([], [("x", Int(5))], Unit()),
-            ),
-            (
-                "(program () (def (id x) x) #u)",
-                Program([], [("id", Lambda(["x"], Var("x")))], Unit()),
+                Program(["x"], Var("x")),
             ),
         ]
     ),
 )
 def test_parse(
     source: str,
-    expected: Int,
+    expected: Program,
 ) -> None:
     assert parse(source) == expected
 
@@ -75,11 +67,11 @@ def test_parse(
         ]
     ),
 )
-def test_parse_expression_int(
+def test_parse_expr_int(
     source: str,
     expected: Int,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -97,11 +89,11 @@ def test_parse_expression_int(
         ]
     ),
 )
-def test_parse_expression_add(
+def test_parse_expr_add(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -109,8 +101,8 @@ def test_parse_expression_add(
     list[tuple[str, Expression]](
         [
             (
-                "(- 2)",
-                Subtract([Int(2)]),
+                "(- 1)",
+                Subtract([Int(1)]),
             ),
             (
                 "(- 2 1)",
@@ -119,11 +111,11 @@ def test_parse_expression_add(
         ]
     ),
 )
-def test_parse_expression_subtract(
+def test_parse_expr_subtract(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -141,11 +133,11 @@ def test_parse_expression_subtract(
         ]
     ),
 )
-def test_parse_expression_multiply(
+def test_parse_expr_multiply(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -163,11 +155,11 @@ def test_parse_expression_multiply(
         ]
     ),
 )
-def test_parse_expression_let(
+def test_parse_expr_let(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -185,11 +177,11 @@ def test_parse_expression_let(
         ]
     ),
 )
-def test_parse_expression_letstar(
+def test_parse_expr_letstar(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -207,11 +199,11 @@ def test_parse_expression_letstar(
         ]
     ),
 )
-def test_parse_expression_letrec(
+def test_parse_expr_letrec(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -225,11 +217,11 @@ def test_parse_expression_letrec(
         ]
     ),
 )
-def test_parse_expression_var(
+def test_parse_expr_var(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -240,6 +232,20 @@ def test_parse_expression_var(
                 "#t",
                 Bool(True),
             ),
+        ]
+    ),
+)
+def test_parse_expr_true(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
             (
                 "#f",
                 Bool(False),
@@ -247,11 +253,11 @@ def test_parse_expression_var(
         ]
     ),
 )
-def test_parse_expression_bool(
+def test_parse_expr_false(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -265,11 +271,11 @@ def test_parse_expression_bool(
         ]
     ),
 )
-def test_parse_expression_not(
+def test_parse_expr_not(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -281,17 +287,17 @@ def test_parse_expression_not(
                 And([]),
             ),
             (
-                "(and #t)",
-                And([Bool(True)]),
+                "(and #t #t)",
+                And([Bool(True), Bool(True)]),
             ),
         ]
     ),
 )
-def test_parse_expression_and(
+def test_parse_expr_and(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -303,17 +309,17 @@ def test_parse_expression_and(
                 Or([]),
             ),
             (
-                "(or #t)",
-                Or([Bool(True)]),
+                "(or #t #t)",
+                Or([Bool(True), Bool(True)]),
             ),
         ]
     ),
 )
-def test_parse_expression_or(
+def test_parse_expr_or(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -327,11 +333,11 @@ def test_parse_expression_or(
         ]
     ),
 )
-def test_parse_expression_if(
+def test_parse_expr_if(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -339,21 +345,21 @@ def test_parse_expression_if(
     list[tuple[str, Expression]](
         [
             (
-                "(cond (else #u))",
+                "(cond #u)",
                 Cond([], Unit()),
             ),
             (
-                "(cond ((> x 0) 5) (else #u))",
-                Cond([(GreaterThan([Var("x"), Int(0)]), Int(5))], Unit()),
+                "(cond (x y) #u)",
+                Cond([(Var("x"), Var("y"))], Unit()),
             ),
         ]
     ),
 )
-def test_parse_expression_cond(
+def test_parse_expr_cond(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -371,11 +377,11 @@ def test_parse_expression_cond(
         ]
     ),
 )
-def test_parse_expression_less_than_or_equal_to(
+def test_parse_expr_less_than_or_equal_to(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -393,11 +399,11 @@ def test_parse_expression_less_than_or_equal_to(
         ]
     ),
 )
-def test_parse_expression_less_than(
+def test_parse_expr_less_than(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -405,21 +411,21 @@ def test_parse_expression_less_than(
     list[tuple[str, Expression]](
         [
             (
-                "(==)",
+                "(=)",
                 EqualTo([]),
             ),
             (
-                "(== 1 0)",
+                "(= 1 0)",
                 EqualTo([Int(1), Int(0)]),
             ),
         ]
     ),
 )
-def test_parse_expression_equal_to(
+def test_parse_expr_equal_to(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -437,11 +443,11 @@ def test_parse_expression_equal_to(
         ]
     ),
 )
-def test_parse_expression_greater_than(
+def test_parse_expr_greater_than(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -449,17 +455,21 @@ def test_parse_expression_greater_than(
     list[tuple[str, Expression]](
         [
             (
+                "(>=)",
+                GreaterThanOrEqualTo([]),
+            ),
+            (
                 "(>= 1 0)",
                 GreaterThanOrEqualTo([Int(1), Int(0)]),
             ),
         ]
     ),
 )
-def test_parse_expression_greater_than_or_equal_to(
+def test_parse_expr_greater_than_or_equal_to(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -473,11 +483,11 @@ def test_parse_expression_greater_than_or_equal_to(
         ]
     ),
 )
-def test_parse_expression_unit(
+def test_parse_expr_unit(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -491,11 +501,11 @@ def test_parse_expression_unit(
         ]
     ),
 )
-def test_parse_expression_cell(
+def test_parse_expr_cell(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -509,11 +519,11 @@ def test_parse_expression_cell(
         ]
     ),
 )
-def test_parse_expression_get(
+def test_parse_expr_get(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -527,11 +537,11 @@ def test_parse_expression_get(
         ]
     ),
 )
-def test_parse_expression_set(
+def test_parse_expr_set(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -543,17 +553,17 @@ def test_parse_expression_set(
                 Begin([]),
             ),
             (
-                "(begin x #u)",
-                Begin([Var("x"), Unit()]),
+                "(begin #u)",
+                Begin([Unit()]),
             ),
         ]
     ),
 )
-def test_parse_expression_begin(
+def test_parse_expr_begin(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -567,11 +577,11 @@ def test_parse_expression_begin(
         ]
     ),
 )
-def test_parse_expression_while(
+def test_parse_expr_while(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -579,17 +589,21 @@ def test_parse_expression_while(
     list[tuple[str, Expression]](
         [
             (
-                "(lambda () #u)",
-                Lambda([], Unit()),
+                "(abs () 0)",
+                Lambda([], Int(0)),
+            ),
+            (
+                "(abs (x) x)",
+                Lambda(["x"], Var("x")),
             ),
         ]
     ),
 )
-def test_parse_expression_lambda(
+def test_parse_expr_lambda(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -603,11 +617,11 @@ def test_parse_expression_lambda(
         ]
     ),
 )
-def test_parse_expression_apply(
+def test_parse_expr_apply(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected
 
 
 @pytest.mark.parametrize(
@@ -621,8 +635,8 @@ def test_parse_expression_apply(
         ]
     ),
 )
-def test_parse_expression_assign(
+def test_parse_expr_assign(
     source: str,
     expected: Expression,
 ) -> None:
-    assert parse_expression(source) == expected
+    assert parse_expr(source) == expected

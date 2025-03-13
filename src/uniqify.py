@@ -7,6 +7,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Let,
     Var,
     Bool,
     If,
@@ -17,35 +18,33 @@ from glucose import (
     Tuple,
     Get,
     Set,
+    Do,
     Lambda,
     Apply,
 )
-
-
-type Environment = MutableMapping[str, str]
 
 
 def uniqify(
     program: Program,
     fresh: Callable[[str], str],
 ) -> Program:
-    local = {parameter: fresh(parameter) for parameter in program.parameters}
+    replacements = {parameter: fresh(parameter) for parameter in program.parameters}
     return Program(
-        parameters=list(local.values()),
-        body=uniqify_expression(program.body, local, fresh),
+        parameters=list(replacements.values()),
+        body=uniqify_expression(program.body, replacements, fresh),
     )
 
 
 def uniqify_expression(
-    expr: Expression,
-    env: Environment,
+    expression: Expression,
+    replacements: Mapping[str, str],
     fresh: Callable[[str], str],
 ) -> Expression:
-    recur = partial(uniqify_expression, env=env, fresh=fresh)
+    recur = partial(uniqify_expression, replacements=replacements, fresh=fresh)
 
-    match expr:
+    match expression:
         case Int():
-            return expr
+            return expression
 
         case Add(x, y):
             return Add(recur(x), recur(y))
@@ -56,11 +55,15 @@ def uniqify_expression(
         case Multiply(x, y):
             return Multiply(recur(x), recur(y))
 
+        case Let(name, value, body):
+            replacement = fresh(name)
+            return Let(replacement, recur(value), recur(body, replacements={**replacements, name: replacement}))
+
         case Var(x):
-            return Var(env[x])
+            return Var(replacements[x])
 
         case Bool():
-            return expr
+            return expression
 
         case If(condition, consequent, alternative):
             return If(recur(condition), recur(consequent), recur(alternative))
@@ -75,7 +78,7 @@ def uniqify_expression(
             return GreaterThanOrEqualTo(recur(x), recur(y))
 
         case Unit():
-            return expr
+            return expression
 
         case Tuple(components):
             return Tuple([recur(e) for e in components])
@@ -86,22 +89,12 @@ def uniqify_expression(
         case Set(tuple, index, value):
             return Set(recur(tuple), recur(index), recur(value))
 
-        case Lambda(params, body):
-            old_env = dict(env)
-            new_params: list[str] = []
-            for p in params:
-                new_p = fresh(p)
-                new_params.append(new_p)
-                env[p] = new_p
-            new_body = uniqify_expression(body, env, fresh)
-            env.clear()
-            env.update(old_env)
-            return Lambda(new_params, new_body)
+        case Do(effect, value):
+            return Do(recur(effect), recur(value))
 
-        case Apply(callee, arguments):
-            new_callee = recur(callee)
-            new_args = [recur(a) for a in arguments]
-            return Apply(new_callee, new_args)
+        case Lambda(parameters, body):
+            local = {parameter: fresh(parameter) for parameter in parameters}
+            return Lambda(list(local.values()), recur(body, replacements={**replacements, **local}))
 
-        case _:
-            raise NotImplementedError(f"uniqify_expression not implemented for {expr}")
+        case Apply(callee, arguments):  # pragma: no branch
+            return Apply(recur(callee), [recur(e) for e in arguments])
