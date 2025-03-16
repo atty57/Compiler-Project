@@ -30,9 +30,6 @@ from util import SequentialNameGenerator
 from explicate_control import explicate_control, explicate_control_expression
 
 
-()
-
-
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[glucose.Program, Callable[[str], str], maltose.Program]](
@@ -51,9 +48,6 @@ def test_explicate_control(
     expected: maltose.Expression,
 ) -> None:
     assert explicate_control(program, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -85,9 +79,6 @@ def test_explicate_control_expression_int(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -115,9 +106,6 @@ def test_explicate_control_expression_add(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -149,9 +137,6 @@ def test_explicate_control_expression_subtract(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -179,9 +164,6 @@ def test_explicate_control_expression_multiply(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -213,9 +195,6 @@ def test_explicate_control_expression_let(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -245,9 +224,6 @@ def test_explicate_control_expression_var(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -275,9 +251,6 @@ def test_explicate_control_expression_bool(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -313,9 +286,6 @@ def test_explicate_control_expression_if(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -343,9 +313,6 @@ def test_explicate_control_expression_less_than(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -377,9 +344,6 @@ def test_explicate_control_expression_equal_to(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -407,9 +371,6 @@ def test_explicate_control_expression_greater_than_or_equal_to(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -441,9 +402,6 @@ def test_explicate_control_expression_unit(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -471,9 +429,6 @@ def test_explicate_control_expression_tuple(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -505,9 +460,6 @@ def test_explicate_control_expression_get(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -535,9 +487,6 @@ def test_explicate_control_expression_set(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -573,9 +522,6 @@ def test_explicate_control_expression_do(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -619,9 +565,6 @@ def test_explicate_control_expression_lambda(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(

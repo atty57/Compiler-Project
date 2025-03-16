@@ -33,9 +33,69 @@ from close_lambdas import (
     free_variables_expression,
     free_variables_atom,
 )
+from typing import cast
 
 
-()
+def test_close_program_no_lambda():
+    fresh = SequentialNameGenerator()
+    prog = Program(parameters=[], body=Halt(Int(0)))
+    closed = close(prog, fresh)
+    # Without any lambda, the program should remain essentially unchanged.
+    assert closed.body == prog.body
+
+
+def test_close_statement_let_lambda_basic():
+    fresh = SequentialNameGenerator()
+    stmt = Let("x", cast(Expression, Lambda([], cast(Statement, Halt(Int(0))))), cast(Statement, Halt(Int(0))))
+    closed = close_statement(stmt, fresh)
+    assert isinstance(closed, Let)
+
+
+def test_close_statement_apply_no_args():
+    fresh = SequentialNameGenerator()
+    stmt: Statement = Apply(cast(Atom, Var("x")), [])
+    closed = close_statement(stmt, fresh)
+    closed = close_statement(stmt, fresh)
+    # The no-arguments branch should wrap func into a Let
+    assert isinstance(closed, Let)
+
+
+def test_free_variables_atom_fn():
+    assert free_variables_atom(Int(5)) == set()
+    assert free_variables_atom(Var("x")) == {"x"}
+    assert free_variables_expression(Var("")) == {""}
+
+
+def test_free_variables_expression_fn():
+    expr = Add(cast(Atom, Var("x")), cast(Atom, Int(3)))
+    assert free_variables_expression(expr) == {"x"}
+
+
+def test_free_variables_statement_fn():
+    stmt = Let("y", cast(Expression, Copy(Var("z"))), cast(Statement, Halt(Var("x"))))
+    assert free_variables_statement(stmt) == {"x", "z"}
+
+
+def test_close_statement_apply_with_args():
+    from maltose import Apply, Var, Let, Lambda, Halt, Int
+    from close_lambdas import close_statement
+    from util import SequentialNameGenerator
+
+    fresh = SequentialNameGenerator()
+    stmt = Apply(Var("x"), [Var("y")])
+    closed = close_statement(stmt, fresh)
+    expected = Let("_k0", Lambda(["_t0"], Halt(Var("_t0"))), Apply(Var("x"), [Var("y"), Var("_k0")]))
+    assert closed == expected
+
+
+def test_close_statement_unknown():
+    fresh = SequentialNameGenerator()
+
+    class Dummy:
+        pass
+
+    with pytest.raises(NotImplementedError):
+        close_statement(Dummy(), fresh)
 
 
 @pytest.mark.parametrize(
@@ -56,9 +116,6 @@ def test_close(
     expected: Expression,
 ) -> None:
     assert close(program, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -93,9 +150,6 @@ def test_close_statement_let_lambda(
     expected: Statement,
 ) -> None:
     assert close_statement(stmt, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -163,9 +217,6 @@ def test_close_statement_let_other(
     assert close_statement(stmt, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -184,9 +235,6 @@ def test_close_statement_if(
     expected: Statement,
 ) -> None:
     assert close_statement(stmt, fresh) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -209,9 +257,6 @@ def test_close_statement_apply(
     assert close_statement(stmt, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -232,9 +277,6 @@ def test_close_statement_halt(
     assert close_statement(stmt, fresh) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -253,9 +295,6 @@ def test_free_variables_atom_int(
     assert free_variables_atom(atom) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -269,9 +308,6 @@ def test_free_variables_atom_var(
     expected: set[str],
 ) -> None:
     assert free_variables_atom(atom) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -292,9 +328,6 @@ def test_free_variables_atom_bool(
     assert free_variables_atom(atom) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -311,9 +344,6 @@ def test_free_variables_atom_unit(
     expected: set[str],
 ) -> None:
     assert free_variables_atom(atom) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -334,9 +364,6 @@ def test_free_variables_expression_add(
     assert free_variables_expression(expr) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -353,9 +380,6 @@ def test_free_variables_expression_subtract(
     expected: set[str],
 ) -> None:
     assert free_variables_expression(expr) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -376,9 +400,6 @@ def test_free_variables_expression_multiply(
     assert free_variables_expression(expr) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -395,9 +416,6 @@ def test_free_variables_expression_less_than(
     expected: set[str],
 ) -> None:
     assert free_variables_expression(expr) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -418,9 +436,6 @@ def test_free_variables_expression_equal_to(
     assert free_variables_expression(expr) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -437,9 +452,6 @@ def test_free_variables_expression_greater_than_or_equal_to(
     expected: set[str],
 ) -> None:
     assert free_variables_expression(expr) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -464,9 +476,6 @@ def test_free_variables_expression_tuple(
     assert free_variables_expression(expr) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -485,9 +494,6 @@ def test_free_variables_expression_get(
     assert free_variables_expression(expr) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -504,9 +510,6 @@ def test_free_variables_expression_set(
     expected: set[str],
 ) -> None:
     assert free_variables_expression(expr) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -531,9 +534,6 @@ def test_free_variables_expression_lambda(
     assert free_variables_expression(expr) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -550,9 +550,6 @@ def test_free_variables_expression_copy(
     expected: set[str],
 ) -> None:
     assert free_variables_expression(expr) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
@@ -577,9 +574,6 @@ def test_free_variables_statement_let(
     assert free_variables_statement(stmt) == expected
 
 
-()
-
-
 @pytest.mark.parametrize(
     "stmt, expected",
     list[tuple[Statement, set[str]]](
@@ -596,9 +590,6 @@ def test_free_variables_statement_if(
     expected: set[str],
 ) -> None:
     assert free_variables_statement(stmt) == expected
-
-
-()
 
 
 @pytest.mark.parametrize(
