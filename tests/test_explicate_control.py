@@ -30,7 +30,9 @@ from util import SequentialNameGenerator
 from explicate_control import explicate_control, explicate_control_expression
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[glucose.Program, Callable[[str], str], maltose.Program]](
@@ -51,7 +53,9 @@ def test_explicate_control(
     assert explicate_control(program, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -81,7 +85,9 @@ def test_explicate_control_expression_int(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -111,7 +117,9 @@ def test_explicate_control_expression_add(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -141,7 +149,9 @@ def test_explicate_control_expression_subtract(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -171,7 +181,9 @@ def test_explicate_control_expression_multiply(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -201,7 +213,9 @@ def test_explicate_control_expression_let(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -231,7 +245,9 @@ def test_explicate_control_expression_var(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -261,7 +277,9 @@ def test_explicate_control_expression_bool(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -295,7 +313,9 @@ def test_explicate_control_expression_if(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -325,7 +345,9 @@ def test_explicate_control_expression_less_than(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -355,7 +377,9 @@ def test_explicate_control_expression_equal_to(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -385,7 +409,9 @@ def test_explicate_control_expression_greater_than_or_equal_to(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -415,7 +441,9 @@ def test_explicate_control_expression_unit(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -445,7 +473,9 @@ def test_explicate_control_expression_tuple(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -475,7 +505,9 @@ def test_explicate_control_expression_get(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -505,7 +537,9 @@ def test_explicate_control_expression_set(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -541,7 +575,9 @@ def test_explicate_control_expression_do(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[
@@ -585,7 +621,9 @@ def test_explicate_control_expression_lambda(
     assert explicate_control_expression(expr, k, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, k, fresh, expected",
     list[

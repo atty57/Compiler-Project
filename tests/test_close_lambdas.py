@@ -35,7 +35,9 @@ from close_lambdas import (
 )
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[Program, Callable[[str], str], Program]](
@@ -56,7 +58,9 @@ def test_close(
     assert close(program, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -91,7 +95,9 @@ def test_close_statement_let_lambda(
     assert close_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -157,7 +163,9 @@ def test_close_statement_let_other(
     assert close_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -178,7 +186,9 @@ def test_close_statement_if(
     assert close_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -199,7 +209,9 @@ def test_close_statement_apply(
     assert close_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[tuple[Statement, Callable[[str], str], Statement]](
@@ -220,7 +232,9 @@ def test_close_statement_halt(
     assert close_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -239,7 +253,9 @@ def test_free_variables_atom_int(
     assert free_variables_atom(atom) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -255,7 +271,9 @@ def test_free_variables_atom_var(
     assert free_variables_atom(atom) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -274,7 +292,9 @@ def test_free_variables_atom_bool(
     assert free_variables_atom(atom) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "atom, expected",
     list[tuple[Atom, set[str]]](
@@ -293,7 +313,9 @@ def test_free_variables_atom_unit(
     assert free_variables_atom(atom) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -312,7 +334,9 @@ def test_free_variables_expression_add(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -331,7 +355,9 @@ def test_free_variables_expression_subtract(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -350,7 +376,9 @@ def test_free_variables_expression_multiply(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -369,7 +397,9 @@ def test_free_variables_expression_less_than(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -388,7 +418,9 @@ def test_free_variables_expression_equal_to(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -407,7 +439,9 @@ def test_free_variables_expression_greater_than_or_equal_to(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -430,7 +464,9 @@ def test_free_variables_expression_tuple(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -449,7 +485,9 @@ def test_free_variables_expression_get(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -468,7 +506,9 @@ def test_free_variables_expression_set(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -491,7 +531,9 @@ def test_free_variables_expression_lambda(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "expr, expected",
     list[tuple[Expression, set[str]]](
@@ -510,7 +552,9 @@ def test_free_variables_expression_copy(
     assert free_variables_expression(expr) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, expected",
     list[tuple[Statement, set[str]]](
@@ -533,7 +577,9 @@ def test_free_variables_statement_let(
     assert free_variables_statement(stmt) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, expected",
     list[tuple[Statement, set[str]]](
@@ -552,7 +598,9 @@ def test_free_variables_statement_if(
     assert free_variables_statement(stmt) == expected
 
 
-@pytest.mark.xfail()
+()
+
+
 @pytest.mark.parametrize(
     "stmt, expected",
     list[tuple[Statement, set[str]]](

@@ -1,4 +1,4 @@
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from functools import partial
 from glucose import (
     Program,
