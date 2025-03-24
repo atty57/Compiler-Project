@@ -20,6 +20,16 @@ from hoist import (
 )
 
 
+def test_hoist_statement_unknown():
+    fresh = SequentialNameGenerator()
+
+    class Dummy:
+        pass
+
+    with pytest.raises(NotImplementedError):
+        hoist_statement(Dummy(), fresh)
+
+
 def test_hoist_statement_let_lambda():
     from typing import cast
 
@@ -62,16 +72,6 @@ def test_hoist_statement_halt_basic():
     closed, funcs = hoist_statement(stmt, fresh)
     assert funcs == {}
     assert isinstance(closed, Halt)
-
-
-def test_hoist_statement_unknown():
-    fresh = SequentialNameGenerator()
-
-    class Dummy:
-        pass
-
-    with pytest.raises(NotImplementedError):
-        hoist_statement(Dummy(), fresh)
 
 
 def test_hoist_program():

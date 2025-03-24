@@ -36,6 +36,16 @@ from close_lambdas import (
 from typing import cast
 
 
+def test_close_statement_unknown():
+    fresh = SequentialNameGenerator()
+
+    class Dummy:
+        pass
+
+    with pytest.raises(NotImplementedError):
+        close_statement(Dummy(), fresh)
+
+
 def test_close_program_no_lambda():
     fresh = SequentialNameGenerator()
     prog = Program(parameters=[], body=Halt(Int(0)))
@@ -86,16 +96,6 @@ def test_close_statement_apply_with_args():
     closed = close_statement(stmt, fresh)
     expected = Let("_k0", Lambda(["_t0"], Halt(Var("_t0"))), Apply(Var("x"), [Var("y"), Var("_k0")]))
     assert closed == expected
-
-
-def test_close_statement_unknown():
-    fresh = SequentialNameGenerator()
-
-    class Dummy:
-        pass
-
-    with pytest.raises(NotImplementedError):
-        close_statement(Dummy(), fresh)
 
 
 @pytest.mark.parametrize(
