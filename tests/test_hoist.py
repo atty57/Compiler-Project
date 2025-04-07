@@ -20,7 +20,6 @@ from hoist import (
 )
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[maltose.Program, Callable[[str], str], lactose.Program]](
@@ -41,7 +40,6 @@ def test_hoist(
     assert hoist(program, fresh) == expected
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[
@@ -71,7 +69,6 @@ def test_hoist_statement_let_lambda(
     assert hoist_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[
@@ -101,7 +98,6 @@ def test_hoist_statement_let_other(
     assert hoist_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[
@@ -131,7 +127,6 @@ def test_hoist_statement_if(
     assert hoist_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[
@@ -161,7 +156,6 @@ def test_hoist_statement_apply(
     assert hoist_statement(stmt, fresh) == expected
 
 
-@pytest.mark.xfail()
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[

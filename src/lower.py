@@ -78,9 +78,7 @@ def lower_statement(
     recur = partial(lower_statement, env=env, builder=builder)
     expr = partial(lower_expression, env=env, builder=builder)
 
-    match statement:
-        case _:
-            raise NotImplementedError()
+    raise NotImplementedError()
 
 
 def lower_expression(
@@ -90,9 +88,7 @@ def lower_expression(
 ) -> ir.Value:
     atom = partial(lower_atom, env=env, builder=builder)
 
-    match expression:
-        case _:
-            raise NotImplementedError()
+    raise NotImplementedError()
 
 
 def lower_atom(
@@ -100,6 +96,4 @@ def lower_atom(
     env: Mapping[str, ir.Value],
     builder: ir.IRBuilder,
 ) -> ir.Value:
-    match atom:
-        case _:
-            raise NotImplementedError()
+    raise NotImplementedError()

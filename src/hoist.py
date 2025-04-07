@@ -31,5 +31,25 @@ def hoist_statement(
     recur = partial(hoist_statement, fresh=fresh)
 
     match statement:
-        case _:
-            raise NotImplementedError()
+        case Let(name, value, next):
+            match value:
+                case Lambda(parameters, body):
+                    f = fresh("f")
+                    body, fs1 = recur(body)
+                    next, fs2 = recur(next)
+                    return Let(name, Global(f), next), {**fs1, **fs2, f: Lambda(parameters, body)}
+
+                case value:  # pragma: no branch
+                    next, fs = recur(next)
+                    return Let(name, value, next), fs
+
+        case If(condition, then, otherwise):
+            then, fs1 = recur(then)
+            otherwise, fs2 = recur(otherwise)
+            return If(condition, then, otherwise), {**fs1, **fs2}
+
+        case Apply():
+            return statement, {}
+
+        case Halt():  # pragma: no branch
+            return statement, {}
