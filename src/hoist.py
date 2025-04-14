@@ -5,6 +5,7 @@ from maltose import Lambda, Let, If, Apply, Halt
 import lactose
 from lactose import Global
 
+
 def hoist(
     program: maltose.Program,
     fresh: Callable[[str], str],
@@ -16,30 +17,31 @@ def hoist(
         functions=functions,
     )
 
+
 def hoist_statement(
     statement: maltose.Statement,
     fresh: Callable[[str], str],
 ) -> tuple[lactose.Statement, Mapping[str, Lambda[lactose.Statement]]]:
     match statement:
-        case Let(var, value, body):
-            if isinstance(value, Lambda):
-                # Preserve the original let–variable name.
-                if var.startswith("_"):
-                    var = var.lstrip("_")
-                new_name = fresh("f")  # e.g. "_f0"
-                body_closed, funcs = hoist_statement(body, fresh)
-                return (Let(var, Global(new_name), body_closed),
-                        {**funcs, new_name: value})
-            else:
-                body_closed, funcs = hoist_statement(body, fresh)
-                return (Let(var, value, body_closed), funcs)
-        case If(cond, then_stmt, else_stmt):
-            then_closed, funcs_then = hoist_statement(then_stmt, fresh)
-            else_closed, funcs_else = hoist_statement(else_stmt, fresh)
-            return (If(cond, then_closed, else_closed), {**funcs_then, **funcs_else})
-        case Apply(callee, args):
-            return (Apply(callee, args), {})
-        case Halt(value):
-            return (Halt(value), {})
-        case _:
-            raise NotImplementedError()
+        case Let(name, value, next):
+            match value:
+                case Lambda(parameters, body):
+                    f = fresh("f")
+                    body, fs1 = recur(body)
+                    next, fs2 = recur(next)
+                    return Let(name, Global(f), next), {**fs1, **fs2, f: Lambda(parameters, body)}
+
+                case value:  # pragma: no branch
+                    next, fs = recur(next)
+                    return Let(name, value, next), fs
+
+        case If(condition, then, otherwise):
+            then, fs1 = recur(then)
+            otherwise, fs2 = recur(otherwise)
+            return If(condition, then, otherwise), {**fs1, **fs2}
+
+        case Apply():
+            return statement, {}
+
+        case Halt():  # pragma: no branch
+            return statement, {}

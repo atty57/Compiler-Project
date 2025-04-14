@@ -1,4 +1,5 @@
 from llvmlite.ir import Module  # type: ignore
+from llvmlite.binding import parse_assembly, ModuleRef, PipelineTuningOptions  # type: ignore
 from parse import parse
 from simplify import simplify
 from assignment_conversion import convert_assignments

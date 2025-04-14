@@ -64,7 +64,7 @@ _GET.2: "^"
 _SET.2: ":="
 _BEGIN.2: "begin"
 _WHILE.2: "while"
-_LAMBDA.2: "abs"
+_LAMBDA.2: "abs" | "lambda" | "\\"
 _ASSIGN.2: "set!"
 
 INT.2: ("0".."9")+

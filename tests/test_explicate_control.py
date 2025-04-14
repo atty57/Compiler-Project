@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 import pytest
 import glucose
 from glucose import (
@@ -27,7 +27,7 @@ from maltose import (
     Halt,
 )
 from util import SequentialNameGenerator
-from explicate_control import explicate_control, explicate_control_expression
+from explicate_control import explicate_control, explicate_control_expression, explicate_control_expressions
 
 
 @pytest.mark.parametrize(
@@ -608,3 +608,38 @@ def test_explicate_control_expression_apply(
     expected: maltose.Statement,
 ) -> None:
     assert explicate_control_expression(expr, k, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "exprs, k, fresh, expected",
+    list[
+        tuple[
+            Sequence[glucose.Expression],
+            Callable[[Sequence[maltose.Atom]], maltose.Statement],
+            Callable[[str], str],
+            maltose.Statement,
+        ]
+    ](
+        [
+            (
+                [],
+                lambda vs: Let("t", Tuple(vs), Halt(Var("t"))),
+                SequentialNameGenerator(),
+                Let("t", Tuple([]), Halt(Var("t"))),
+            ),
+            (
+                [Int(0), Int(0)],
+                lambda vs: Let("t", Tuple(vs), Halt(Var("t"))),
+                SequentialNameGenerator(),
+                Let("t", Tuple([Int(0), Int(0)]), Halt(Var("t"))),
+            ),
+        ]
+    ),
+)
+def test_explicate_control_expressions(
+    exprs: Sequence[glucose.Expression],
+    k: Callable[[Sequence[maltose.Atom]], maltose.Statement],
+    fresh: Callable[[str], str],
+    expected: maltose.Statement,
+) -> None:
+    assert explicate_control_expressions(exprs, k, fresh) == expected

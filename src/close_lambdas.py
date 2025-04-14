@@ -28,6 +28,7 @@ from maltose import (
 )
 from lactose import Global
 
+
 def close(
     program: Program,
     fresh: Callable[[str], str],
@@ -37,34 +38,49 @@ def close(
         close_statement(program.body, fresh),
     )
 
+
 def close_statement(
     statement: Statement,
     fresh: Callable[[str], str],
 ) -> Statement:
+    stmt = partial(close_statement, fresh=fresh)
     match statement:
-        case Let(var, expr, body):
-            if isinstance(expr, Lambda):
-                # Optionally, you might handle the lambda binding specially
-                # (like capturing free vars, etc.), but this was already
-                # part of your code. We won't change it, just keep it:
-                env_param = fresh("t")
-                new_name = fresh("t")
-                closed_lambda = close_lambda_with_env(expr, env_param, fresh)
-                fvs = free_variables_expression(expr)
-                if fvs:
-                    tuple_val = Tuple([Var(new_name)] + [Var(v) for v in sorted(fvs)])
-                else:
-                    tuple_val = Tuple([Var(new_name)])
-                return Let(new_name, closed_lambda,
-                           Let(var, tuple_val, close_statement(body, fresh)))
-            else:
-                return Let(var, cast(Expression, close_expression(expr, fresh)),
-                           close_statement(body, fresh))
+        case Let(name, value, next):
+            match value:
+                case Lambda(parameters, body):
+                    fvs = list(free_variables_expression(value))
+                    env = fresh("t")
+
+                    body: Statement = stmt(body)
+                    for i, v in enumerate(fvs):
+                        body = Let(v, Get(Var(env), Int(i + 1)), body)
+
+                    code = fresh("t")
+                    return Let(
+                        code,
+                        Lambda([env, *parameters], body),
+                        Let(
+                            name,
+                            Tuple([Var(code), *[Var(v) for v in fvs]]),
+                            stmt(next),
+                        ),
+                    )
+
+                case value:  # pragma: no branch
+                    return Let(name, value, stmt(next))
+
+        case If(condition, then, otherwise):
+            return If(condition, stmt(then), stmt(otherwise))
+
+        case Apply(callee, arguments):
+            t = fresh("t")
+            return Let(t, Get(callee, Int(0)), Apply(Var(t), [callee, *arguments]))
+
+        case Halt():  # pragma: no branch
+            return statement
 
         case If(cond, then_stmt, else_stmt):
-            return If(close_atom(cond, fresh),
-                      close_statement(then_stmt, fresh),
-                      close_statement(else_stmt, fresh))
+            return If(close_atom(cond, fresh), close_statement(then_stmt, fresh), close_statement(else_stmt, fresh))
 
         case Apply(func, args):
             #
@@ -74,21 +90,23 @@ def close_statement(
             #
             if not args:
                 tmp = fresh("t")  # e.g. '_t0'
-                return Let(tmp, Get(close_atom(func, fresh), Int(0)),
-                           Apply(Var(tmp), [close_atom(func, fresh)]))
+                return Let(tmp, Get(close_atom(func, fresh), Int(0)), Apply(Var(tmp), [close_atom(func, fresh)]))
             else:
                 # Your original code for the non-empty-args case
                 cont = fresh("k")
                 param = fresh("t")
-                return Let(cont, Lambda([param], Halt(Var(param))),
-                           Apply(close_atom(func, fresh),
-                                 [close_atom(arg, fresh) for arg in args] + [Var(cont)]))
+                return Let(
+                    cont,
+                    Lambda([param], Halt(Var(param))),
+                    Apply(close_atom(func, fresh), [close_atom(arg, fresh) for arg in args] + [Var(cont)]),
+                )
 
         case Halt():
             return statement
 
         case _:
             raise NotImplementedError(f"close_statement: Unhandled statement: {statement}")
+
 
 def close_expression(
     expression: Expression | Atom,
@@ -130,6 +148,7 @@ def close_expression(
         case expr:
             return expr
 
+
 def close_lambda_with_env(
     lambda_expr: Lambda,
     env_param: str,
@@ -145,55 +164,49 @@ def close_lambda_with_env(
             closed_body = Let(fv, Get(Var(env_param), Int(idx)), closed_body)
     return Lambda(new_params, closed_body)
 
+
 def free_variables_statement(
     statement: Statement,
 ) -> set[str]:
     expr_fv = free_variables_expression
     match statement:
-        case Let(var, expr, body):
-            return expr_fv(expr) | (free_variables_statement(body) - {var})
-        case If(cond, then_stmt, else_stmt):
-            return free_variables_atom(cond) | free_variables_statement(then_stmt) | free_variables_statement(else_stmt)
-        case Apply(func, args):
-            fv = expr_fv(func)
-            for arg in args:
-                fv |= expr_fv(arg)
-            return fv
-        case Halt(value):
-            return free_variables_atom(value)
-        case _:
-            raise NotImplementedError(f"free_variables_statement: Unhandled statement: {statement}")
+        case Let(name, value, body):
+            return expr(value) | (recur(body) - {name})
+
+        case If(condition, then, otherwise):
+            return atom(condition) | recur(then) | recur(otherwise)
+
+        case Apply(callee, arguments):
+            return atom(callee) | {fv for argument in arguments for fv in atom(argument)}
+
+        case Halt(value):  # pragma: no branch
+            return atom(value)
+
 
 def free_variables_expression(
     expression: Expression | Atom,
 ) -> set[str]:
+    atom = partial(free_variables_atom)
+    stmt = partial(free_variables_statement)
     match expression:
-        case Add(left, right):
-            return free_variables_expression(left) | free_variables_expression(right)
-        case Subtract(left, right):
-            return free_variables_expression(left) | free_variables_expression(right)
-        case Multiply(left, right):
-            return free_variables_expression(left) | free_variables_expression(right)
-        case LessThan(left, right):
-            return free_variables_expression(left) | free_variables_expression(right)
-        case EqualTo(left, right):
-            return free_variables_expression(left) | free_variables_expression(right)
-        case GreaterThanOrEqualTo(left, right):
-            return free_variables_expression(left) | free_variables_expression(right)
-        case Tuple(elements):
-            return {v for e in elements for v in free_variables_expression(e)}
-        case Get(t, i):
-            return free_variables_expression(t) | free_variables_expression(i)
-        case Set(t, i, v):
-            return free_variables_expression(t) | free_variables_expression(i) | free_variables_expression(v)
-        case Lambda(params, body):
-            return free_variables_statement(body) - set(params)
-        case Copy(e):
-            return free_variables_expression(e)
-        case Int() | Var() | Bool() | Unit():
-            return free_variables_atom(expression)
-        case _:
-            raise NotImplementedError(f"free_variables_expression: Unhandled expression: {expression}")
+        case Add(x, y) | Subtract(x, y) | Multiply(x, y) | LessThan(x, y) | EqualTo(x, y) | GreaterThanOrEqualTo(x, y):
+            return atom(x) | atom(y)
+
+        case Tuple(components):
+            return {fv for component in components for fv in atom(component)}
+
+        case Get(tuple, index):
+            return atom(tuple) | atom(index)
+
+        case Set(tuple, index, value):
+            return atom(tuple) | atom(index) | atom(value)
+
+        case Lambda(parameters, body):
+            return stmt(body) - set(parameters)
+
+        case Copy(value):  # pragma: no branch
+            return atom(value)
+
 
 def close_atom(
     atom: Atom,
@@ -204,15 +217,14 @@ def close_atom(
         raise TypeError(f"Expected Atom, got {e}")
     return e
 
+
 def free_variables_atom(atom: Atom) -> set[str]:
     match atom:
-        case Int(_):
+        case Int():
             return set()
-        case Bool(_):
+        case Var(x):
+            return {x}
+        case Bool():
             return set()
-        case Unit():
+        case Unit():  # pragma: no branch
             return set()
-        case Var(name):
-            return {name}
-        case _:
-            raise NotImplementedError(f"free_variables_atom: {atom}")
