@@ -16,7 +16,6 @@ from lactose import Global
 from util import SequentialNameGenerator
 from hoist import (
     hoist,
-    hoist_statement,
 )
 
 
@@ -37,7 +36,7 @@ def test_hoist(
     fresh: Callable[[str], str],
     expected: lactose.Expression,
 ) -> None:
-    assert hoist(program, fresh) == expected
+    assert hoist(program, fresh) == expected  # type: ignore
 
 
 @pytest.mark.parametrize(

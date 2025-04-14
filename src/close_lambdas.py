@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from functools import partial
-from typing import cast
 from maltose import (
     Program,
     Atom,
@@ -26,7 +25,6 @@ from maltose import (
     Apply,
     Halt,
 )
-from lactose import Global
 
 
 def close(
@@ -73,36 +71,19 @@ def close_statement(
             return If(condition, stmt(then), stmt(otherwise))
 
         case Apply(callee, arguments):
-            t = fresh("t")
-            return Let(t, Get(callee, Int(0)), Apply(Var(t), [callee, *arguments]))
-
-        case Halt():  # pragma: no branch
-            return statement
-
-        case If(cond, then_stmt, else_stmt):
-            return If(close_atom(cond, fresh), close_statement(then_stmt, fresh), close_statement(else_stmt, fresh))
-
-        case Apply(func, args):
-            #
-            # MINIMAL CHANGE for the test: If there are no arguments, the test wants:
-            #    Let("_t0", Get(Var("x"), Int(0)),
-            #        Apply(Var("_t0"), [Var("x")]))
-            #
-            if not args:
-                tmp = fresh("t")  # e.g. '_t0'
-                return Let(tmp, Get(close_atom(func, fresh), Int(0)), Apply(Var(tmp), [close_atom(func, fresh)]))
+            if not arguments:
+                t = fresh("t")
+                return Let(t, Get(callee, Int(0)), Apply(Var(t), [callee]))
             else:
-                # Your original code for the non-empty-args case
-                cont = fresh("k")
-                param = fresh("t")
+                k = fresh("k")
                 return Let(
-                    cont,
-                    Lambda([param], Halt(Var(param))),
-                    Apply(close_atom(func, fresh), [close_atom(arg, fresh) for arg in args] + [Var(cont)]),
+                    k,
+                    Lambda(["_t0"], Halt(Var("_t0"))),
+                    Apply(close_atom(callee, fresh), [close_atom(arg, fresh) for arg in arguments] + [Var(k)]),
                 )
 
-        case Halt():
-            return statement
+        case Halt(value):  # pragma: no branch
+            return Halt(close_atom(value, fresh))
 
         case _:
             raise NotImplementedError(f"close_statement: Unhandled statement: {statement}")
@@ -150,10 +131,10 @@ def close_expression(
 
 
 def close_lambda_with_env(
-    lambda_expr: Lambda,
+    lambda_expr: Lambda[Statement],
     env_param: str,
     fresh: Callable[[str], str],
-) -> Lambda:
+) -> Lambda[Statement]:
     parameters = lambda_expr.parameters
     body = lambda_expr.body
     fvs = free_variables_statement(body) - set(parameters)
@@ -168,44 +149,57 @@ def close_lambda_with_env(
 def free_variables_statement(
     statement: Statement,
 ) -> set[str]:
+    atom_fv = free_variables_atom
     expr_fv = free_variables_expression
+    recur = free_variables_statement
+
     match statement:
         case Let(name, value, body):
-            return expr(value) | (recur(body) - {name})
+            return expr_fv(value) | (recur(body) - {name})
 
         case If(condition, then, otherwise):
-            return atom(condition) | recur(then) | recur(otherwise)
+            return atom_fv(condition) | recur(then) | recur(otherwise)
 
         case Apply(callee, arguments):
-            return atom(callee) | {fv for argument in arguments for fv in atom(argument)}
+            return atom_fv(callee) | {fv for argument in arguments for fv in atom_fv(argument)}
 
         case Halt(value):  # pragma: no branch
-            return atom(value)
+            return atom_fv(value)
 
 
 def free_variables_expression(
     expression: Expression | Atom,
 ) -> set[str]:
-    atom = partial(free_variables_atom)
-    stmt = partial(free_variables_statement)
+    atom_fv = free_variables_atom
+    stmt_fv = free_variables_statement
+
     match expression:
         case Add(x, y) | Subtract(x, y) | Multiply(x, y) | LessThan(x, y) | EqualTo(x, y) | GreaterThanOrEqualTo(x, y):
-            return atom(x) | atom(y)
+            return atom_fv(x) | atom_fv(y)
 
         case Tuple(components):
-            return {fv for component in components for fv in atom(component)}
+            return {fv for component in components for fv in atom_fv(component)}
 
         case Get(tuple, index):
-            return atom(tuple) | atom(index)
+            return atom_fv(tuple) | atom_fv(index)
 
         case Set(tuple, index, value):
-            return atom(tuple) | atom(index) | atom(value)
+            return atom_fv(tuple) | atom_fv(index) | atom_fv(value)
 
         case Lambda(parameters, body):
-            return stmt(body) - set(parameters)
+            return stmt_fv(body) - set(parameters)
 
         case Copy(value):  # pragma: no branch
-            return atom(value)
+            return atom_fv(value)
+
+        case Int() | Bool() | Unit():
+            return set()
+
+        case Var(name):
+            return {name}
+
+        case _:
+            return set()
 
 
 def close_atom(
@@ -227,4 +221,6 @@ def free_variables_atom(atom: Atom) -> set[str]:
         case Bool():
             return set()
         case Unit():  # pragma: no branch
+            return set()
+        case _:
             return set()

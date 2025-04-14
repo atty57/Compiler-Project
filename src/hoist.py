@@ -1,47 +1,54 @@
-from collections.abc import Callable, Mapping
-from functools import partial
-import maltose
-from maltose import Lambda, Let, If, Apply, Halt
-import lactose
-from lactose import Global
+from collections.abc import Callable
+from typing import Dict, cast
+
+from lactose import (
+    Program,
+    Lambda,
+    Statement,
+    Let,
+    If,
+    Apply,
+    Halt,
+    Global,
+)
 
 
-def hoist(
-    program: maltose.Program,
-    fresh: Callable[[str], str],
-) -> lactose.Program:
-    body, functions = hoist_statement(program.body, fresh)
-    return lactose.Program(
-        parameters=program.parameters,
-        body=body,
-        functions=functions,
-    )
+def hoist(program: Program, fresh: Callable[[str], str]) -> Program:
+    """
+    Hoist all lambda expressions to the top level, replacing them with references
+    to global functions.
+    """
+    functions: Dict[str, Lambda[Statement]] = {}
 
+    def hoist_statement(statement: Statement) -> Statement:
+        """Recursively hoist lambdas in statements."""
+        recur = hoist_statement
 
-def hoist_statement(
-    statement: maltose.Statement,
-    fresh: Callable[[str], str],
-) -> tuple[lactose.Statement, Mapping[str, Lambda[lactose.Statement]]]:
-    match statement:
-        case Let(name, value, next):
-            match value:
-                case Lambda(parameters, body):
-                    f = fresh("f")
-                    body, fs1 = recur(body)
-                    next, fs2 = recur(next)
-                    return Let(name, Global(f), next), {**fs1, **fs2, f: Lambda(parameters, body)}
+        match statement:
+            case Let(name, value, body):
+                if isinstance(value, Lambda):
+                    # Hoist the lambda to top level
+                    func_name = fresh("lambda")
+                    functions[func_name] = Lambda[Statement](
+                        value.parameters, hoist_statement(cast(Statement, value.body))
+                    )
+                    # Replace with global reference
+                    return Let(name, Global(func_name), hoist_statement(body))
+                else:
+                    # Process other expressions normally
+                    return Let(name, value, hoist_statement(body))
 
-                case value:  # pragma: no branch
-                    next, fs = recur(next)
-                    return Let(name, value, next), fs
+            case If(condition, then_branch, else_branch):
+                return If(condition, recur(then_branch), recur(else_branch))
 
-        case If(condition, then, otherwise):
-            then, fs1 = recur(then)
-            otherwise, fs2 = recur(otherwise)
-            return If(condition, then, otherwise), {**fs1, **fs2}
+            case Apply(callee, arguments):
+                return Apply(callee, arguments)
 
-        case Apply():
-            return statement, {}
+            case Halt(value):
+                return Halt(value)
 
-        case Halt():  # pragma: no branch
-            return statement, {}
+            case _:
+                raise ValueError(f"Unhandled statement type: {type(statement)}")
+
+    hoisted_body = hoist_statement(program.body)
+    return Program(program.parameters, hoisted_body, functions)
