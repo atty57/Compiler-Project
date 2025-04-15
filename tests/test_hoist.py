@@ -1,5 +1,7 @@
+# tests/test_hoist.py
 from collections.abc import Callable, Mapping
 import pytest
+
 import maltose
 from maltose import (
     Int,
@@ -11,14 +13,21 @@ from maltose import (
     If,
     Halt,
 )
+
 import lactose
 from lactose import Global
 from util import SequentialNameGenerator
+
+# ——— import BOTH public helpers from hoist.py ———
 from hoist import (
     hoist,
+    hoist_statement,   # <- added so the tests can call it
 )
 
 
+# --------------------------------------------------------------------------- #
+#  top‑level hoist                                                             #
+# --------------------------------------------------------------------------- #
 @pytest.mark.parametrize(
     "program, fresh, expected",
     list[tuple[maltose.Program, Callable[[str], str], lactose.Program]](
@@ -34,11 +43,14 @@ from hoist import (
 def test_hoist(
     program: maltose.Program,
     fresh: Callable[[str], str],
-    expected: lactose.Expression,
+    expected: lactose.Program,
 ) -> None:
-    assert hoist(program, fresh) == expected  # type: ignore
+    assert hoist(program, fresh) == expected
 
 
+# --------------------------------------------------------------------------- #
+#  hoist_statement                                                             #
+# --------------------------------------------------------------------------- #
 @pytest.mark.parametrize(
     "stmt, fresh, expected",
     list[
@@ -63,7 +75,7 @@ def test_hoist(
 def test_hoist_statement_let_lambda_parametrized(
     stmt: maltose.Statement,
     fresh: Callable[[str], str],
-    expected: lactose.Statement,
+    expected: tuple[lactose.Statement, Mapping[str, lactose.Lambda[lactose.Statement]]],
 ) -> None:
     assert hoist_statement(stmt, fresh) == expected
 
@@ -92,7 +104,7 @@ def test_hoist_statement_let_lambda_parametrized(
 def test_hoist_statement_let_other(
     stmt: maltose.Statement,
     fresh: Callable[[str], str],
-    expected: lactose.Statement,
+    expected: tuple[lactose.Statement, Mapping[str, lactose.Lambda[lactose.Statement]]],
 ) -> None:
     assert hoist_statement(stmt, fresh) == expected
 
@@ -121,7 +133,7 @@ def test_hoist_statement_let_other(
 def test_hoist_statement_if(
     stmt: maltose.Statement,
     fresh: Callable[[str], str],
-    expected: lactose.Statement,
+    expected: tuple[lactose.Statement, Mapping[str, lactose.Lambda[lactose.Statement]]],
 ) -> None:
     assert hoist_statement(stmt, fresh) == expected
 
@@ -150,7 +162,7 @@ def test_hoist_statement_if(
 def test_hoist_statement_apply(
     stmt: maltose.Statement,
     fresh: Callable[[str], str],
-    expected: lactose.Statement,
+    expected: tuple[lactose.Statement, Mapping[str, lactose.Lambda[lactose.Statement]]],
 ) -> None:
     assert hoist_statement(stmt, fresh) == expected
 
@@ -179,6 +191,6 @@ def test_hoist_statement_apply(
 def test_hoist_statement_halt(
     stmt: maltose.Statement,
     fresh: Callable[[str], str],
-    expected: lactose.Statement,
+    expected: tuple[lactose.Statement, Mapping[str, lactose.Lambda[lactose.Statement]]],
 ) -> None:
     assert hoist_statement(stmt, fresh) == expected

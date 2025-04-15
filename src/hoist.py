@@ -1,54 +1,97 @@
-from collections.abc import Callable
-from typing import Dict, cast
+# hoist.py
+from __future__ import annotations
 
-from lactose import (
-    Program,
+from collections.abc import Callable, Mapping
+from typing import Dict, Tuple
+
+import maltose
+from maltose import (
     Lambda,
-    Statement,
     Let,
     If,
     Apply,
     Halt,
+)
+from lactose import (
+    Program,
     Global,
 )
 
+# Type aliases to keep the signatures readable
+Statement = maltose.Statement
+FunctionMap = Dict[str, Lambda[Statement]]
 
-def hoist(program: Program, fresh: Callable[[str], str]) -> Program:
+
+def hoist_statement(
+    statement: Statement,
+    fresh: Callable[[str], str],
+) -> Tuple[Statement, FunctionMap]:
     """
-    Hoist all lambda expressions to the top level, replacing them with references
-    to global functions.
+    Hoist every λ‑expression that appears directly in a `Let` binding.
+
+    Returns a pair `(new_stmt, functions)` where
+
+    * `new_stmt`  – the transformed statement with lambdas replaced by `Global`s
+    * `functions` – a mapping from fresh global names to the lifted lambdas
     """
-    functions: Dict[str, Lambda[Statement]] = {}
+    match statement:
+        # ──────────────────────────────────────────────────────────── LET ──
+        case Let(var, value, body):
+            if isinstance(value, Lambda):
+                # Give the lambda a fresh top‑level name such as "_f0"
+                fn_name = fresh("f")
 
-    def hoist_statement(statement: Statement) -> Statement:
-        """Recursively hoist lambdas in statements."""
-        recur = hoist_statement
+                # First hoist inside the lambda's *body*
+                lifted_body, inner_funcs = hoist_statement(value.body, fresh)
+                lifted_abs: Lambda[Statement] = Lambda(value.parameters, lifted_body)
 
-        match statement:
-            case Let(name, value, body):
-                if isinstance(value, Lambda):
-                    # Hoist the lambda to top level
-                    func_name = fresh("lambda")
-                    functions[func_name] = Lambda[Statement](
-                        value.parameters, hoist_statement(cast(Statement, value.body))
-                    )
-                    # Replace with global reference
-                    return Let(name, Global(func_name), hoist_statement(body))
-                else:
-                    # Process other expressions normally
-                    return Let(name, value, hoist_statement(body))
+                # Then hoist inside the *rest* of the program
+                new_body, rest_funcs = hoist_statement(body, fresh)
 
-            case If(condition, then_branch, else_branch):
-                return If(condition, recur(then_branch), recur(else_branch))
+                return (
+                    Let(var, Global(fn_name), new_body),
+                    {fn_name: lifted_abs, **inner_funcs, **rest_funcs},
+                )
 
-            case Apply(callee, arguments):
-                return Apply(callee, arguments)
+            # Non‑lambda value: just recurse into the body
+            new_body, funcs = hoist_statement(body, fresh)
+            return (Let(var, value, new_body), funcs)
 
-            case Halt(value):
-                return Halt(value)
+        # ───────────────────────────────────────────────────────────── IF ──
+        case If(cond, then_stmt, else_stmt):
+            then_h, funcs_then = hoist_statement(then_stmt, fresh)
+            else_h, funcs_else = hoist_statement(else_stmt, fresh)
+            return (If(cond, then_h, else_h), {**funcs_then, **funcs_else})
 
-            case _:
-                raise ValueError(f"Unhandled statement type: {type(statement)}")
+        # ─────────────────────────────────────────────────────────── APPLY ──
+        case Apply(callee, args):
+            return (Apply(callee, args), {})
 
-    hoisted_body = hoist_statement(program.body)
-    return Program(program.parameters, hoisted_body, functions)
+        # ─────────────────────────────────────────────────────────── HALT ──
+        case Halt(val):
+            return (Halt(val), {})
+
+        # ─────────────────────────────────────────────────────────── OTHER ──
+        case _:
+            raise NotImplementedError(
+                f"hoist_statement: unhandled statement kind {type(statement)}"
+            )
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Public entry‑point used by the compiler pipeline
+# ──────────────────────────────────────────────────────────────────────────
+def hoist(
+    program: maltose.Program,
+    fresh: Callable[[str], str],
+) -> Program:
+    """
+    Lift all lambdas in a Maltose program to top‑level functions,
+    producing a Lactose `Program` that carries a `functions` dictionary.
+    """
+    body, functions = hoist_statement(program.body, fresh)
+    return Program(
+        parameters=program.parameters,
+        body=body,
+        functions=functions,
+    )
