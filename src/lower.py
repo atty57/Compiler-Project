@@ -78,7 +78,36 @@ def lower_statement(
     recur = partial(lower_statement, env=env, builder=builder)
     expr = partial(lower_expression, env=env, builder=builder)
 
-    raise NotImplementedError()
+    match statement:
+        case Let(name, value, next):
+            return recur(next, env={**env, name: expr(value)})
+
+        case If(condition, then, otherwise):
+            with builder.if_else(builder.trunc(atom(condition), i1)) as (
+                ifTrue,
+                ifFalse,
+            ):  # type: ignore
+                with ifTrue:
+                    recur(then)
+                with ifFalse:
+                    recur(otherwise)
+            builder.unreachable()
+
+        case Apply(callee, arguments):
+            builder.ret(  # type: ignore
+                builder.call(  # type: ignore
+                    fn=builder.inttoptr(  # type: ignore
+                        atom(callee),
+                        ir.FunctionType(i64, [i64 for _ in arguments]).as_pointer(),
+                    ),
+                    args=[atom(argument) for argument in arguments],
+                    tail="musttail",  # type: ignore
+                    cconv="tailcc",
+                )
+            )
+
+        case Halt(value):  # pragma: no branch
+            builder.ret(atom(value))  # type: ignore
 
 
 def lower_expression(
@@ -88,7 +117,51 @@ def lower_expression(
 ) -> ir.Value:
     atom = partial(lower_atom, env=env, builder=builder)
 
-    raise NotImplementedError()
+    match expression:
+        case Add(x, y):
+            return builder.add(atom(x), atom(y))  # type: ignore
+
+        case Subtract(x, y):
+            return builder.sub(atom(x), atom(y))  # type: ignore
+
+        case Multiply(x, y):
+            return builder.mul(atom(x), atom(y))  # type: ignore
+
+        case LessThan(x, y):
+            return builder.zext(builder.icmp_signed("<", atom(x), atom(y)), typ=i64)  # type: ignore
+
+        case EqualTo(x, y):
+            return builder.zext(builder.icmp_signed("==", atom(x), atom(y)), typ=i64)  # type: ignore
+
+        case GreaterThanOrEqualTo(x, y):
+            return builder.zext(builder.icmp_signed(">=", atom(x), atom(y)), typ=i64)  # type: ignore
+
+        case Tuple(xs):
+            base = builder.call(builder.module.get_global("malloc"), [ir.Constant(i64, len(xs) * 8)])  # type: ignore
+
+            for i, x in enumerate(xs):
+                builder.store(value=atom(x), ptr=builder.gep(base, [ir.Constant(i64, i)]))  # type: ignore
+
+            return builder.ptrtoint(base, typ=i64)  # type: ignore
+
+        case Get(base, index):
+            return builder.load(
+                builder.gep(builder.inttoptr(atom(base), typ=i64.as_pointer()), [atom(index)]),
+                typ=i64,
+            )  # type: ignore
+
+        case Set(base, index, value):
+            builder.store(  # type: ignore
+                atom(value),
+                builder.gep(builder.inttoptr(atom(base), i64.as_pointer()), [atom(index)]),  # type: ignore
+            )
+            return ir.Constant(i64, 0)
+
+        case Copy(value):
+            return atom(value)
+
+        case Global(name):
+            return builder.ptrtoint(builder.module.get_global(name), typ=i64)  # type: ignore
 
 
 def lower_atom(
@@ -96,4 +169,15 @@ def lower_atom(
     env: Mapping[str, ir.Value],
     builder: ir.IRBuilder,
 ) -> ir.Value:
-    raise NotImplementedError()
+    match atom:
+        case Int(i):
+            return ir.Constant(i64, i)
+
+        case Var(name):
+            return env[name]
+
+        case Bool(b):
+            return builder.zext(ir.Constant(i1, b), typ=i64)  # type: ignore
+
+        case Unit():
+            return ir.Constant(i64, 0)
