@@ -1,0 +1,9 @@
+ (program (n)
+   (let ((ans 1))
+     (begin
+       (while 
+         (> n 0)
+         (begin
+           (set! ans (* n ans))
+           (set! n (- n 1))))
+           ans)))
