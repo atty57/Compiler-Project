@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from functools import partial
 from typing import cast
 from llvmlite import ir  # type: ignore
+
 from lactose import (
     Program,
     Atom,
