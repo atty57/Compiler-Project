@@ -34,6 +34,7 @@ type Expression = Union[
     Add[Atom],
     Subtract[Atom],
     Multiply[Atom],
+    Div[Atom],
     LessThan[Atom],
     EqualTo[Atom],
     GreaterThanOrEqualTo[Atom],
@@ -59,6 +60,12 @@ class Subtract[Operand]:
 
 @dataclass(frozen=True)
 class Multiply[Operand]:
+    x: Operand
+    y: Operand
+
+
+@dataclass(frozen=True)
+class Div[Operand]:
     x: Operand
     y: Operand
 

@@ -6,6 +6,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Var,
     Let,
     Bool,
@@ -74,6 +75,16 @@ def explicate_control_expression(
                 lambda x: expr(
                     y,
                     lambda y: Let(t, Multiply(x, y), m(Var(t))),
+                ),
+            )
+
+        case Div(x, y):
+            t = fresh("t")
+            return expr(
+                x,
+                lambda x: expr(
+                    y,
+                    lambda y: Let(t, Div(x, y), m(Var(t))),
                 ),
             )
 

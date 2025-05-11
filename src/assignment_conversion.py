@@ -5,6 +5,7 @@ from sucrose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
@@ -52,6 +53,9 @@ def convert_assignments_expression(
 
         case Multiply(x, y):
             return Multiply(recur(x), recur(y))
+
+        case Div(x, y):
+            return Div(recur(x), recur(y))
 
         case Let(name, value, body):
             (vars_m, vars_u) = _partition({name}, body)
@@ -137,7 +141,7 @@ def mutable_free_variables(
         case Int():
             return set()
 
-        case Add(x, y) | Subtract(x, y) | Multiply(x, y):
+        case Add(x, y) | Subtract(x, y) | Multiply(x, y) | Div(x, y):
             return recur(x) | recur(y)
 
         case Let(name, value, body):

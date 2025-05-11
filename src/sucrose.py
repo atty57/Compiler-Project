@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Sequence
 from glucose import (
     Int,
     Add,
@@ -27,6 +27,7 @@ type Expression = Union[
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    Div[Expression],
     Let[Expression, Expression],
     Var,
     Bool,

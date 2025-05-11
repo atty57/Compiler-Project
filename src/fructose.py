@@ -17,6 +17,7 @@ type Expression = Union[
     Add[Expression],
     Subtract[Expression],
     Multiply[Expression],
+    Div[Expression],
     Let[Expression, Expression],
     LetStar[Expression, Expression],
     LetRec[Expression, Expression],
@@ -56,6 +57,11 @@ class Subtract[Operand]:
 
 @dataclass(frozen=True)
 class Multiply[Operand]:
+    operands: Sequence[Operand]
+
+
+@dataclass(frozen=True)
+class Div[Operand]:
     operands: Sequence[Operand]
 
 

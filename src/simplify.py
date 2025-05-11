@@ -59,6 +59,19 @@ def simplify_expression(
                 case _:
                     raise NotImplementedError(f"Multiply: unhandled operands: {operands}")
 
+        case fructose.Div(operands):
+            match operands:
+                case []:
+                    return Int(1)
+                case [x]:
+                    return recur(x)
+                case [x, y]:
+                    return sucrose.Div(recur(x), recur(y))
+                case [x, *rest]:
+                    return sucrose.Div(recur(x), recur(fructose.Div(rest)))
+                case _:
+                    raise NotImplementedError(f"Div: unhandled operands: {operands}")
+
         case fructose.Let(bindings, body):
             match bindings:
                 case []:

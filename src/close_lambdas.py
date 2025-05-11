@@ -11,6 +11,7 @@ from maltose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
@@ -100,6 +101,8 @@ def close_expression(
             return Subtract(close_atom(left, fresh), close_atom(right, fresh))
         case Multiply(left, right):
             return Multiply(close_atom(left, fresh), close_atom(right, fresh))
+        case Div(left, right):
+            return Div(close_atom(left, fresh), close_atom(right, fresh))
         case LessThan(left, right):
             return LessThan(close_atom(left, fresh), close_atom(right, fresh))
         case EqualTo(left, right):
@@ -174,7 +177,15 @@ def free_variables_expression(
     stmt_fv = free_variables_statement
 
     match expression:
-        case Add(x, y) | Subtract(x, y) | Multiply(x, y) | LessThan(x, y) | EqualTo(x, y) | GreaterThanOrEqualTo(x, y):
+        case (
+            Add(x, y)
+            | Subtract(x, y)
+            | Multiply(x, y)
+            | Div(x, y)
+            | LessThan(x, y)
+            | EqualTo(x, y)
+            | GreaterThanOrEqualTo(x, y)
+        ):
             return atom_fv(x) | atom_fv(y)
 
         case Tuple(components):

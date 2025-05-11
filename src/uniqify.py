@@ -1,4 +1,4 @@
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Callable, Mapping
 from functools import partial
 from glucose import (
     Program,
@@ -7,6 +7,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
@@ -54,6 +55,9 @@ def uniqify_expression(
 
         case Multiply(x, y):
             return Multiply(recur(x), recur(y))
+
+        case Div(x, y):
+            return Div(recur(x), recur(y))
 
         case Let(name, value, body):
             replacement = fresh(name)

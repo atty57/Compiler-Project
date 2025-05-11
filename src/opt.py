@@ -1,4 +1,5 @@
 from functools import partial
+from constant_folding import constant_fold
 from glucose import (
     Program,
     Expression,
@@ -6,6 +7,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
@@ -21,6 +23,10 @@ from glucose import (
     Lambda,
     Apply,
 )
+
+
+class CompileError(Exception):
+    pass
 
 
 def opt(
@@ -85,6 +91,15 @@ def opt_expr(
                     return Multiply(e2, e1)
                 case [e1, e2]:  # pragma: no branch
                     return Multiply(e1, e2)
+
+        case Div(e1, e2):
+            match recur(e1), recur(e2):
+                case [Int(i1), Int(i2)]:
+                    if i2 == 0:
+                        raise CompileError("division by zero at compile time")
+                    return Int(i1 // i2)
+                case [e1, e2]:  # pragma: no branch
+                    return Div(e1, e2)
 
         case Let(x, value, body):
             match recur(body):

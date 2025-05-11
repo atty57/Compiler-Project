@@ -6,6 +6,7 @@ expr: int                                                           -> int_expr
     | "(" _ADD expr* ")"                                            -> add_expr
     | "(" _SUBTRACT expr+ ")"                                       -> subtract_expr
     | "(" _MULTIPLY expr* ")"                                       -> multiply_expr
+    | "(" _DIV expr expr ")"                                        -> div_expr
     | "(" _LET "(" bindings ")" expr ")"                            -> let_expr
     | "(" _LETSTAR "(" bindings ")" expr ")"                        -> letstar_expr
     | "(" _LETREC "(" bindings ")" expr ")"                         -> letrec_expr
@@ -46,6 +47,7 @@ _PROGRAM.2: "program"
 _ADD.2: "+"
 _SUBTRACT.2: "-"
 _MULTIPLY.2: "*"
+_DIV: "div"
 _LET.2: "let"
 _LETSTAR.2: "let*"
 _LETREC.2: "letrec"

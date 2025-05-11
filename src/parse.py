@@ -15,6 +15,7 @@ from fructose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     LetStar,
     LetRec,
@@ -84,6 +85,13 @@ class AstTransformer(Transformer[Token, Any]):
         operands: Sequence[Expression],
     ) -> Multiply[Expression]:
         return Multiply(operands)
+
+    @v_args(inline=False)
+    def div_expr(
+        self,
+        operands: Sequence[Expression],
+    ) -> Div[Expression]:
+        return Div(operands)
 
     def let_expr(
         self,

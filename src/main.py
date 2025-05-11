@@ -9,6 +9,8 @@ from explicate_control import explicate_control
 from close_lambdas import close
 from hoist import hoist
 from lower import lower
+from constant_folding import constant_fold
+from value_numbering import value_numbering
 
 from util import SequentialNameGenerator
 
@@ -23,6 +25,8 @@ def compile(source: str) -> Module:
     program = explicate_control(program, fresh)
     program = close(program, fresh)
     program = hoist(program, fresh)
+    program = constant_fold(program)
+    program = value_numbering(program)
     return lower(program)
 
 
