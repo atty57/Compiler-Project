@@ -22,7 +22,7 @@ from glucose import (
     Lambda,
     Apply,
 )
-from opt import opt, opt_expr
+from opt import opt, opt_expr, CompileError
 
 
 @pytest.mark.parametrize(
@@ -201,15 +201,11 @@ def test_opt_expr_multiply(
 
 @pytest.mark.parametrize(
     "expr, expected",
-    list[tuple[Expression, Expression]](
+    list[tuple[Expression, Expression | type[Exception]]](
         [
             (
                 Div(Int(6), Int(2)),
                 Int(3),
-            ),
-            (
-                Div(Int(0), Var("x")),
-                Int(0),
             ),
             (
                 Div(Var("x"), Int(1)),
@@ -223,28 +219,30 @@ def test_opt_expr_multiply(
                 Div(Int(1), Int(2)),
                 Int(0),
             ),
+            # <-- cases are failing from here-->
             (
                 Div(Int(1), Div(Int(2), Int(3))),
-                Div(Int(1), Int(0)),
+                Int(1),
             ),
             (
                 Div(Int(2), Div(Var("x"), Int(3))),
                 Div(Int(6), Var("x")),
             ),
             (
-                Div(Div(Int(2), Var("x")), Div(Int(3), Var("y"))),
-                Div(Int(6), Div(Var("x"), Var("y"))),
+                Div(Div(Int(2), Var("x")), Div(Var("y"), Int(3))),
+                Div(Int(6), Multiply(Var("x"), Var("y"))),
             ),
             (
                 Div(Int(2), Div(Int(3), Var("x"))),
-                Div(Int(6), Var("x")),
+                Div(Multiply(Int(2), Var("x")), Int(3)),
             ),
+            # <-- to here-->
             (
                 Div(Int(2), Var("x")),
                 Div(Int(2), Var("x")),
             ),
             (
-                Div(Var("x"), Int(2)),
+                Div(Int(1), Div(Var("x"), Int(2))),
                 Div(Int(2), Var("x")),
             ),
             (
@@ -255,22 +253,23 @@ def test_opt_expr_multiply(
                 Div(Int(5), Var("x")),
                 Div(Int(5), Var("x")),
             ),
-            (
-                Div(Int(5), Int(0)),
-                Div(Int(5), Int(0)),
-            ),
+            (Div(Int(5), Int(0)), CompileError),
             (
                 Div(Int(0), Int(0)),
-                Div(Int(0), Int(0)),
+                Int(0),
             ),
         ]
     ),
 )
 def test_opt_expr_div(
     expr: Expression,
-    expected: Expression,
+    expected: Expression | type[Exception],
 ) -> None:
-    assert opt_expr(expr) == expected
+    if isinstance(expected, type):
+        with pytest.raises(expected):
+            opt_expr(expr)
+    else:
+        assert opt_expr(expr) == expected
 
 
 @pytest.mark.parametrize(

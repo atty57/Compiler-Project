@@ -1,6 +1,5 @@
 from collections.abc import Callable, Sequence
 from functools import partial
-from typing import cast
 import glucose
 from glucose import (
     Int,
@@ -83,9 +82,10 @@ def explicate_control_expression(
             t = fresh("t")
             return expr(
                 x,
-                lambda x: expr(
+                lambda x_val: expr(  # Renamed to avoid clash if x, y are Vars
                     y,
-                    lambda y: cast(maltose.Statement, Let(t, Div(x, y), m(Var(t)))),
+                    # Corrected line:
+                    lambda y_val: Let(t, Copy(Div(x_val, y_val)), m(Var(t))),
                 ),
             )
 

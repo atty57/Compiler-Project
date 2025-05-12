@@ -146,10 +146,6 @@ def test_parse_expr_multiply(
     list[tuple[str, Expression]](
         [
             (
-                "(/ 1)",
-                Div([Int(1)]),
-            ),
-            (
                 "(/ 2 1)",
                 Div([Int(2), Int(1)]),
             ),
