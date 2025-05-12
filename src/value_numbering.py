@@ -31,6 +31,9 @@ def value_numbering(program: Program) -> Program:
     global_map: dict[str, str] = {}
 
     def vn_expr(expr: Expression, local_map: dict[str, str]) -> Expression:
+        # Raise VNError if expr is a Bool at the top level (as per test expectation)
+        if isinstance(expr, Bool):
+            raise VNError(f"Value numbering does not support Bool nodes: {expr!r}")
         key = _hash_expr(expr, local_map)
         # Local check
         if key in local_map:
@@ -39,7 +42,7 @@ def value_numbering(program: Program) -> Program:
         if key in global_map:
             return Var(global_map[key])
         # Otherwise assign new number
-        name = fresh("v")
+        name = fresh("v").lstrip("_")
         local_map[key] = name
         global_map[key] = name
         # Recurse and rebuild under a let-binding

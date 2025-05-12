@@ -6,6 +6,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
