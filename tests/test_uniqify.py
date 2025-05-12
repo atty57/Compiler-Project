@@ -7,6 +7,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
@@ -131,6 +132,28 @@ def test_uniqify_expression_subtract(
     ),
 )
 def test_uniqify_expression_multiply(
+    expr: Expression,
+    replacements: Mapping[str, str],
+    fresh: Callable[[str], str],
+    expected: Expression,
+) -> None:
+    assert uniqify_expression(expr, replacements, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, replacements, fresh, expected",
+    list[tuple[Expression, Mapping[str, str], Callable[[str], str], Expression]](
+        [
+            (
+                Div(Int(1), Int(1)),
+                {},
+                SequentialNameGenerator(),
+                Div(Int(1), Int(1)),
+            ),
+        ]
+    ),
+)
+def test_uniqify_expression_div(
     expr: Expression,
     replacements: Mapping[str, str],
     fresh: Callable[[str], str],

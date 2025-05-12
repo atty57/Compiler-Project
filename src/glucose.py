@@ -55,3 +55,9 @@ class Do[Effect, Value]:
 class Program:
     parameters: Sequence[str]
     body: Expression
+
+
+@dataclass(frozen=True)
+class Div[Operand]:
+    x: Operand
+    y: Operand

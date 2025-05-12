@@ -11,6 +11,7 @@ from maltose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     LessThan,
     EqualTo,
     GreaterThanOrEqualTo,
@@ -170,6 +171,11 @@ def test_close_statement_let_lambda(
                 Let("x", Multiply(Int(0), Int(0)), Halt(Int(0))),
                 SequentialNameGenerator(),
                 Let("x", Multiply(Int(0), Int(0)), Halt(Int(0))),
+            ),
+            (
+                Let("x", Div(Int(0), Int(0)), Halt(Int(0))),
+                SequentialNameGenerator(),
+                Let("x", Div(Int(0), Int(0)), Halt(Int(0))),
             ),
             (
                 Let("x", LessThan(Int(0), Int(0)), Halt(Int(0))),
@@ -394,6 +400,24 @@ def test_free_variables_expression_subtract(
     ),
 )
 def test_free_variables_expression_multiply(
+    expr: Expression,
+    expected: set[str],
+) -> None:
+    assert free_variables_expression(expr) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected",
+    list[tuple[Expression, set[str]]](
+        [
+            (
+                Div(Var("x"), Var("y")),
+                {"x", "y"},
+            ),
+        ]
+    ),
+)
+def test_free_variables_expression_div(
     expr: Expression,
     expected: set[str],
 ) -> None:

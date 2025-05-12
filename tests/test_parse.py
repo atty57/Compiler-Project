@@ -6,6 +6,7 @@ from fructose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     LetStar,
     LetRec,
@@ -134,6 +135,28 @@ def test_parse_expr_subtract(
     ),
 )
 def test_parse_expr_multiply(
+    source: str,
+    expected: Expression,
+) -> None:
+    assert parse_expr(source) == expected
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    list[tuple[str, Expression]](
+        [
+            (
+                "(/ 1)",
+                Div([Int(1)]),
+            ),
+            (
+                "(/ 2 1)",
+                Div([Int(2), Int(1)]),
+            ),
+        ]
+    ),
+)
+def test_parse_expr_div(
     source: str,
     expected: Expression,
 ) -> None:

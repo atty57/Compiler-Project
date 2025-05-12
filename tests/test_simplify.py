@@ -148,6 +148,41 @@ def test_simplify_expression_multiply(
     list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
         [
             (
+                fructose.Div([]),
+                SequentialNameGenerator(),
+                Int(1),
+            ),
+            (
+                fructose.Div([Int(2)]),
+                SequentialNameGenerator(),
+                Int(2),
+            ),
+            (
+                fructose.Div([Int(2), Int(2)]),
+                SequentialNameGenerator(),
+                sucrose.Div(Int(2), Int(2)),
+            ),
+            (
+                fructose.Div([Int(1), Int(2), Int(3)]),
+                SequentialNameGenerator(),
+                sucrose.Div(Int(1), sucrose.Div(Int(2), Int(3))),
+            ),
+        ]
+    ),
+)
+def test_simplify_expression_div(
+    expr: fructose.Expression,
+    fresh: Callable[[str], str],
+    expected: sucrose.Expression,
+) -> None:
+    assert simplify_expression(expr, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, fresh, expected",
+    list[tuple[fructose.Expression, Callable[[str], str], sucrose.Expression]](
+        [
+            (
                 fructose.Let([("x", Int(0))], Var("x")),
                 SequentialNameGenerator(),
                 sucrose.Let("x", Int(0), Var("x")),

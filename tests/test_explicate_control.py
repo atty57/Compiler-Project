@@ -6,6 +6,7 @@ from glucose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
@@ -158,6 +159,35 @@ def test_explicate_control_expression_subtract(
     ),
 )
 def test_explicate_control_expression_multiply(
+    expr: glucose.Expression,
+    k: Callable[[maltose.Atom], maltose.Statement],
+    fresh: Callable[[str], str],
+    expected: maltose.Statement,
+) -> None:
+    assert explicate_control_expression(expr, k, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, k, fresh, expected",
+    list[
+        tuple[
+            glucose.Expression,
+            Callable[[maltose.Atom], maltose.Statement],
+            Callable[[str], str],
+            maltose.Statement,
+        ]
+    ](
+        [
+            (
+                Div(Int(0), Int(0)),
+                lambda v: Halt(v),
+                SequentialNameGenerator(),
+                Let("_t0", Copy(Div(Int(0), Int(0))), Halt(Var("_t0"))),
+            ),
+        ]
+    ),
+)
+def test_explicate_control_expression_div(
     expr: glucose.Expression,
     k: Callable[[maltose.Atom], maltose.Statement],
     fresh: Callable[[str], str],

@@ -6,6 +6,7 @@ from sucrose import (
     Add,
     Subtract,
     Multiply,
+    Div,
     Let,
     Var,
     Bool,
@@ -23,7 +24,7 @@ from sucrose import (
     Assign,
 )
 import glucose
-from assignment_conversion import convert_assignments, convert_assignments_expression, mutable_free_variables
+from assignment_conversion import convert_assignments, mutable_free_variables, convert_assignments_expression
 
 
 @pytest.mark.parametrize(
@@ -125,6 +126,26 @@ def test_convert_assignments_expression_subtract(
     ),
 )
 def test_convert_assignments_expression_multiply(
+    expr: sucrose.Expression,
+    vars: set[str],
+    expected: glucose.Expression,
+) -> None:
+    assert convert_assignments_expression(expr, vars) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, vars, expected",
+    list[tuple[sucrose.Expression, set[str], glucose.Expression]](
+        [
+            (
+                Div(Int(0), Int(0)),
+                set(),
+                Div(Int(0), Int(0)),
+            ),
+        ]
+    ),
+)
+def test_convert_assignments_expression_div(
     expr: sucrose.Expression,
     vars: set[str],
     expected: glucose.Expression,
@@ -425,6 +446,7 @@ def test_convert_assignments_expression_apply(
             (Add(Int(0), Int(0)), set()),
             (Subtract(Int(0), Int(0)), set()),
             (Multiply(Int(0), Int(0)), set()),
+            (Div(Int(0), Int(0)), set()),
             (Let("x", Int(0), Unit()), set()),
             (Var("x"), set()),
             (Bool(True), set()),
