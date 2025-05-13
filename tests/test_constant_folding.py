@@ -1,7 +1,7 @@
 import pytest
-
 from constant_folding import constant_fold, CompileError
-from glucose import Program, Int, Bool, Var, Add, Subtract, Multiply, Div
+from glucose import Program, Int, Var, Add, Subtract, Multiply, Div
+from typing import Any
 
 @pytest.mark.parametrize(
     "prog, expected",
@@ -19,13 +19,13 @@ from glucose import Program, Int, Bool, Var, Add, Subtract, Multiply, Div
         (Program([], Add(Multiply(Int(3), Int(0)), Div(Int(4), Int(2)))), Int(2)),
     ]
 )
-def test_constant_folding(prog, expected):
+def test_constant_folding(prog: Program, expected: Any) -> None:
     folded = constant_fold(prog)
     assert isinstance(folded.body, type(expected))
     if hasattr(expected, "value"):
-        assert getattr(folded.body, "value", None) == expected.value
+        assert getattr(folded.body, "value", None) == expected.value  # type: ignore[attr-defined]
     if hasattr(expected, "name"):
-        assert getattr(folded.body, "name", None) == expected.name
+        assert getattr(folded.body, "name", None) == expected.name  # type: ignore[attr-defined]
 
 @pytest.mark.parametrize(
     "prog",
@@ -33,6 +33,6 @@ def test_constant_folding(prog, expected):
         Program([], Div(Int(5), Int(0))),
     ]
 )
-def test_constant_folding_errors(prog):
+def test_constant_folding_errors(prog: Program) -> None:
     with pytest.raises(CompileError):
         constant_fold(prog) 

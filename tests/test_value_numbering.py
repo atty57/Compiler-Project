@@ -1,6 +1,7 @@
 import pytest
 from value_numbering import value_numbering, VNError
 from glucose import Program, Int, Bool, Var, Add
+from typing import Any, Callable
 
 @pytest.mark.parametrize(
     "prog, check",
@@ -27,16 +28,16 @@ from glucose import Program, Int, Bool, Var, Add
         ),
     ]
 )
-def test_value_numbering(prog, check):
+def test_value_numbering(prog: Program, check: Callable[[Any], bool]) -> None:
     vn = value_numbering(prog)
     assert check(vn)
 
-def test_vn_error_on_unrecognized():
+def test_vn_error_on_unrecognized() -> None:
     prog = Program([], Bool(True))
     with pytest.raises(VNError):
         value_numbering(prog)
 
-def test_pipeline_constant_fold_then_vn():
+def test_pipeline_constant_fold_then_vn() -> None:
     from constant_folding import constant_fold
     from glucose import Multiply, Div
     expr = Add(Multiply(Int(3), Int(0)), Div(Int(4), Int(2)))
