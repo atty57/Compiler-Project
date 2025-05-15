@@ -1,8 +1,6 @@
-# lower.py
 from collections.abc import Mapping
 from functools import partial
-from typing import cast
-from llvmlite import ir  # type: ignore
+from llvmlite import ir  # type:ignore
 
 from lactose import (
     Program,
@@ -23,11 +21,16 @@ from lactose import (
     Set,
     Copy,
     Global,
+    Unit,
+    Let,
+    If,
+    Apply,
+    Halt,
 )
 
 # Our target types: 1-bit for booleans and 64-bit for everything else.
-i1 = ir.IntType(1)
-i64 = ir.IntType(64)
+i1: ir.IntType = ir.IntType(1)
+i64: ir.IntType = ir.IntType(64)
 
 
 def lower(
@@ -106,6 +109,8 @@ def lower_statement(
 
         case Halt(value):  # pragma: no branch
             builder.ret(atom(value))  # type: ignore
+        case _:
+            pass
 
 
 def lower_expression(
@@ -114,8 +119,9 @@ def lower_expression(
     builder: ir.IRBuilder,
 ) -> ir.Value:
     # If the expression is an Atom, lower it directly.
-    if isinstance(expression, Atom):
+    if isinstance(expression, (Int, Var, Bool, Unit)):
         return lower_atom(expression, env, builder)
+    atom = partial(lower_atom, env=env, builder=builder)
 
     match expression:
         case Add(x, y):
@@ -148,10 +154,12 @@ def lower_expression(
             return builder.ptrtoint(base, typ=i64)  # type: ignore
 
         case Get(base, index):
-            return builder.load(
-                builder.gep(builder.inttoptr(atom(base), typ=i64.as_pointer()), [atom(index)]),
-                typ=i64,
-            )  # type: ignore
+            # Cast the integer base address to a pointer of type i64
+            cast_ptr = builder.inttoptr(atom(base), i64.as_pointer(), "cast_ptr")
+            # Compute the address of the desired element with inbounds GEP
+            gep_ptr = builder.gep(cast_ptr, [atom(index)], inbounds=True, source_etype=i64)
+            # Load the value with explicit type
+            return builder.load(gep_ptr, name="load_val", typ=i64)  # type: ignore
 
         case Set(base, index, value):
             builder.store(  # type: ignore
