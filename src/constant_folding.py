@@ -1,4 +1,3 @@
-from typing import Mapping
 from glucose import (
     Program,
     Expression,
@@ -11,9 +10,6 @@ from glucose import (
     Var,
     Bool,
     If,
-    LessThan,
-    EqualTo,
-    GreaterThanOrEqualTo,
     Tuple,
     Get,
     Set,
@@ -86,7 +82,13 @@ def _fold_expr(expr: Expression) -> Expression:
             return Div(x2, y2)
 
         case Let(name, value, body):
-            return Let(name, _fold_expr(value), _fold_expr(body))
+            folded_value = _fold_expr(value)
+            folded_body = _fold_expr(body)
+            # If the body is just the bound variable and value is constant,
+            # we can replace the whole let with the constant
+            if isinstance(folded_value, Int) and isinstance(folded_body, Var) and folded_body.name == name:
+                return folded_value
+            return Let(name, folded_value, folded_body)
 
         case If(c, t, e):
             c2, t2, e2 = _fold_expr(c), _fold_expr(t), _fold_expr(e)

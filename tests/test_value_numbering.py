@@ -1,7 +1,7 @@
 import pytest
 from value_numbering import value_numbering, VNError
 from glucose import Program, Int, Bool, Var, Add, Subtract, Multiply, Div, Let, If, Tuple, Get, Set, Do, Lambda, Apply
-from typing import Any
+from typing import Any, Callable
 
 
 @pytest.mark.parametrize(  # type: ignore
@@ -61,46 +61,52 @@ def test_pipeline_constant_fold_then_vn() -> None:
 def test_hash_expr_all_cases():
     # Each case in _hash_expr
     env = {}
-    assert "Int:1" == __import__('value_numbering')._hash_expr(Int(1), env)
-    assert "Var:x" == __import__('value_numbering')._hash_expr(Var("x"), env)
-    assert "Add(Int:1,Int:2)" == __import__('value_numbering')._hash_expr(Add(Int(1), Int(2)), env)
-    assert "Sub(Int:1,Int:2)" == __import__('value_numbering')._hash_expr(Subtract(Int(1), Int(2)), env)
-    assert "Mul(Int:1,Int:2)" == __import__('value_numbering')._hash_expr(Multiply(Int(1), Int(2)), env)
-    assert "Div(Int:1,Int:2)" == __import__('value_numbering')._hash_expr(Div(Int(1), Int(2)), env)
-    assert "If(Int:1;Int:2;Int:3)" == __import__('value_numbering')._hash_expr(If(Int(1), Int(2), Int(3)), env)
-    assert "Let(x=Int:1;Int:2)" == __import__('value_numbering')._hash_expr(Let("x", Int(1), Int(2)), env)
-    assert "Bool:True" == __import__('value_numbering')._hash_expr(Bool(True), env)
-    assert "Bool:False" == __import__('value_numbering')._hash_expr(Bool(False), env)
-    assert "Tup(Int:1,Int:2)" == __import__('value_numbering')._hash_expr(Tuple([Int(1), Int(2)]), env)
-    assert "Get(Int:1;Int:2)" == __import__('value_numbering')._hash_expr(Get(Int(1), Int(2)), env)
-    assert "Set(Int:1;Int:2;Int:3)" == __import__('value_numbering')._hash_expr(Set(Int(1), Int(2), Int(3)), env)
-    assert "Do(Int:1;Int:2)" == __import__('value_numbering')._hash_expr(Do(Int(1), Int(2)), env)
-    assert "Lam(x;Int:1)" == __import__('value_numbering')._hash_expr(Lambda(["x"], Int(1)), env)
-    assert "App(Int:1,Int:2)" == __import__('value_numbering')._hash_expr(Apply(Int(1), [Int(2)]), env)
+    assert "Int:1" == __import__("value_numbering")._hash_expr(Int(1), env)
+    assert "Var:x" == __import__("value_numbering")._hash_expr(Var("x"), env)
+    assert "Add(Int:1,Int:2)" == __import__("value_numbering")._hash_expr(Add(Int(1), Int(2)), env)
+    assert "Sub(Int:1,Int:2)" == __import__("value_numbering")._hash_expr(Subtract(Int(1), Int(2)), env)
+    assert "Mul(Int:1,Int:2)" == __import__("value_numbering")._hash_expr(Multiply(Int(1), Int(2)), env)
+    assert "Div(Int:1,Int:2)" == __import__("value_numbering")._hash_expr(Div(Int(1), Int(2)), env)
+    assert "If(Int:1;Int:2;Int:3)" == __import__("value_numbering")._hash_expr(If(Int(1), Int(2), Int(3)), env)
+    assert "Let(x=Int:1;Int:2)" == __import__("value_numbering")._hash_expr(Let("x", Int(1), Int(2)), env)
+    assert "Bool:True" == __import__("value_numbering")._hash_expr(Bool(True), env)
+    assert "Bool:False" == __import__("value_numbering")._hash_expr(Bool(False), env)
+    assert "Tup(Int:1,Int:2)" == __import__("value_numbering")._hash_expr(Tuple([Int(1), Int(2)]), env)
+    assert "Get(Int:1;Int:2)" == __import__("value_numbering")._hash_expr(Get(Int(1), Int(2)), env)
+    assert "Set(Int:1;Int:2;Int:3)" == __import__("value_numbering")._hash_expr(Set(Int(1), Int(2), Int(3)), env)
+    assert "Do(Int:1;Int:2)" == __import__("value_numbering")._hash_expr(Do(Int(1), Int(2)), env)
+    assert "Lam(x;Int:1)" == __import__("value_numbering")._hash_expr(Lambda(["x"], Int(1)), env)
+    assert "App(Int:1,Int:2)" == __import__("value_numbering")._hash_expr(Apply(Int(1), [Int(2)]), env)
+
     # Error case
-    class Dummy: pass
-    with pytest.raises(__import__('value_numbering').VNError):
-        __import__('value_numbering')._hash_expr(Dummy(), env)
+    class Dummy:
+        pass
+
+    with pytest.raises(__import__("value_numbering").VNError):
+        __import__("value_numbering")._hash_expr(Dummy(), env)
 
 
 def test_rebuild_all_cases():
     # Each case in _rebuild
     rec = lambda x: x
-    assert Add(Int(1), Int(2)) == __import__('value_numbering')._rebuild(Add(Int(1), Int(2)), rec)
-    assert Multiply(Int(1), Int(2)) == __import__('value_numbering')._rebuild(Multiply(Int(1), Int(2)), rec)
-    assert Div(Int(1), Int(2)) == __import__('value_numbering')._rebuild(Div(Int(1), Int(2)), rec)
-    assert Let("x", Int(1), Int(2)) == __import__('value_numbering')._rebuild(Let("x", Int(1), Int(2)), rec)
-    assert If(Int(1), Int(2), Int(3)) == __import__('value_numbering')._rebuild(If(Int(1), Int(2), Int(3)), rec)
-    assert Tuple([Int(1), Int(2)]) == __import__('value_numbering')._rebuild(Tuple([Int(1), Int(2)]), rec)
-    assert Get(Int(1), Int(2)) == __import__('value_numbering')._rebuild(Get(Int(1), Int(2)), rec)
-    assert Set(Int(1), Int(2), Int(3)) == __import__('value_numbering')._rebuild(Set(Int(1), Int(2), Int(3)), rec)
-    assert Do(Int(1), Int(2)) == __import__('value_numbering')._rebuild(Do(Int(1), Int(2)), rec)
-    assert Lambda(["x"], Int(1)) == __import__('value_numbering')._rebuild(Lambda(["x"], Int(1)), rec)
-    assert Apply(Int(1), [Int(2)]) == __import__('value_numbering')._rebuild(Apply(Int(1), [Int(2)]), rec)
-    assert Int(1) == __import__('value_numbering')._rebuild(Int(1), rec)
-    assert Var("x") == __import__('value_numbering')._rebuild(Var("x"), rec)
-    assert Bool(True) == __import__('value_numbering')._rebuild(Bool(True), rec)
+    assert Add(Int(1), Int(2)) == __import__("value_numbering")._rebuild(Add(Int(1), Int(2)), rec)
+    assert Multiply(Int(1), Int(2)) == __import__("value_numbering")._rebuild(Multiply(Int(1), Int(2)), rec)
+    assert Div(Int(1), Int(2)) == __import__("value_numbering")._rebuild(Div(Int(1), Int(2)), rec)
+    assert Let("x", Int(1), Int(2)) == __import__("value_numbering")._rebuild(Let("x", Int(1), Int(2)), rec)
+    assert If(Int(1), Int(2), Int(3)) == __import__("value_numbering")._rebuild(If(Int(1), Int(2), Int(3)), rec)
+    assert Tuple([Int(1), Int(2)]) == __import__("value_numbering")._rebuild(Tuple([Int(1), Int(2)]), rec)
+    assert Get(Int(1), Int(2)) == __import__("value_numbering")._rebuild(Get(Int(1), Int(2)), rec)
+    assert Set(Int(1), Int(2), Int(3)) == __import__("value_numbering")._rebuild(Set(Int(1), Int(2), Int(3)), rec)
+    assert Do(Int(1), Int(2)) == __import__("value_numbering")._rebuild(Do(Int(1), Int(2)), rec)
+    assert Lambda(["x"], Int(1)) == __import__("value_numbering")._rebuild(Lambda(["x"], Int(1)), rec)
+    assert Apply(Int(1), [Int(2)]) == __import__("value_numbering")._rebuild(Apply(Int(1), [Int(2)]), rec)
+    assert Int(1) == __import__("value_numbering")._rebuild(Int(1), rec)
+    assert Var("x") == __import__("value_numbering")._rebuild(Var("x"), rec)
+    assert Bool(True) == __import__("value_numbering")._rebuild(Bool(True), rec)
+
     # Error case
-    class Dummy: pass
-    with pytest.raises(__import__('value_numbering').VNError):
-        __import__('value_numbering')._rebuild(Dummy(), rec)
+    class Dummy:
+        pass
+
+    with pytest.raises(__import__("value_numbering").VNError):
+        __import__("value_numbering")._rebuild(Dummy(), rec)

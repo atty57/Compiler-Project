@@ -137,11 +137,16 @@ def test_convert_assignments_expression_multiply(
     "expr, vars, expected",
     list[tuple[sucrose.Expression, set[str], glucose.Expression]](
         [
-            (
-                Div(Int(0), Int(0)),
-                set(),
-                Div(Int(0), Int(0)),
-            ),
+            # Basic division
+            (Div(Int(0), Int(0)), set(), Div(Int(0), Int(0))),
+            # Division with variables
+            (Div(Var("x"), Int(1)), {"x"}, Div(Get(Var("x"), Int(0)), Int(1))),
+            # Division with mutable variable on right
+            (Div(Int(1), Var("y")), {"y"}, Div(Int(1), Get(Var("y"), Int(0)))),
+            # Division with both operands being mutable
+            (Div(Var("x"), Var("y")), {"x", "y"}, Div(Get(Var("x"), Int(0)), Get(Var("y"), Int(0)))),
+            # Division in let expressions
+            (Let("x", Int(1), Div(Var("x"), Int(2))), set(), Let("x", Int(1), Div(Var("x"), Int(2)))),
         ]
     ),
 )
