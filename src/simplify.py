@@ -4,6 +4,7 @@ import fructose
 from fructose import LetStar, LetRec, Not, And, Or, Cond, Cell, Begin, While
 import sucrose
 from sucrose import Int, Var, Bool, If, Unit, Tuple, Do, Lambda, Apply, Assign
+from typing import Any
 
 
 def simplify(
@@ -281,3 +282,59 @@ def simplify_expression(
 
         case Assign(name, value):  # pragma: no branch
             return Assign(name, recur(value))
+
+        case fructose.Match(expr, arms):
+            def lower_arm(arms: list[tuple[Any, Any]]) -> sucrose.Expression:
+                if not arms:
+                    # No match: error or unit
+                    return sucrose.Unit()
+                pat, body = arms[0]
+                rest = arms[1:]
+                # Pattern matching logic
+                match pat:
+                    case fructose.PatternInt(v):
+                        cond = sucrose.EqualTo(recur(expr), sucrose.Int(v))
+                        return sucrose.If(cond, recur(body), lower_arm(rest))
+                    case fructose.PatternTrue():
+                        cond = sucrose.EqualTo(recur(expr), sucrose.Bool(True))
+                        return sucrose.If(cond, recur(body), lower_arm(rest))
+                    case fructose.PatternFalse():
+                        cond = sucrose.EqualTo(recur(expr), sucrose.Bool(False))
+                        return sucrose.If(cond, recur(body), lower_arm(rest))
+                    case fructose.PatternUnit():
+                        cond = sucrose.EqualTo(recur(expr), sucrose.Unit())
+                        return sucrose.If(cond, recur(body), lower_arm(rest))
+                    case fructose.PatternVar(name):
+                        # Bind variable to value and evaluate body
+                        return sucrose.Let(name, recur(expr), recur(body))
+                    case fructose.PatternWildcard():
+                        return recur(body)
+                    case fructose.PatternCons(constructor, subpatterns):
+                        # Only handling tuple patterns for now
+                        if constructor == 'tuple':
+                            # Destructure expr into its components
+                            tuple_var = fresh('tuple')
+                            lets = []
+                            for i, subpat in enumerate(subpatterns):
+                                elem_var = fresh(f'elem{i}')
+                                lets.append((elem_var, sucrose.Get(recur(expr), sucrose.Int(i))))
+                            # Recursively match subpatterns
+                            def nest_patterns(subs, lets, body):
+                                if not subs:
+                                    return recur(body)
+                                subpat, *rest_subs = subs
+                                let_name, let_val = lets[0]
+                                rest_lets = lets[1:]
+                                # Recursively match subpattern
+                                return lower_arm([(subpat, nest_patterns(rest_subs, rest_lets, body))])
+                            # Build let bindings for tuple elements
+                            let_expr = recur(expr)
+                            for name, val in reversed(lets):
+                                let_expr = sucrose.Let(name, val, let_expr)
+                            # Now match subpatterns
+                            return sucrose.Let(tuple_var, recur(expr), nest_patterns(subpatterns, lets, body))
+                        else:
+                            raise NotImplementedError(f"Constructor pattern not supported: {constructor}")
+                    case _:
+                        raise NotImplementedError(f"Pattern not supported: {pat}")
+            return lower_arm(arms)

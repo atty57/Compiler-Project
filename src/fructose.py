@@ -247,3 +247,45 @@ class Descending:
 class NonAscending:
     operands: Sequence[TypingAny]
     __match_args__ = ("operands",)
+
+
+@dataclass(frozen=True)
+class Match:
+    expr: TypingAny
+    arms: Sequence[tuple[TypingAny, TypingAny]]
+
+
+@dataclass(frozen=True)
+class PatternVar:
+    name: str
+
+
+@dataclass(frozen=True)
+class PatternInt:
+    value: int
+
+
+@dataclass(frozen=True)
+class PatternTrue:
+    pass
+
+
+@dataclass(frozen=True)
+class PatternFalse:
+    pass
+
+
+@dataclass(frozen=True)
+class PatternUnit:
+    pass
+
+
+@dataclass(frozen=True)
+class PatternWildcard:
+    pass
+
+
+@dataclass(frozen=True)
+class PatternCons:
+    constructor: str
+    patterns: Sequence[TypingAny]

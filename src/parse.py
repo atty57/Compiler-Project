@@ -40,6 +40,14 @@ from fructose import (
     Lambda,
     Apply,
     Assign,
+    Match,
+    PatternVar,
+    PatternInt,
+    PatternTrue,
+    PatternFalse,
+    PatternUnit,
+    PatternWildcard,
+    PatternCons,
 )
 
 
@@ -64,6 +72,19 @@ class AstTransformer(Transformer[Token, Any]):
         value: int,
     ) -> Int:
         return Int(value)
+
+    def string_expr(
+        self,
+        value,
+    ) -> str:
+        # Accepts either a Token or a Tree
+        if hasattr(value, 'children') and value.children:
+            # Lark Tree: get the first child (Token)
+            value = value.children[0]
+        s = str(value)
+        if s.startswith('"') and s.endswith('"'):
+            return s[1:-1]
+        return s
 
     @v_args(inline=False)
     def add_expr(
@@ -178,6 +199,51 @@ class AstTransformer(Transformer[Token, Any]):
         default: Expression,
     ) -> Cond[Expression, Expression, Expression]:
         return Cond(arms, default)
+    # PATTERN MATCHING 
+    def match_expr(
+        self,
+        expr: Expression,
+        arms: Sequence[tuple[Any, Expression]],
+    ) -> Match:
+        return Match(expr, arms)
+
+    @v_args(inline=False)
+    def match_arms(
+        self,
+        arms: Sequence[tuple[Any, Expression]],
+    ) -> Sequence[tuple[Any, Expression]]:
+        return arms
+
+    def match_arm(
+        self,
+        pattern: Any,
+        expr: Expression,
+    ) -> tuple[Any, Expression]:
+        return (pattern, expr)
+
+    def pattern_var(self, name: str) -> PatternVar:
+        return PatternVar(name)
+
+    def pattern_int(self, value: int) -> PatternInt:
+        return PatternInt(value)
+
+    def pattern_true(self) -> PatternTrue:
+        return PatternTrue()
+
+    def pattern_false(self) -> PatternFalse:
+        return PatternFalse()
+
+    def pattern_unit(self) -> PatternUnit:
+        return PatternUnit()
+
+    def pattern_wildcard(self) -> PatternWildcard:
+        return PatternWildcard()
+
+    @v_args(inline=False)
+    def pattern_cons(self, items: list[Any]) -> PatternCons:
+        constructor: str = items[0]
+        subpatterns: list[Any] = items[1:]
+        return PatternCons(constructor, subpatterns)
 
     @v_args(inline=False)
     def arms(

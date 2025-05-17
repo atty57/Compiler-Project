@@ -1,8 +1,11 @@
+identifier: IDENTIFIER
+
 program: "(" _PROGRAM "(" parameters* ")" expr ")"
 
 parameters: identifier*
 
 expr: int                                                           -> int_expr
+    | string                                                      -> string_expr
     | "(" _ADD expr* ")"                                            -> add_expr
     | "(" _SUBTRACT expr+ ")"                                       -> subtract_expr
     | "(" _MULTIPLY expr* ")"                                       -> multiply_expr
@@ -32,6 +35,7 @@ expr: int                                                           -> int_expr
     | "(" expr expr* ")"                                            -> apply_expr
     | "(" _LAMBDA "(" parameters ")" expr ")"                       -> lambda_expr
     | "(" _ASSIGN identifier expr ")"                               -> assign_expr
+    | "(" _MATCH expr match_arms ")"                                -> match_expr
 
 bindings: binding*
 binding: "(" identifier expr ")"
@@ -40,7 +44,7 @@ arms: arm*
 arm: "(" expr expr ")"
 
 int: INT
-identifier: IDENTIFIER
+string: STRING
 
 _PROGRAM.2: "program"
 
@@ -68,8 +72,9 @@ _BEGIN.2: "begin"
 _WHILE.2: "while"
 _LAMBDA.2: "abs" | "lambda" | "\\"
 _ASSIGN.2: "set!"
+_MATCH.2: "match"
 
-INT.2: ("0".."9")+
+INT.2: "-"? ("0".."9")+
 
 _TRUE.2: "#t"
 _FALSE.2: "#f"
@@ -81,4 +86,17 @@ IDENTIFIER: /[^\W\d][_\-'\w]*/
 WS: /[ \t\f\r\n]/+
 
 %ignore WS
+
+match_arms: match_arm*
+match_arm: "(" pattern expr ")"
+
+pattern: identifier                              -> pattern_var
+       | int                                     -> pattern_int
+       | _TRUE                                   -> pattern_true
+       | _FALSE                                  -> pattern_false
+       | _UNIT                                   -> pattern_unit
+       | "_"                                     -> pattern_wildcard
+       | "(" identifier pattern* ")"             -> pattern_cons
+
+STRING.2: "\"" (/[^"]*/) "\""
 
