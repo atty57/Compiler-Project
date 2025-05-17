@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from functools import partial
 import fructose
-from fructose import LetStar, LetRec, Not, And, Or, Cond, Cell, Begin, While
+from fructose import LetStar, LetRec, Not, And, Or, Cond, Cell, Begin, While, Match, Expression
 import sucrose
 from sucrose import Int, Var, Bool, If, Unit, Tuple, Do, Lambda, Apply, Assign
 from typing import Any
@@ -283,7 +283,9 @@ def simplify_expression(
         case Assign(name, value):  # pragma: no branch
             return Assign(name, recur(value))
 
-        case fructose.Match(expr, arms):
+        case Match() as match_expr:
+            expr, arms = match_expr.expr, match_expr.arms
+
             def lower_arm(arms: list[tuple[Any, Any]]) -> sucrose.Expression:
                 if not arms:
                     # No match: error or unit
@@ -311,13 +313,14 @@ def simplify_expression(
                         return recur(body)
                     case fructose.PatternCons(constructor, subpatterns):
                         # Only handling tuple patterns for now
-                        if constructor == 'tuple':
+                        if constructor == "tuple":
                             # Destructure expr into its components
-                            tuple_var = fresh('tuple')
+                            tuple_var = fresh("tuple")
                             lets = []
-                            for i, subpat in enumerate(subpatterns):
-                                elem_var = fresh(f'elem{i}')
+                            for i, _ in enumerate(subpatterns):
+                                elem_var = fresh(f"elem{i}")
                                 lets.append((elem_var, sucrose.Get(recur(expr), sucrose.Int(i))))
+
                             # Recursively match subpatterns
                             def nest_patterns(subs, lets, body):
                                 if not subs:
@@ -327,6 +330,7 @@ def simplify_expression(
                                 rest_lets = lets[1:]
                                 # Recursively match subpattern
                                 return lower_arm([(subpat, nest_patterns(rest_subs, rest_lets, body))])
+
                             # Build let bindings for tuple elements
                             let_expr = recur(expr)
                             for name, val in reversed(lets):
@@ -337,4 +341,5 @@ def simplify_expression(
                             raise NotImplementedError(f"Constructor pattern not supported: {constructor}")
                     case _:
                         raise NotImplementedError(f"Pattern not supported: {pat}")
+
             return lower_arm(arms)

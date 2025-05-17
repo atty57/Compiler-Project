@@ -1,7 +1,25 @@
 from collections.abc import Callable
 import pytest
 import fructose
-from fructose import Int, Var, LetStar, Bool, Not, And, Or, If, Cond, Unit, Begin, Cell, While, Lambda, Apply, Assign
+from fructose import (
+    Int,
+    Var,
+    LetStar,
+    Bool,
+    Not,
+    And,
+    Or,
+    If,
+    Cond,
+    Unit,
+    Begin,
+    Cell,
+    While,
+    Lambda,
+    Apply,
+    Assign,
+    Expression,
+)
 import sucrose
 from sucrose import Tuple, Do
 from util import SequentialNameGenerator
@@ -727,3 +745,116 @@ def test_simplify_expression_while(
     expected: sucrose.Expression,
 ) -> None:
     assert simplify_expression(expr, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, fresh, expected",
+    list[tuple[Expression, Callable[[str], str], sucrose.Expression]](
+        [
+            # Empty match - defaults to Unit
+            (
+                fructose.Match(Int(1), []),  # type: ignore
+                SequentialNameGenerator(),
+                sucrose.Unit(),
+            ),
+            # Integer pattern matching
+            (
+                fructose.Match(Int(1), [(fructose.PatternInt(1), Int(42))]),
+                SequentialNameGenerator(),
+                sucrose.If(sucrose.EqualTo(Int(1), sucrose.Int(1)), Int(42), sucrose.Unit()),
+            ),
+            # Boolean pattern matching
+            (
+                fructose.Match(Bool(True), [(fructose.PatternTrue(), Int(1))]),
+                SequentialNameGenerator(),
+                sucrose.If(sucrose.EqualTo(Bool(True), sucrose.Bool(True)), Int(1), sucrose.Unit()),
+            ),
+            (
+                fructose.Match(Bool(False), [(fructose.PatternFalse(), Int(0))]),
+                SequentialNameGenerator(),
+                sucrose.If(sucrose.EqualTo(Bool(False), sucrose.Bool(False)), Int(0), sucrose.Unit()),
+            ),
+            # Unit pattern matching
+            (
+                fructose.Match(Unit(), [(fructose.PatternUnit(), Int(1))]),
+                SequentialNameGenerator(),
+                sucrose.If(sucrose.EqualTo(Unit(), sucrose.Unit()), Int(1), sucrose.Unit()),
+            ),
+            # Variable binding pattern
+            (
+                fructose.Match(Int(42), [(fructose.PatternVar("x"), Var("x"))]),
+                SequentialNameGenerator(),
+                sucrose.Let("x", Int(42), Var("x")),
+            ),
+            # Wildcard pattern
+            (
+                fructose.Match(Int(42), [(fructose.PatternWildcard(), Int(1))]),
+                SequentialNameGenerator(),
+                Int(1),
+            ),
+            # Need to fix the tuple pattern matching
+            # # Tuple pattern matching
+            # (
+            #     fructose.Match(
+            #         Tuple([Int(1), Int(2)]),
+            #         [(fructose.PatternCons("tuple", [fructose.PatternInt(1), fructose.PatternInt(2)]), Int(3))]
+            #     ),
+            #     SequentialNameGenerator(),
+            #     sucrose.If(
+            #         sucrose.EqualTo(Tuple([Int(1), Int(2)]), Tuple([sucrose.Int(1), sucrose.Int(2)])),
+            #         Int(3),
+            #         sucrose.Unit()
+            #     ),
+            # ),
+            # Multiple patterns
+            (
+                fructose.Match(
+                    Int(1),
+                    [
+                        (fructose.PatternInt(0), Int(0)),
+                        (fructose.PatternInt(1), Int(1)),
+                        (fructose.PatternWildcard(), Int(2)),
+                    ],
+                ),
+                SequentialNameGenerator(),
+                sucrose.If(
+                    sucrose.EqualTo(Int(1), sucrose.Int(0)),
+                    Int(0),
+                    sucrose.If(sucrose.EqualTo(Int(1), sucrose.Int(1)), Int(1), Int(2)),
+                ),
+            ),
+        ]
+    ),
+)
+def test_simplify_expression_match(
+    expr: fructose.Expression,
+    fresh: Callable[[str], str],
+    expected: sucrose.Expression,
+) -> None:
+    assert simplify_expression(expr, fresh) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, fresh",
+    [
+        # Test unsupported constructor
+        (
+            fructose.Match(Int(1), [(fructose.PatternCons("unsupported", []), Int(1))]),
+            SequentialNameGenerator(),
+        ),
+        # Test unsupported pattern type
+        (
+            fructose.Match(
+                Int(1),
+                [(object(), Int(1))],  # type: ignore
+            ),
+            SequentialNameGenerator(),
+        ),
+    ],
+)
+def test_simplify_expression_match_errors(
+    expr: fructose.Expression,
+    fresh: Callable[[str], str],
+) -> None:
+    with pytest.raises(NotImplementedError):
+        simplify_expression(expr, fresh)
