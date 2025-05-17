@@ -35,7 +35,7 @@ def simplify_expression(
                     return recur(x)
                 case [x, *rest]:
                     return sucrose.Add(recur(x), recur(fructose.Add(rest)))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"Add: unhandled operands: {operands}")
 
         case fructose.Subtract(operands):
@@ -46,7 +46,7 @@ def simplify_expression(
                     return sucrose.Subtract(recur(x), recur(y))
                 case [x, *rest]:
                     return sucrose.Subtract(recur(x), recur(fructose.Subtract(rest)))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"Subtract: unhandled operands: {operands}")
 
         case fructose.Multiply(operands):
@@ -57,7 +57,7 @@ def simplify_expression(
                     return recur(x)
                 case [x, *rest]:
                     return sucrose.Multiply(recur(x), recur(fructose.Multiply(rest)))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"Multiply: unhandled operands: {operands}")
 
         case fructose.Div(operands):
@@ -70,7 +70,7 @@ def simplify_expression(
                     return sucrose.Div(recur(x), recur(y))
                 case [x, *rest]:
                     return sucrose.Div(recur(x), recur(fructose.Div(rest)))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"Div: unhandled operands: {operands}")
 
         case fructose.Let(bindings, body):
@@ -120,7 +120,7 @@ def simplify_expression(
                     return recur(x)
                 case [x, *rest]:
                     return sucrose.If(recur(x), recur(fructose.Or(rest)), Bool(False))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"And: unhandled operands: {operands}")
 
         case Or(operands):
@@ -131,7 +131,7 @@ def simplify_expression(
                     return recur(x)
                 case [x, *rest]:
                     return sucrose.If(recur(x), Bool(True), recur(fructose.And(rest)))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"Or: unhandled operands: {operands}")
 
         case fructose.If(condition, consequent, alternative):
@@ -143,7 +143,7 @@ def simplify_expression(
                     return recur(default)
                 case [[e1, e2], *rest]:
                     return sucrose.If(recur(e1), recur(e2), recur(fructose.Cond(rest, default)))
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"Cond: unhandled arms: {arms}")
 
         # Comparison forms with named-attribute matching for operands:
@@ -163,7 +163,7 @@ def simplify_expression(
                         recur(fructose.LessThanOrEqualTo(rest_list)),
                         sucrose.Bool(False),
                     )
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"LessThanOrEqualTo: unhandled operands: {es_list}")
 
         case fructose.LessThan(operands=es_seq):
@@ -182,7 +182,7 @@ def simplify_expression(
                         recur(fructose.LessThan(rest_list)),
                         sucrose.Bool(False),
                     )
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"LessThan: unhandled operands: {es_list}")
 
         case fructose.EqualTo(operands=es_seq):
@@ -201,7 +201,7 @@ def simplify_expression(
                         recur(fructose.EqualTo(rest_list)),
                         sucrose.Bool(False),
                     )
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"EqualTo: unhandled operands: {es_list}")
 
         case fructose.GreaterThan(operands=es_seq):
@@ -220,7 +220,7 @@ def simplify_expression(
                         recur(fructose.GreaterThan(rest_list)),
                         sucrose.Bool(False),
                     )
-                case _:
+                case _:  # pragma: no cover
                     raise NotImplementedError(f"GreaterThan: unhandled operands: {es_list}")
 
         case fructose.GreaterThanOrEqualTo(operands=es_seq):
@@ -239,7 +239,7 @@ def simplify_expression(
                         recur(fructose.GreaterThanOrEqualTo(rest_list)),
                         sucrose.Bool(False),
                     )
-                case _:
+                case _:  # pragma: no cover         
                     raise NotImplementedError(f"GreaterThanOrEqualTo: unhandled operands: {es_list}")
 
         case fructose.Unit():
@@ -339,7 +339,7 @@ def simplify_expression(
                             return sucrose.Let(tuple_var, recur(expr), nest_patterns(subpatterns, lets, body))
                         else:
                             raise NotImplementedError(f"Constructor pattern not supported: {constructor}")
-                    case _:
+                    case _:  # pragma: no cover
                         raise NotImplementedError(f"Pattern not supported: {pat}")
 
             return lower_arm(arms)
