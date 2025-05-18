@@ -11,6 +11,7 @@ from hoist import hoist
 from lower import lower
 from constant_folding import constant_fold
 from value_numbering import value_numbering
+from type_inference import infer_types, TypeError as TypeInferenceError
 
 from util import SequentialNameGenerator
 
@@ -18,6 +19,12 @@ from util import SequentialNameGenerator
 def compile(source: str) -> Module:
     fresh = SequentialNameGenerator()
     program = parse(source)
+    # Type inference phase
+    try:
+        infer_types(program)
+    except TypeInferenceError as e:
+        print(f"Type error: {e}")
+        exit(1)
     program = simplify(program, fresh)
     program = convert_assignments(program)
     program = uniqify(program, fresh)
