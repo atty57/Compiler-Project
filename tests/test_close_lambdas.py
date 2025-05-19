@@ -33,6 +33,7 @@ from close_lambdas import (
     free_variables_statement,
     free_variables_expression,
     free_variables_atom,
+    close_expression,
 )
 from typing import cast
 
@@ -632,3 +633,41 @@ def test_free_variables_statement_apply(
     expected: set[str],
 ) -> None:
     assert free_variables_statement(stmt) == expected
+
+
+@pytest.mark.parametrize(
+    "expr, expected_type",
+    [
+        (Add(Int(1), Int(2)), Add),
+        (Subtract(Int(1), Int(2)), Subtract),
+        (Multiply(Int(1), Int(2)), Multiply),
+        (Div(Int(1), Int(2)), Div),
+        (LessThan(Int(1), Int(2)), LessThan),
+        (EqualTo(Int(1), Int(2)), EqualTo),
+        (GreaterThanOrEqualTo(Int(1), Int(2)), GreaterThanOrEqualTo),
+        (Tuple([Int(1), Int(2)]), Tuple),
+        (Get(Var("x"), Int(0)), Get),
+        (Set(Var("x"), Int(0), Int(1)), Set),
+        (Copy(Int(1)), Copy),
+        (Int(1), Int),
+        (Var("x"), Var),
+        (Bool(True), Bool),
+        (Unit(), Unit),
+    ]
+)
+def test_close_expression_cases(expr, expected_type):
+    fresh = SequentialNameGenerator()
+    result = close_expression(expr, fresh)
+    assert isinstance(result, expected_type)
+
+
+def test_close_expression_lambda_with_fvs():
+    fresh = SequentialNameGenerator()
+    # Lambda with a free variable 'y'
+    lam = Lambda(["x"], Let("z", Var("y"), Halt(Var("z"))))
+    closed = close_expression(lam, fresh)
+    assert isinstance(closed, Lambda)
+    # The closed lambda should have an extra env parameter
+    assert closed.parameters[0].startswith("_t")
+    # The body should contain a Let for the free variable 'y'
+    assert any(isinstance(closed.body, Let) and closed.body.name == "y" for _ in [0])
