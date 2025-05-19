@@ -1,118 +1,62 @@
 from __future__ import annotations
 from typing import Dict, List, Set
 from fructose import (
-    Program,
-    Expression,
-    Int,
-    Var,
-    Bool,
-    Not,
-    And,
-    Or,
-    If,
-    Cond,
-    Unit,
-    Lambda,
-    Apply,
-    Let,
-    LetStar,
-    LetRec,
-    Assign,
-    Subtract,
-    Add,
-    Multiply,
-    Div,
-    LessThanOrEqualTo,
-    LessThan,
-    EqualTo,
-    GreaterThan,
-    GreaterThanOrEqualTo,
-    Cell,
-    Get,
-    Set,
-    Begin,
-    While,
+    Program, Expression, Int, Var, Bool, Not, And, Or, If, Cond, Unit, Lambda, Apply, Let, LetStar, LetRec, Assign, Subtract, Add, Multiply, Div, LessThanOrEqualTo, LessThan, EqualTo, GreaterThan, GreaterThanOrEqualTo, Cell, Get, Set, Begin, While
 )
-
+import builtins
 
 # --- Type System ---
 class Type:
     pass
 
-
 class TypeVar(Type):
     _next_id = 0
-
     def __init__(self):
         self.id = TypeVar._next_id
         TypeVar._next_id += 1
-
     def __repr__(self):
         return f"t{self.id}"
-
     def __eq__(self, other: object) -> bool:
         return isinstance(other, TypeVar) and self.id == other.id
-
     def __hash__(self):
         return hash(self.id)
 
-
 class IntType(Type):
-    def __repr__(self):
-        return "Int"
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, IntType)
-
-    def __hash__(self):
-        return hash("IntType")
-
+    def __repr__(self): return "Int"
+    def __eq__(self, other: object) -> bool: return isinstance(other, IntType)
+    def __hash__(self): return hash("IntType")
 
 class BoolType(Type):
-    def __repr__(self):
-        return "Bool"
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, BoolType)
-
-    def __hash__(self):
-        return hash("BoolType")
-
+    def __repr__(self): return "Bool"
+    def __eq__(self, other: object) -> bool: return isinstance(other, BoolType)
+    def __hash__(self): return hash("BoolType")
 
 class UnitType(Type):
-    def __repr__(self):
-        return "Unit"
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, UnitType)
-
-    def __hash__(self):
-        return hash("UnitType")
-
+    def __repr__(self): return "Unit"
+    def __eq__(self, other: object) -> bool: return isinstance(other, UnitType)
+    def __hash__(self): return hash("UnitType")
 
 class FunType(Type):
     def __init__(self, arg_types: List[Type], ret_type: Type):
         self.arg_types = arg_types
         self.ret_type = ret_type
-
     def __repr__(self):
         return f"({' -> '.join(map(str, self.arg_types))} -> {self.ret_type})"
-
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, FunType) and self.arg_types == other.arg_types and self.ret_type == other.ret_type
-
+        return (
+            isinstance(other, FunType)
+            and self.arg_types == other.arg_types
+            and self.ret_type == other.ret_type
+        )
     def __hash__(self):
         return hash((tuple(self.arg_types), self.ret_type))
-
 
 # --- Type Environment ---
 TypeEnv = Dict[str, Type]
 
-
 # --- Unification ---
 class TypeError(Exception):
     pass
-
 
 def occurs_check(tv: TypeVar, t: Type, subst: Dict[TypeVar, Type]) -> bool:
     t = prune(t, subst)
@@ -123,14 +67,12 @@ def occurs_check(tv: TypeVar, t: Type, subst: Dict[TypeVar, Type]) -> bool:
     else:
         return False
 
-
 def prune(t: Type, subst: Dict[TypeVar, Type]) -> Type:
     if isinstance(t, TypeVar) and t in subst:
         real = prune(subst[t], subst)
         subst[t] = real
         return real
     return t
-
 
 def unify(t1: Type, t2: Type, subst: Dict[TypeVar, Type]):
     t1 = prune(t1, subst)
@@ -156,23 +98,33 @@ def unify(t1: Type, t2: Type, subst: Dict[TypeVar, Type]):
     else:
         raise TypeError(f"Type mismatch: {t1} vs {t2}")
 
+# --- Generalization/Instantiation ---
+def free_type_vars(t: Type, subst: Dict[TypeVar, Type]) -> builtins.set[TypeVar]:
+    t = prune(t, subst)
+    if isinstance(t, TypeVar):
+        return builtins.set([t])
+    elif isinstance(t, FunType):
+        s: builtins.set[TypeVar] = builtins.set()
+        for arg in t.arg_types:
+            s.update(builtins.set(list(free_type_vars(arg, subst))))
+        s.update(builtins.set(list(free_type_vars(t.ret_type, subst))))
+        return s
+    else:
+        return builtins.set()
 
-def free_type_vars_env(env: TypeEnv, subst: Dict[TypeVar, Type]) -> Set[TypeVar]:
-    s = set()
+def free_type_vars_env(env: TypeEnv, subst: Dict[TypeVar, Type]) -> builtins.set[TypeVar]:
+    s: builtins.set[TypeVar] = builtins.set()
     for t in env.values():
-        s |= free_type_vars(t, subst)
+        s.update(builtins.set(list(free_type_vars(t, subst))))
     return s
-
 
 def generalize(t: Type, env: TypeEnv, subst: Dict[TypeVar, Type]) -> Type:
     # For simplicity, we do not implement explicit polymorphism in this first version
     return t
 
-
 def instantiate(t: Type, subst: Dict[TypeVar, Type]) -> Type:
     # For simplicity, we do not implement explicit polymorphism in this first version
     return t
-
 
 # --- Type Inference ---
 def infer_expr(expr: Expression, env: TypeEnv, subst: Dict[TypeVar, Type]) -> Type:
@@ -237,6 +189,19 @@ def infer_expr(expr: Expression, env: TypeEnv, subst: Dict[TypeVar, Type]) -> Ty
             new_env[name] = t
         t_body = infer_expr(expr.body, new_env, subst)
         return FunType(param_types, t_body)
+    if isinstance(expr, Apply):
+        t_fun = infer_expr(expr.callee, env, subst)
+        arg_types = [infer_expr(arg, env, subst) for arg in expr.arguments]
+        t_ret = TypeVar()
+        unify(t_fun, FunType(arg_types, t_ret), subst)
+        return t_ret
+    if isinstance(expr, Assign):
+        # Assignment is only allowed for variables already in the environment
+        if expr.name not in env:
+            raise TypeError(f"Assignment to unbound variable: {expr.name}")
+        t_val = infer_expr(expr.value, env, subst)
+        unify(env[expr.name], t_val, subst)
+        return UnitType()
     if isinstance(expr, Cond):
         # Each arm is (cond, expr)
         t_result = TypeVar()
@@ -248,13 +213,7 @@ def infer_expr(expr: Expression, env: TypeEnv, subst: Dict[TypeVar, Type]) -> Ty
         t_default = infer_expr(expr.default, env, subst)
         unify(t_result, t_default, subst)
         return t_result
-    if (
-        isinstance(expr, LessThanOrEqualTo)
-        or isinstance(expr, LessThan)
-        or isinstance(expr, EqualTo)
-        or isinstance(expr, GreaterThan)
-        or isinstance(expr, GreaterThanOrEqualTo)
-    ):
+    if isinstance(expr, LessThanOrEqualTo) or isinstance(expr, LessThan) or isinstance(expr, EqualTo) or isinstance(expr, GreaterThan) or isinstance(expr, GreaterThanOrEqualTo):
         for arg in expr.operands:
             t = infer_expr(arg, env, subst)
             unify(t, IntType(), subst)
@@ -263,13 +222,25 @@ def infer_expr(expr: Expression, env: TypeEnv, subst: Dict[TypeVar, Type]) -> Ty
         # Mutable cell, just check the value
         infer_expr(expr.value, env, subst)
         return UnitType()
-    if type(expr) is While:
+    if isinstance(expr, Get):
+        # For now, just check the cell
+        infer_expr(expr.cell, env, subst)
+        return IntType()  # Could be more general
+    if isinstance(expr, Set):
+        infer_expr(expr.cell, env, subst)
+        infer_expr(expr.value, env, subst)
+        return UnitType()
+    if isinstance(expr, Begin):
+        t = UnitType()
+        for e in expr.operands:
+            t = infer_expr(e, env, subst)
+        return t
+    if isinstance(expr, While):
         t_cond = infer_expr(expr.condition, env, subst)
         unify(t_cond, BoolType(), subst)
         infer_expr(expr.body, env, subst)
         return UnitType()
     raise TypeError(f"Unknown expression: {expr}")
-
 
 def infer_types(program: Program) -> Dict[str, Type]:
     subst: Dict[TypeVar, Type] = {}
@@ -279,6 +250,5 @@ def infer_types(program: Program) -> Dict[str, Type]:
     result = {param: prune(t, subst) for param, t in env.items()}
     result["$result"] = prune(t_body, subst)
     return result
-
 
 # For testing: TypeError is raised on type errors
