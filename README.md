@@ -1,8 +1,4 @@
 # 471c Compiler Project
-![coverage](https://gitlab.eecis.udel.edu/clause/471c/badges/main/coverage.svg?job=pytest)
-
-![job status](https://gitlab.eecis.udel.edu/clause/471c/badges/main/pipeline.svg?ignore_skipped=true)
-
 
 ## Project Overview
 
@@ -10,7 +6,7 @@ This project is a compiler for a custom functional/imperative programming langua
 
 ---
 
-## Major Extensions & Final Report
+## Major Extensions
 
 ### 1. Safe Division by Zero
 - **What Changed:**
