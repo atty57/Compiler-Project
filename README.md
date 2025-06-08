@@ -1,5 +1,4 @@
 # 471c Compiler Project
-
 ## Project Overview
 
 This project is a compiler for a custom functional/imperative programming language ("Fructose"). It is designed as a modular, extensible pipeline that takes source code through parsing, type inference, optimization, and code generation to LLVM IR, which can then be executed natively. The project demonstrates advanced compiler construction techniques and language design.
